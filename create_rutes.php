@@ -15,7 +15,11 @@
          Using this hosted file will make sure we are kept up
          to date with any necessary changes -->
     <script src="Openmap.js"></script>
- 
+
+    <script src="init_maps.js"></script>
+    <script src="get_satellite_map.js"></script>
+    <script src="get_zones_and_bases.js"></script>
+
     <script type="text/javascript">
 // Start position for the map (hardcoded here for simplicity)
 var lat=55.398;
@@ -36,194 +40,23 @@ var row_picked=0;
 var base_layer=0;
 var base=0;
 var point_base;
-//Initialise the 'map' object
+//Initialise the map and add zones and bases from the database
 function init() {
-    // the basic map object
-    map = new OpenLayers.Map ("map", {
-        controls:[
-            new OpenLayers.Control.Navigation(),
-            new OpenLayers.Control.PanZoomBar(),
-            new OpenLayers.Control.Permalink(),
-            new OpenLayers.Control.ScaleLine({geodesic: true}),
-            new OpenLayers.Control.Permalink('permalink'),
-            new OpenLayers.Control.MousePosition(),                    
-            new OpenLayers.Control.Attribution()
-        ],
-        maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
-        maxResolution: 156543.0339,
-        numZoomLevels: 19,
-        units: 'm',
-        projection: new OpenLayers.Projection("EPSG:900913"),
-        displayProjection: new OpenLayers.Projection("EPSG:4326"),
-    });
-    // zonelayer functionality
-
-    // adds the layers for points marking zones and base
-    zoneLayer = new OpenLayers.Layer.Vector("Zone Layer");
-    map.addLayers([zoneLayer]);
-    baseLayer = new OpenLayers.Layer.Vector("Base Layer");
-    map.addLayers([baseLayer]);
-    // adds the map layer from mapnik
-    var layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
-    map.addLayer(layerMapnik);
-            
-    // This is the layer that uses the locally stored OSM tiles 
-    var newLayer = new OpenLayers.Layer.OSM("Local tiles", "tiles/odense/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
-    map.addLayer(newLayer);
-
-    // This is the layer that uses the locally stored satellite tiles
-    var newLayer2 = new OpenLayers.Layer.TMS("Local satellite tiles", "tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL,visibility: 0});
-    map.addLayer(newLayer2);
-    if (OpenLayers.Util.alphaHack() == false) {
-        newLayer2.setOpacity(0.7);
-    }
-    // initialize the handler for drawing the zones and the base
-    
-    // moves the map to the correct position
-    if( ! map.getCenter() ){
-        var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-        map.setCenter (lonLat, zoom);
-        // for displaying the current zoom level
-        var zoomLevel = map.getZoom();
-        document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
-    }
-    // registers when zoom level is changed and updates zoom display
-    map.events.register("zoomend", map, zoomChanged);
-    function zoomChanged(){
-        var zoomLevel = map.getZoom();
-        document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
-    }
+    // creates the basic map object and the tile, zone and base Layers. 
+    // Sets the map center and adds a event register for change in zoom level
+    init_rutes_map();  
 
     add_zones(); // add zones to map on page initialization
-    add_bases();
-    get_base();
-    //rutes(4, 880, 1000, 880, 1000);
+    add_bases(); // add bases to map on page initialization
+    get_base(); // writes the base information to a global variable
+    //rutes(4, 880, 1000, 880, 1000); NOT IN USE
 }
 
-// picks the tiles for the satelitte map
-function getURL(bounds) {
-    bounds = this.adjustBounds(bounds);
-    var res = this.getServerResolution();
-    var x = Math.round((bounds.left - this.tileOrigin.lon) / (res * this.tileSize.w));
-    var y = Math.round((bounds.bottom - this.tileOrigin.lat) / (res * this.tileSize.h));
-    var z = map.getZoom();
-    var path = this.serviceVersion + "/" + this.layername + "/" + z + "/" + x + "/" + y + "." + this.type; 
-    var url = this.url;
-    if (OpenLayers.Util.isArray(url)) {
-        url = this.selectUrl(path, url);
+function zoomChanged(){
+        // updates the zoom level display
+        var zoomLevel = map.getZoom();
+        document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
     }
-    if (z >= mapMinZoom && z <= mapMaxZoom) {
-        document.getElementById("demo").innerHTML = x;
-        return url + path;
-    } 
-    else {
-        return emptyTileURL;
-    }
-} 
-// handles the map controls 
-function toggleControl(element) {
-    for(key in drawControls) {
-        var control = drawControls[key];
-        if(element.value == key && element.checked) {
-            control.activate();
-        } 
-        else {
-            control.deactivate();
-        }
-    }
-    if(element.value == 'del_zone' && element.checked) {
-        delete_z=1;
-    }  
-    else{
-        delete_z=0;
-    }
-    if(element.value == 'del_base' && element.checked) {
-        delete_b=1;
-    }  
-    else{
-        delete_b=0;
-    }
-    if(element.value == 'base' && element.checked) {
-        base_layer=1;
-    }  
-    else{
-        base_layer=0;
-    }
-}
-
-function get_base(){
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            base = xmlhttp.responseText.split(" ");         
-        }
-    }
-    xmlhttp.open("GET","get_bases.php",true);
-    xmlhttp.send(); 
-}
-// sets the radius of the zones
-// corrects the distance to match the mercator projection (not exact)
-// for (re)adding all zones in the database to the map
-function add_zones(){
-    zoneLayer.removeAllFeatures();
-    var zones;
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            zones = xmlhttp.responseText.split(" ");
-            var zones_num = zones.length;
-            for (var i=0; i<(zones_num-1)/5; i++){
-                var lon_new = zones[i*5+1];
-                var lat_new = zones[i*5+2];
-                var radius_in_m = zones[i*5+3];
-                var lonLat = new OpenLayers.LonLat(lon_new,lat_new).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
-                var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
-                var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point,radius,50,0);
-                var featurecircle = new OpenLayers.Feature.Vector(mycircle);
-                if (zones[i*5+4] == 0){
-                    featurecircle.style = {fillColor: "red", fillOpacity: 0.4, strokeColor:"red",label: zones[i*5], fontSize: 10};
-                    featurecircle.attributes["type"]="notset";
-                    }
-                else{
-                    featurecircle.style = {fillColor: "green", fillOpacity: 0.4, strokeColor:"green",label: zones[i*5], fontSize: 10};
-                    featurecircle.attributes["type"]="set";
-                }
-                featurecircle.attributes["ID"]=zones[i*5];
-                zoneLayer.addFeatures([featurecircle]);
-            }        
-        }
-    }
-    xmlhttp.open("GET","get_zones.php",true);
-    xmlhttp.send();
-}
-
-function add_bases(){
-    baseLayer.removeAllFeatures();
-    var bases;
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            bases = xmlhttp.responseText.split(" ");           
-            var bases_num = bases.length;
-            for (var i=0; i<(bases_num-1)/4; i++){ 
-                var lon_new = bases[i*4+1];
-                var lat_new = bases[i*4+2];
-                var radius_in_m = bases[i*4+3];
-                var lonLat = new OpenLayers.LonLat(lon_new,lat_new).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
-                var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
-                var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point,radius,4,0);
-                var featurecircle = new OpenLayers.Feature.Vector(mycircle);
-                featurecircle.style = {fillColor: "red", fillOpacity: 0.4, strokeColor:"red"};
-                featurecircle.attributes["type"]="notset";
-                baseLayer.addFeatures([featurecircle]); 
-            }        
-        }
-    }
-    xmlhttp.open("GET","get_bases.php",true);
-    xmlhttp.send();
-}
 
 /*
 function rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_start){
@@ -344,6 +177,7 @@ function add_zone_to_rute(){
 */
 
 function remove_lines(){
+    // remove the lines connecting the zones of a given rute. Lines are drawn on the zoneLayer.
     for (var i=0; i<zoneLayer.features.length; i++){
         if (zoneLayer.features[i].attributes["type"] == "lines"){
             zoneLayer.removeFeatures(zoneLayer.features[i]);
@@ -352,18 +186,20 @@ function remove_lines(){
 }
 
 function draw_lines(row){
-    remove_lines();
+    // draw the lines connecting the zones of a chosen rute. Lines are drawn on the zoneLayer.
+    remove_lines(); // remove the old ones
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
             zones = xmlhttp.responseText.split(" ");
-            var points = [];
+            var points = []; // for carrying the points that are to be connected by lines
             var lon_base = base[1];
             var lat_base = base[2];
             var lonLat = new OpenLayers.LonLat(lon_base,lat_base).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
             point_base = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
             points.push(point_base);
             for (var j=0; j<row.cells.length; j++){
+                // find the points belonging to the chosen rute.
                 for (var zone=0; zone<zones.length; zone++){
                     if (zones[5*zone]==row.cells[j].innerHTML && row.cells[j].innerHTML != ""){
                         var lon_zone = zones[zone*5+1];
@@ -375,10 +211,10 @@ function draw_lines(row){
                 }
             }
             points.push(point_base);
-            var feature = new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString(points));
+            var feature = new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString(points)); // the actual lines feature (all lines are drawn as one object)
             feature.attributes["type"] = "lines";
             zoneLayer.addFeatures([feature]);
-            show_dist(row, points);
+            show_dist(row, points); // updates the distance info of the chosen rute
         }
     }
     xmlhttp.open("GET","get_zones.php",true);
@@ -387,15 +223,19 @@ function draw_lines(row){
 
 
 function add_manual(){
-    var zone1 = document.getElementById("add_zone1").value;
+    // function for manually adding a rute by specifying a set of zone ids. No validity checks are done.
+    var zone1 = document.getElementById("add_zone1").value; // get the value of the entry
     var zone2 = document.getElementById("add_zone2").value;
     var zone3 = document.getElementById("add_zone3").value;
     var zone4 = document.getElementById("add_zone4").value;
     var zone5 = document.getElementById("add_zone5").value;
     zone_array = [zone1,zone2,zone3,zone4,zone5];
-    var table = document.getElementById("chosen_rutes");
-    var row = table.insertRow(-1);
+    var table = document.getElementById("chosen_rutes"); // get the table object from the UI
+    var row = table.insertRow(-1); // add a new row at the end
     row.onclick = function() {
+        // upon cliking on a rute the coloring of the table is changed accordingly.
+        // The zones belonging to the rute is colored orange on the map and finally lines are drawn.
+        // If a rute was already chosen the old zones are returned to their original color
         var rows = table.rows;
         for (i=0; i<rows.length; i++){
             if(rows[i].getAttribute("value") != "edit"){
@@ -430,12 +270,13 @@ function add_manual(){
         draw_lines(row);
     };
     for (var i=0; i<5; i++){
+        // puts the values into the table
         if (zone_array[i] != ''){
             var cell = row.insertCell(i);
             cell.innerHTML = zone_array[i];      
         }
     }
-    document.getElementById("add_zone1").value = "";
+    document.getElementById("add_zone1").value = ""; // reset the entry values to blank
     document.getElementById("add_zone2").value = "";
     document.getElementById("add_zone3").value = "";
     document.getElementById("add_zone4").value = "";
@@ -443,27 +284,32 @@ function add_manual(){
 }
  
 function show_dist(rute, points){
-    table = document.getElementById("dist");
-    table.deleteTHead(0);
+    // calculates the distance between each zone (and total distance) and puts the result in a table
+    table = document.getElementById("dist"); // get the table
+    table.deleteTHead(0); // delete the old stuff
     if (table.rows.length > 0){
         table.deleteRow(0);
     }  
-    var header = table.createTHead();
-    var row = header.insertRow(0);
-    var row2 = table.insertRow(-1);
+    var header = table.createTHead(); // create the new stuff
+    var row = header.insertRow(0); // header row
+    var row2 = table.insertRow(-1); // distance row
     for (var i=0; i<rute.cells.length; i++){
         if (i==0){
+            // the distance from base to the first zone
             var cell = row.insertCell(-1).innerHTML = 'base - ' + rute.cells[i].innerHTML;
             var dist = points[i].distanceTo(points[i+1]);
             row2.insertCell(-1).innerHTML = (dist*Math.cos(lat*(Math.PI/180))/1000).toFixed(2);
         }
         else if(i==rute.cells.length-1){
+            // distance between the second last and the last zone
             row.insertCell(-1).innerHTML = rute.cells[i-1].innerHTML + ' - ' + rute.cells[i].innerHTML;
             var dist = points[i].distanceTo(points[i+1]);
             row2.insertCell(-1).innerHTML = (dist*Math.cos(lat*(Math.PI/180))/1000).toFixed(2);
+            // distance between the last zone and the base
             row.insertCell(-1).innerHTML = rute.cells[i].innerHTML + ' - base';
             var dist = points[i+1].distanceTo(points[i+2]);
             row2.insertCell(-1).innerHTML = (dist*Math.cos(lat*(Math.PI/180))/1000).toFixed(2);
+            // the total distance
             row.insertCell(-1).innerHTML = 'total distance';
             var dist=0;
             for (var i=0; i<points.length-1; i++){
@@ -472,6 +318,7 @@ function show_dist(rute, points){
             row2.insertCell(-1).innerHTML = (dist*Math.cos(lat*(Math.PI/180))/1000).toFixed(2);
         }
         else{
+            // the distance between the middle zones
             row.insertCell(-1).innerHTML = rute.cells[i-1].innerHTML + ' - ' + rute.cells[i].innerHTML;
             var dist = points[i].distanceTo(points[i+1]);
             row2.insertCell(-1).innerHTML = (dist*Math.cos(lat*(Math.PI/180))/1000).toFixed(2);
@@ -480,6 +327,7 @@ function show_dist(rute, points){
 }
 
 function delete_chosen(){
+    // removes a rute from the list (table)
     var table = document.getElementById("chosen_rutes");
     for (i=0; i<table.rows.length; i++){
         if (table.rows[i].getAttribute("value") == "p"){
@@ -489,6 +337,7 @@ function delete_chosen(){
 }
 
 function edit_chosen(){
+    // for chosing a rute to edit. 
     var table = document.getElementById("chosen_rutes");
     for (i=0; i<table.rows.length; i++){
         if (table.rows[i].getAttribute("value") == "edit"){
@@ -506,6 +355,7 @@ function edit_chosen(){
 }
 
 function save_edit(){
+    // for re-saving a rute after edit 
     var zone1 = document.getElementById("edit_zone1").value;
     var zone2 = document.getElementById("edit_zone2").value;
     var zone3 = document.getElementById("edit_zone3").value;
@@ -566,7 +416,5 @@ function save_edit(){
         
     </div>
         
-
 </body>
- 
 </html>
