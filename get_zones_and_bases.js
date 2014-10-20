@@ -55,6 +55,7 @@ function add_bases(){
                 var featurecircle = new OpenLayers.Feature.Vector(mycircle);
                 featurecircle.style = {fillColor: "red", fillOpacity: 0.4, strokeColor:"red"};
                 featurecircle.attributes["type"]="notset";
+                featurecircle.attributes["ID"]="base";
                 baseLayer.addFeatures([featurecircle]); 
             }        
         }

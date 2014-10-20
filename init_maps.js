@@ -73,7 +73,6 @@ function init_zone_map(){
         eventListeners: {
         featureover: function(e) { // style change when hovering zone
             if (e.feature.attributes["type"] != "perim"){
-                
                 e.feature.style = {fillColor: "blue", fillOpacity: 0.4, strokeColor: "blue",label: e.feature.attributes["ID"], fontSize: 10};
                 e.feature.layer.drawFeature(e.feature);
             }
