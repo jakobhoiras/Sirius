@@ -15,6 +15,10 @@
          Using this hosted file will make sure we are kept up
          to date with any necessary changes -->
     <script src="Openmap.js"></script>
+
+    <script src="init_maps.js"></script>
+    <script src="get_satellite_map.js"></script>
+    <script src="get_zones_and_bases.js"></script>
  
     <script type="text/javascript">
 // Start position for the map (hardcoded here for simplicity)
@@ -38,203 +42,24 @@ var base=0;
 var point_base;
 //Initialise the 'map' object
 function init() {
-    // the basic map object
-    map = new OpenLayers.Map ("map", {
-        controls:[
-            new OpenLayers.Control.Navigation(),
-            new OpenLayers.Control.PanZoomBar(),
-            new OpenLayers.Control.Permalink(),
-            new OpenLayers.Control.ScaleLine({geodesic: true}),
-            new OpenLayers.Control.Permalink('permalink'),
-            new OpenLayers.Control.MousePosition(),                    
-            new OpenLayers.Control.Attribution()
-        ],
-        maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
-        maxResolution: 156543.0339,
-        numZoomLevels: 19,
-        units: 'm',
-        projection: new OpenLayers.Projection("EPSG:900913"),
-        displayProjection: new OpenLayers.Projection("EPSG:4326"),
-        eventListeners: {
-        featureover: function(e) { // style change when hovering zone
-            if (e.feature.attributes["type"] != "perim"){
-                e.feature.style = {fillColor: "blue", fillOpacity: 0.4, strokeColor: "blue",label: e.feature.style.label, fontSize: 10};
-                e.feature.layer.drawFeature(e.feature);
-            }
-        },
-        featureout: function(e) { // style change when not hovering zone
-            if (e.feature.attributes["type"] != "perim"){
-                e.feature.style = {fillColor: "red", fillOpacity: 0.4, strokeColor: "red",label: e.feature.style.label, fontSize: 10};
-                e.feature.layer.drawFeature(e.feature);
-                if (e.feature.attributes["type"]=="set"){
-                    e.feature.style = {fillColor: "green", fillOpacity: 0.4, strokeColor: "green",label: e.feature.style.label, fontSize: 10};
-                    e.feature.layer.drawFeature(e.feature);
-                }
-            }
-        }
-    }
-    });
-    // zonelayer functionality
-    var layerListeners = {
-        featureclick: function(e) { // action when zone is clicked. the zone is removed if the delete control is set
-            if (delete_z == 1 && e.feature.geometry.getVertices().length == 50) {
-                if (e.feature.attributes["type"] != "perim"){
-                    area_map_units = e.feature.geometry.getArea(); 
-                    radius_map_units = Math.sqrt(area_map_units / Math.PI); 
-                    var radius_in_m = Math.ceil(radius_map_units * Math.cos(lat*(Math.PI/180)));
-                    var center = e.feature.geometry.getCentroid().transform(map.projection, map.displayProjection);
-                    update_zones_in_db(center.x, center.y, radius_in_m, 'delete_zone');         
-                    zoneLayer.removeFeatures( [ e.feature ] );
-                    get_zones_from_db();
-                    return false;
-                }
-            }
-            else if (delete_b == 1 && e.feature.geometry.getVertices().length == 4) {
-                area_map_units = e.feature.geometry.getArea();
-                side_map_units = Math.sqrt(area_map_units);
-                radius_map_units = Math.sqrt(2 * Math.pow(side_map_units,2)) / 2
-                var radius_in_m = Math.ceil(radius_map_units * Math.cos(lat*(Math.PI/180)));
-                radius_in_m = 10 * Math.round(radius_in_m / 10.0);
-                var center = e.feature.geometry.getCentroid().transform(map.projection, map.displayProjection);
-                update_zones_in_db(center.x, center.y, radius_in_m, 'delete_base');         
-                baseLayer.removeFeatures( [ e.feature ] );
-                get_bases_from_db();
-                return false;
-            }
-        },
-        featureadded: function(e) { // Checks if a zone is linked to an assignment and sets atrributes accordingly
-            if (typeof(e.feature.attributes["type"])=="undefined"){
-                e.feature.attributes["type"]="notset";
-            }
-            if (typeof(e.feature.attributes["ID"])=="undefined"){
-                var zones;
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.onreadystatechange=function() {
-                    if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-                        zones = xmlhttp.responseText.split(" ");
-                        var zones_num = zones.length;
-                        e.feature.attributes["ID"]=zones[zones_num-6];
-                    }
-                }
-                xmlhttp.open("GET","get_zones.php",true);
-                xmlhttp.send();
-            }
-            //document.getElementById("zoom").innerHTML = 'Zoom Level: ' + e.feature.layer;
-            if (base_layer == 1 && e.feature.layer.features.length > 1){
-                return alert("you now have " + e.feature.layer.features.length + " base(s).");
-            }
-        }
-    };
-
-    // adds the layers for points marking zones and base
-    zoneLayer = new OpenLayers.Layer.Vector("Zone Layer", {eventListeners: layerListeners});
-    map.addLayers([zoneLayer]);
-    baseLayer = new OpenLayers.Layer.Vector("Base Layer", {eventListeners: layerListeners});
-    map.addLayers([baseLayer]);
-    // adds the map layer from mapnik
-    var layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
-    map.addLayer(layerMapnik);
-            
-    // This is the layer that uses the locally stored OSM tiles 
-    var newLayer = new OpenLayers.Layer.OSM("Local tiles", "tiles/odense/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
-    map.addLayer(newLayer);
-
-    // This is the layer that uses the locally stored satellite tiles
-    var newLayer2 = new OpenLayers.Layer.TMS("Local satellite tiles", "tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL,visibility: 0});
-    map.addLayer(newLayer2);
-    if (OpenLayers.Util.alphaHack() == false) {
-        newLayer2.setOpacity(0.7);
-    }
-    // initialize the handler for drawing the zones and the base
-    drawControls = { 
-        zone: new OpenLayers.Control.DrawFeature(zoneLayer, OpenLayers.Handler.RegularPolygon, { 
-            handlerOptions: {
-                sides: 50
-            }
-        }),
-        base: new OpenLayers.Control.DrawFeature(baseLayer, OpenLayers.Handler.RegularPolygon, { 
-            handlerOptions: {
-                sides: 4
-            }
-        })
-    };
-    // updates database and interface table when a zone is created
-    drawControls['zone'].handler.callbacks.create = function(data) {
-        area_map_units = data.getArea();
-        radius_map_units = Math.sqrt(area_map_units / Math.PI); 
-        var radius_in_m = Math.ceil(radius_map_units * Math.cos(lat*(Math.PI/180)));
-        var center = data.getCentroid().transform(map.projection, map.displayProjection);
-        update_zones_in_db(center.x, center.y, radius_in_m, 'save');
-        get_zones_from_db();
-    };
-
-    drawControls['base'].handler.callbacks.create = function(data) {
-        area_map_units = data.getArea();
-        side_map_units = Math.sqrt(area_map_units);
-        radius_map_units = Math.sqrt(2 * Math.pow(side_map_units,2)) / 2
-        var radius_in_m = Math.ceil(radius_map_units * Math.cos(lat*(Math.PI/180)));
-        radius_in_m = 10 * Math.round(radius_in_m / 10.0);
-        var center = data.getCentroid().transform(map.projection, map.displayProjection);
-        update_zones_in_db(center.x, center.y, radius_in_m, 'saveBase');
-        get_bases_from_db();
-    }
-
-    for(var key in drawControls) { // adds the controls to the map object
-        map.addControl(drawControls[key]);
-    }
-
-    // controls for switching maps/layers
- 	var switcherControl = new OpenLayers.Control.LayerSwitcher();
-	map.addControl(switcherControl);
-	switcherControl.maximizeControl();
-            
-    // moves the map to the correct position
-    if( ! map.getCenter() ){
-        var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-        map.setCenter (lonLat, zoom);
-        // for displaying the current zoom level
-        var zoomLevel = map.getZoom();
-        document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
-    }
-    // registers when zoom level is changed and updates zoom display
-    map.events.register("zoomend", map, zoomChanged);
-    function zoomChanged(){
-        var zoomLevel = map.getZoom();
-        document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
-    }
-    document.getElementById('noneToggle').checked = true; // sets control to map navigation
-
+    // creates the basic map object and the tile, zone and base Layers. 
+    // Sets the map center and adds a event register for change in zoom level.
+    // Also listeners for handling hovering, dehovering and clicking zones as well as
+    // controls for drawing and deleting zones and bases are added
+    init_zone_map();
     get_zones_from_db(); // updates zone table on page initialization
     add_zones(); // add zones to map on page initialization
     add_bases();
     get_bases_from_db();
     get_base();
-    //rutes(4, 880, 1000, 880, 1000);
 }
 
-// picks the tiles for the satelitte map
-function getURL(bounds) {
-    bounds = this.adjustBounds(bounds);
-    var res = this.getServerResolution();
-    var x = Math.round((bounds.left - this.tileOrigin.lon) / (res * this.tileSize.w));
-    var y = Math.round((bounds.bottom - this.tileOrigin.lat) / (res * this.tileSize.h));
-    var z = map.getZoom();
-    var path = this.serviceVersion + "/" + this.layername + "/" + z + "/" + x + "/" + y + "." + this.type; 
-    var url = this.url;
-    if (OpenLayers.Util.isArray(url)) {
-        url = this.selectUrl(path, url);
-    }
-    if (z >= mapMinZoom && z <= mapMaxZoom) {
-        document.getElementById("demo").innerHTML = x;
-        return url + path;
-    } 
-    else {
-        return emptyTileURL;
-    }
-} 
+
 // handles the map controls 
 function toggleControl(element) {
+    // handle controls and set variables for determining listeners action
     for(key in drawControls) {
+        // activate new control and deactivate old control
         var control = drawControls[key];
         if(element.value == key && element.checked) {
             control.activate();
@@ -243,6 +68,7 @@ function toggleControl(element) {
             control.deactivate();
         }
     }
+    // variables for use in init_maps.js
     if(element.value == 'del_zone' && element.checked) {
         delete_z=1;
     }  
@@ -263,17 +89,16 @@ function toggleControl(element) {
     }
 }
 
-
-// sets the radius of the zones
-// corrects the distance to match the mercator projection (not exact)
 function setSize(radius_in_m) {
+    // sets the radius of the zones
+    // corrects the distance to match the mercator projection (not exact)
     var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
     drawControls['zone'].handler.setOptions({radius: radius, angle: 0});
     drawControls['base'].handler.setOptions({radius: radius, angle: 0});
 }
 
-// for adding a zone with GPS coordinates
 function add_zone(){
+    // for adding a zone by specifying GPS coordinates
     var lat_new = document.getElementById('lat').value;
     var lon_new = document.getElementById('lon').value;
     var lonLat = new OpenLayers.LonLat(lon_new,lat_new).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
@@ -287,74 +112,12 @@ function add_zone(){
     zoneLayer.addFeatures([featurecircle]);
     get_zones_from_db();
 }
-// for (re)adding all zones in the database to the map
-function add_zones(){
-    zoneLayer.removeAllFeatures();
-    var zones;
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            zones = xmlhttp.responseText.split(" ");
-            var zones_num = zones.length;
-            for (var i=0; i<(zones_num-1)/5; i++){
-                var lon_new = zones[i*5+1];
-                var lat_new = zones[i*5+2];
-                var radius_in_m = zones[i*5+3];
-                var lonLat = new OpenLayers.LonLat(lon_new,lat_new).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
-                var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
-                var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point,radius,50,0);
-                var featurecircle = new OpenLayers.Feature.Vector(mycircle);
-                if (zones[i*5+4] == 0){
-                    featurecircle.style = {fillColor: "red", fillOpacity: 0.4, strokeColor:"red",label: zones[i*5], fontSize: 10};
-                    featurecircle.attributes["type"]="notset";
-                    }
-                else{
-                    featurecircle.style = {fillColor: "green", fillOpacity: 0.4, strokeColor:"green",label: zones[i*5], fontSize: 10};
-                    featurecircle.attributes["type"]="set";
-                }
-                featurecircle.attributes["ID"]=zones[i*5];
-                zoneLayer.addFeatures([featurecircle]);
-            }        
-        }
-    }
-    xmlhttp.open("GET","get_zones.php",true);
-    xmlhttp.send();
-}
 
-function add_bases(){
-    baseLayer.removeAllFeatures();
-    var bases;
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            bases = xmlhttp.responseText.split(" ");           
-            var bases_num = bases.length;
-            for (var i=0; i<(bases_num-1)/4; i++){ 
-                var lon_new = bases[i*4+1];
-                var lat_new = bases[i*4+2];
-                var radius_in_m = bases[i*4+3];
-                var lonLat = new OpenLayers.LonLat(lon_new,lat_new).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
-                var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
-                var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point,radius,4,0);
-                var featurecircle = new OpenLayers.Feature.Vector(mycircle);
-                featurecircle.style = {fillColor: "red", fillOpacity: 0.4, strokeColor:"red"};
-                featurecircle.attributes["type"]="notset";
-                baseLayer.addFeatures([featurecircle]); 
-            }        
-        }
-    }
-    xmlhttp.open("GET","get_bases.php",true);
-    xmlhttp.send();
-}
-
-// updates the database with a new zone
 function update_zones_in_db(centerX, centerY, radius, a) {
+    // delete or add a zone or a base
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            //document.getElementById("zoom").innerHTML=xmlhttp.responseText;
         }
     }
     if (a == 'save' || a == 'delete_zone' || a == 'saveBase' || a == 'delete_base'){
@@ -362,8 +125,9 @@ function update_zones_in_db(centerX, centerY, radius, a) {
         xmlhttp.send();
     } 
 }
-// retrieves the zones from the database. includes a recall to the function if nothing has changed.
+
 function get_zones_from_db(){
+    // retrieves the zones from the database. includes a recall to the function if nothing has changed.
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
@@ -381,6 +145,7 @@ function get_zones_from_db(){
 }
 
 function get_bases_from_db(){
+   // gets the number of bases 
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
@@ -397,47 +162,32 @@ function get_bases_from_db(){
     xmlhttp.send();
 }
 
-function get_base(){
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            base = xmlhttp.responseText.split(" ");         
-        }
-    }
-    xmlhttp.open("GET","get_bases.php",true);
-    xmlhttp.send(); 
-}
 
-// is currently not used
-function get_zone_link_from_db(zoneID){
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            var res = xmlhttp.responseText;
-        }
-    }
-    xmlhttp.open("GET","get_zone_link.php?zID=" + zoneID ,true);
-    xmlhttp.send();
-    return res;
-}
-// for linking zones to assignments
 function submit_assign(){
+    // for linking zones to assignments. Should be extended so that multiple assignments can be linked to one zone. 
     var zoneID = document.getElementById("zoneID").innerHTML.split(" ")[1];
     var assID = document.getElementById("assID").value;
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            //document.getElementById("zoom").innerHTML=xmlhttp.responseText;
         }
     }
     xmlhttp.open("GET","update_zones.php?x=" + zoneID + "&y=" + assID + "&r=1&a=link",true);
     xmlhttp.send();
-    get_zones_from_db();
-    zoneLayer.removeAllFeatures();
-    add_zones();
+    for (var i=0; i<zoneLayer.features.length; i++){
+        // change the color of the linked zone
+        if (zoneLayer.features[i].attributes["ID"] == zoneID && assID != 0){
+            zoneLayer.features[i].attributes["type"] = 'set';
+            zoneLayer.features[i].style.fillColor = 'green';
+            zoneLayer.features[i].style.strokeColor = 'green';
+            zoneLayer.drawFeature(zoneLayer.features[i]);
+        }   
+    }
+    get_zones_from_db(); // updates the table.
 }
-// for controlling style and graphics when chosing a zone in the table
+
 function pick_row(i, assID){
+    // for controlling style and graphics when chosing a zone in the table
     document.getElementById("row" + i).style.background = "blue";
     document.getElementById("row" + i).setAttribute("value", 'p');
     document.getElementById("zoneID").innerHTML = "Zone " + (i) + " links to ";
@@ -460,137 +210,22 @@ function pick_row(i, assID){
                 else if (zoneLayer.features[j].attributes["type"]=='set'){
                     zoneLayer.features[j].style = {fillColor: "green", fillOpacity: 0.4, strokeColor: "green",label: zoneLayer.features[j].style.label, fontSize: 10};
                 }
-                zoneLayer.features[j].layer.redraw();
+                zoneLayer.drawFeature(zoneLayer.features[j]);
             }
         }
     }
     row_picked = i;
 }
-// for controlling style and graphics when hovering a zone in the table
+
 function temppick_row(i){
+    // for controlling style and graphics when hovering a zone in the table
     document.getElementById("row" + i).style.background = "blue";
 }
-// for controlling style and graphics when dehovering a zone in the table
+
 function unpick_row(i){
+    // for controlling style and graphics when dehovering a zone in the table
     if (document.getElementById("row" + i).getAttribute("value") == 'np'){
         document.getElementById("row" + i).style.background = "white";
-    }
-}
-
-
-function rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_start){
-    console.log('inside');
-    var zones;
-    document.getElementById("zoom").innerHTML='rutes';
-    var rutes = [];
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange=function() {
-        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            zones = xmlhttp.responseText.split(" ");
-            var zones_num = zones.length;
-            for (var rute_point=0; rute_point<num_zones; rute_point++){
-                rutes_new = [];
-                if (rute_point == 0){
-                    var lon_base = base[1];
-                    var lat_base = base[2];
-                    var lonLat = new OpenLayers.LonLat(lon_base,lat_base).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                    point_base = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
-                    var radius_small = min_dist_start/Math.cos(lat*(Math.PI/180));
-                    var radius_big = max_dist_start/Math.cos(lat*(Math.PI/180));
-                    var mycircle_small = OpenLayers.Geometry.Polygon.createRegularPolygon(point_base,radius_small,50,0);
-                    var mycircle_big = OpenLayers.Geometry.Polygon.createRegularPolygon(point_base,radius_big,50,0);
-                    var featurecircle_small = new OpenLayers.Feature.Vector(mycircle_small);
-                    var featurecircle_big = new OpenLayers.Feature.Vector(mycircle_big);
-                    featurecircle_small.style = {fillOpacity: 0.0, strokeColor:"black", strokeDashstyle: 'dash'};
-                    featurecircle_big.style = {fillOpacity: 0.0, strokeColor:"black", strokeDashstyle: 'dash'};
-                    featurecircle_small.attributes["type"]="perim";
-                    featurecircle_big.attributes["type"]="perim";
-                    baseLayer.addFeatures([featurecircle_small,featurecircle_big]); 
-                    for (var zone=0; zone<(zones_num-1)/5; zone++){                    
-                        var lon_zone = zones[zone*5+1];
-                        var lat_zone = zones[zone*5+2];
-                        var lonLat2 = new OpenLayers.LonLat(lon_zone,lat_zone).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                        var point2 = new OpenLayers.Geometry.Point(lonLat2.lon, lonLat2.lat);
-                        if (point_base.distanceTo(point2)*Math.cos(lat*(Math.PI/180)) < max_dist_start && point_base.distanceTo(point2)*Math.cos(lat*(Math.PI/180)) > min_dist_start){
-                            rutes.push([[zones[zone*5],point2]]);
-                        }
-                    }
-                }
-                else{
-                    var rutes_num = rutes.length;
-                    for (var zone_count=0; zone_count<rutes_num; zone_count++){
-                        for (var zone=0; zone<(zones_num-1)/5; zone++){
-                            var old_rute=0;
-                            var lon_zone = zones[zone*5+1];
-                            var lat_zone = zones[zone*5+2];
-                            var lonLat = new OpenLayers.LonLat(lon_zone,lat_zone).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                            var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
-                            if (rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) < max_dist && rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) > min_dist){
-                                not_in_rute=true;
-                                for (var i=0; i<rutes[zone_count].length;i++){
-                                    if (rutes[zone_count][i][0] == zones[zone*5]){
-                                        not_in_rute=false;
-                                    }
-                                }
-                                if (not_in_rute == true){
-                                    old_rute = rutes[zone_count];
-                                    new_rute = old_rute.concat([[zones[zone*5],point]]);
-                                    rutes_new.push(new_rute);
-                                }
-                            }
-                        }
-                    }
-                    rutes = rutes_new;
-                }
-            }
-         display_rutes(rutes);      
-        }
-    }
-    xmlhttp.open("GET","get_zones.php",true);
-    xmlhttp.send();
-}
-
-function display_rutes(rutes){
-    console.log(rutes);
-    var table = document.getElementById("table");
-    var header = table.createTHead();
-    for (var i=0; i<rutes.length; i++){
-        var row = header.insertRow(i);
-        var dist = point_base.distanceTo(rutes[i][0][1]);
-        for (var j=0; j<rutes[i].length; j++){    
-            var cell = row.insertCell(j);
-            cell.innerHTML = rutes[i][j][0];
-            if (j != 0){
-                dist += rutes[i][j-1][1].distanceTo(rutes[i][j][1]);
-            }
-            if (j == rutes[i].length-1){
-                var cell = row.insertCell(j+1);
-                cell.innerHTML = (dist*Math.cos(lat*(Math.PI/180))).toFixed(0);
-            }
-        }
-    }
-}
-
-function add_rute(){
-    //var header = table.createTHead();
-    var table = document.getElementById("table");
-    var row = table.insertRow(-1);
-    for (var i=0; i<4; i++){
-        var cell = row.insertCell(0);
-        cell.innerHTML = 'not set';
-    }
-}
-
-function add_zone_to_rute(){
-    var ZoneID = document.getElementById("addToRute").value;
-    var table = document.getElementById("table");
-    for (var i = 0; i<table.rows.length; i++){
-        for (var j = 0; j<table.rows[i].cells.length; j++){
-            if (table.rows[i].cells[j].innerHTML == 'not set'){
-                table.rows[i].cells[j].innerHTML = ZoneID;
-                return true;
-            }
-        }
     }
 }
 
@@ -661,8 +296,6 @@ function add_zone_to_rute(){
         <table id="table" style="border: 1px solid black"><table>
         
     </div>
-        
 
 </body>
- 
 </html>
