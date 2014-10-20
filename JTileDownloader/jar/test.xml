@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<entry key="Type">BBoxLatLon</entry>
+<entry key="OutputLocation">tiles</entry>
+<entry key="TileServer">http://a.tile.openstreetmap.org</entry>
+<entry key="MaxLat">48.2</entry>
+<entry key="MaxLon">12.86</entry>
+<entry key="MinLat">48.11</entry>
+<entry key="OutputZoomLevel">8,9</entry>
+<entry key="MinLon">12.77</entry>
+</properties>

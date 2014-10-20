@@ -11,7 +11,6 @@ function getURL(bounds) {
         url = this.selectUrl(path, url);
     }
     if (z >= mapMinZoom && z <= mapMaxZoom) {
-        document.getElementById("demo").innerHTML = x;
         return url + path;
     } 
     else {
