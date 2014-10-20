@@ -73,16 +73,17 @@ function init_zone_map(){
         eventListeners: {
         featureover: function(e) { // style change when hovering zone
             if (e.feature.attributes["type"] != "perim"){
-                e.feature.style = {fillColor: "blue", fillOpacity: 0.4, strokeColor: "blue",label: e.feature.style.label, fontSize: 10};
+                
+                e.feature.style = {fillColor: "blue", fillOpacity: 0.4, strokeColor: "blue",label: e.feature.attributes["ID"], fontSize: 10};
                 e.feature.layer.drawFeature(e.feature);
             }
         },
         featureout: function(e) { // style change when not hovering zone
             if (e.feature.attributes["type"] != "perim"){
-                e.feature.style = {fillColor: "red", fillOpacity: 0.4, strokeColor: "red",label: e.feature.style.label, fontSize: 10};
+                e.feature.style = {fillColor: "red", fillOpacity: 0.4, strokeColor: "red",label: e.feature.attributes["ID"], fontSize: 10};
                 e.feature.layer.drawFeature(e.feature);
                 if (e.feature.attributes["type"]=="set"){
-                    e.feature.style = {fillColor: "green", fillOpacity: 0.4, strokeColor: "green",label: e.feature.style.label, fontSize: 10};
+                    e.feature.style = {fillColor: "green", fillOpacity: 0.4, strokeColor: "green",label: e.feature.attributes["ID"], fontSize: 10};
                     e.feature.layer.drawFeature(e.feature);
                 }
             }
