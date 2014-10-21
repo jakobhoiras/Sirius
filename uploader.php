@@ -1,35 +1,35 @@
 <?php
 class Upload {
-    function upload_image($game_name){
+    function upload_image($game_name , $file_name){
         $allowedExts = array("gif", "jpeg", "jpg", "png");
-        $temp = explode(".", $_FILES["file"]["name"]);
+        $temp = explode(".", $_FILES[$file_name]["name"]);
         $extension = end($temp);
 
-        if ((($_FILES["file"]["type"] == "image/gif")
-        || ($_FILES["file"]["type"] == "image/jpeg")
-        || ($_FILES["file"]["type"] == "image/jpg")
-        || ($_FILES["file"]["type"] == "image/pjpeg")
-        || ($_FILES["file"]["type"] == "image/x-png")
-        || ($_FILES["file"]["type"] == "image/png"))
-        && ($_FILES["file"]["size"] < 20000)
+        if ((($_FILES[$file_name]["type"] == "image/gif")
+        || ($_FILES[$file_name]["type"] == "image/jpeg")
+        || ($_FILES[$file_name]["type"] == "image/jpg")
+        || ($_FILES[$file_name]["type"] == "image/pjpeg")
+        || ($_FILES[$file_name]["type"] == "image/x-png")
+        || ($_FILES[$file_name]["type"] == "image/png"))
+        && ($_FILES[$file_name]["size"] < 500000)
         && in_array($extension, $allowedExts)) {
-          if ($_FILES["file"]["error"] > 0) {
-            echo "Return Code: " . $_FILES["file"]["error"] . "<br>";
+          if ($_FILES[$file_name]["error"] > 0) {
+            echo "Return Code: " . $_FILES[$file_name]["error"] . "<br>";
           } else {
-            echo "Upload: " . $_FILES["file"]["name"] . "<br>";
-            echo "Type: " . $_FILES["file"]["type"] . "<br>";
-            echo "Size: " . ($_FILES["file"]["size"] / 1024) . " kB<br>";
-            echo "Temp file: " . $_FILES["file"]["tmp_name"] . "<br>";
-            if (file_exists($game_name . "/" . $_FILES["file"]["name"])) {
-              echo $_FILES["file"]["name"] . " already exists. ";
+            echo "Upload: " . $_FILES[$file_name]["name"] . "<br>";
+            echo "Type: " . $_FILES[$file_name]["type"] . "<br>";
+            echo "Size: " . round($_FILES[$file_name]["size"] / 1024) . " kB<br>";
+            echo "Temp file: " . $_FILES[$file_name]["tmp_name"] . "<br>";
+            if (file_exists($game_name . "/" . $_FILES[$file_name]["name"])) {
+              echo $_FILES[$file_name]["name"] . " already exists. <br> ";
             } else {
-              move_uploaded_file($_FILES["file"]["tmp_name"],
-              $game_name . "/" . $_FILES["file"]["name"]);
-              echo "Stored in: " . $game_name . "/" . $_FILES["file"]["name"];
+              move_uploaded_file($_FILES[$file_name]["tmp_name"], $game_name .'/' . basename( $_FILES[$file_name]["name"]));
+              echo "Stored in: " . $game_name . "/" . $_FILES[$file_name]["name"] . '<br>';
             }
           }
         } else {
-          echo "Invalid file";
+          echo "Invalid file<br>";
         }
     }
 }
+?>
