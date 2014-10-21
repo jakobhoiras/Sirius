@@ -163,6 +163,7 @@ function display_rutes(rutes){
     }
 }
 
+
 function add_pick_coloring(i){
     var table = document.getElementById("suggest_rutes");
     table.rows[i].onclick = function() {pick_rute(table, j=i)};
@@ -400,28 +401,48 @@ function save_edit(){
         }
     }
 }
+
+function get_suggest_rutes_param(){
+    var zones_number = document.getElementById("#zones").value;
+    var min_d = document.getElementById("min").value;
+    var max_d = document.getElementById("max").value;
+    suggest_rutes(zones_number,min_d,max_d,min_d,max_d);
+}
+
     </script>
 </head>
  
 <!-- body.onload is called once the page is loaded (call the 'init' function) -->
 <body onload="init();">
  
-    <div style="width:20%; height:85%; float:left">
+    <div style="width:21%; height:85%; float:left; overflow:auto">
         <table id="suggest_rutes">
             <caption>suggested rutes</caption> 
         </table>
-        <button type="button" onclick="suggest_rutes(4,800,1000,800,1000)">suggest rutes</button>
+        <button type="button" onclick="get_suggest_rutes_param()">suggest rutes</button>
         <button type="button" onclick="move_to_chosen_rutes()">----></button>
+        <table id=suggest_param style="text-align:center">
+            <tr>
+                <td># zones</td>
+                <td>min</td>
+                <td>max</td>
+            </tr>
+            <tr>
+                <td><input type="text" name="#zones" id="#zones" size="1"></td>
+                <td><input type="text" name="min" id="min" size="1"></td>
+                <td><input type="text" name="min" id="max" size="1"></td>
+            </tr>
+        </table>
     </div>
 
-    <div style="width:60%; height:85%; float:left">
+    <div style="width:57%; height:85%; float:left; margin-left:5px">
     <div style="width:100%; height:90%; float:left" id="map">
     </div>
         <p id="zoom" style="float:left"></p>
         <table id="dist" style="float:right; border:1px solid black; text-align:center"></table>
     </div>
 
-    <div style="width:20%; height:85%; float:left"> 
+    <div style="width:20%; height:85%; float:left; overflow:auto"> 
         <table id="chosen_rutes">
             <caption>Chosen rutes</caption> 
         </table>
