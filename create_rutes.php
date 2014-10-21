@@ -49,7 +49,7 @@ function init() {
     add_zones(); // add zones to map on page initialization
     add_bases(); // add bases to map on page initialization
     get_base(); // writes the base information to a global variable
-    //rutes(4, 880, 1000, 880, 1000); NOT IN USE
+    get_rutes_from_db();
 }
 
 function zoomChanged(){
@@ -155,7 +155,7 @@ function display_rutes(rutes){
     var table = document.getElementById("suggest_rutes");
     for (var i=0; i<rutes.length; i++){
         var row = table.insertRow(i);
-        add_pick_coloring(i);
+        add_pick_coloring(i, 'su');
         for (var j=0; j<rutes[i].length; j++){    
             var cell = row.insertCell(j);
             cell.innerHTML = rutes[i][j][0];
@@ -164,9 +164,46 @@ function display_rutes(rutes){
 }
 
 
-function add_pick_coloring(i){
-    var table = document.getElementById("suggest_rutes");
+function add_pick_coloring(i,p){
+    if (p == 'ch'){
+        var table = document.getElementById("chosen_rutes");
+    }
+    else if (p == 'su'){
+        var table = document.getElementById("suggest_rutes");
+    }
     table.rows[i].onclick = function() {pick_rute(table, j=i)};
+}
+
+function get_rutes_from_db(){
+    // retrieves the zones from the database. includes a recall to the function if nothing has changed.
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            display_rutes_from_db(xmlhttp.responseText.split(" "));
+            if (old_resp == xmlhttp.responseText){
+                get_rutes_from_db();            
+            }
+            else{
+                old_resp = xmlhttp.responseText;
+            }
+        }
+    }
+    xmlhttp.open("GET","display_rutes_table.php",true);
+    xmlhttp.send();
+}
+
+function display_rutes_from_db(rutes){
+    var table = document.getElementById("chosen_rutes");
+    for (var i=0; i<rutes.length/5-1; i++){
+        var row = table.insertRow(i);
+        add_pick_coloring(i,'ch');
+        for (var k=0; k<5; k++){
+            if (rutes[i*5+k] != 0){    
+                var cell = row.insertCell(k);
+                cell.innerHTML = rutes[i*5+k];
+            }
+        }
+    }
 }
 
 function move_to_chosen_rutes(){
@@ -176,15 +213,18 @@ function move_to_chosen_rutes(){
     for (var i=0; i<len; i++){
         if (table.rows[i].getAttribute("value") == "p"){
             var row = table2.insertRow(-1);
+            var rute=[];
             for (var j=0; j<table.rows[i].cells.length; j++){
                 row.insertCell(-1).innerHTML = table.rows[i].cells[j].innerHTML;
+                rute.push(table.rows[i].cells[j].innerHTML);
             }
             table.deleteRow(i);
             var len = table2.rows.length-1;
             row.onclick = function (){pick_rute(table2, j=len)};
             for (j=0; j<table.rows.length; j++){
-                add_pick_coloring(j);
+                add_pick_coloring(j,'su');
             }
+            add_rute_to_db(rute,'save');
             return true;
         }
     }
@@ -195,13 +235,20 @@ function pick_rute(table, j='none') {
         // The zones belonging to the rute is colored orange on the map and finally lines are drawn.
         // If a rute was already chosen the old zones are returned to their original color
         var rows = table.rows;
-        for (i=0; i<rows.length; i++){
-            if(rows[i].getAttribute("value") != "edit"){
-                rows[i].style.background = "white";
-                rows[i].setAttribute("value","np");
+        var rows_ch = document.getElementById("chosen_rutes").rows;
+        var rows_su = document.getElementById("suggest_rutes").rows;
+        for (i=0; i<rows_ch.length; i++){
+            if(rows_ch[i].getAttribute("value") != "edit"){
+                rows_ch[i].style.background = "white";
+                rows_ch[i].setAttribute("value","np");
             }
         }
-        console.log(j);
+        for (i=0; i<rows_su.length; i++){
+            if(rows_su[i].getAttribute("value") != "edit"){
+                rows_su[i].style.background = "white";
+                rows_su[i].setAttribute("value","np");
+            }
+        }
         if (rows[j].getAttribute("value") != "edit"){
             rows[j].style.background='blue';
             rows[j].setAttribute("value","p");
@@ -229,7 +276,7 @@ function pick_rute(table, j='none') {
         draw_lines(rows[j]);
     }
 
-function remove_old_content(){
+function remove_old_content(table){
     var table = document.getElementById("suggest_rutes");
     var len = table.rows.length;
     for (var i=0; i<len; i++){
@@ -295,13 +342,16 @@ function add_manual(){
     var row = table.insertRow(-1); // add a new row at the end
     var len = table.rows.length-1;
     row.onclick = function() {pick_rute(table, j=len)};
+    var rute = [];
     for (var i=0; i<5; i++){
         // puts the values into the table
         if (zone_array[i] != ''){
             var cell = row.insertCell(i);
-            cell.innerHTML = zone_array[i];      
+            cell.innerHTML = zone_array[i];
+            rute.push(zone_array[i]);
         }
     }
+    add_rute_to_db(rute,'save');
     document.getElementById("add_zone1").value = ""; // reset the entry values to blank
     document.getElementById("add_zone2").value = "";
     document.getElementById("add_zone3").value = "";
@@ -309,6 +359,19 @@ function add_manual(){
     document.getElementById("add_zone5").value = "";
 }
  
+function add_rute_to_db(rute, a) {
+    // delete or add a zone or a base
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+        }
+    }
+    if (a == 'save' || a == 'delete_rute'){
+        xmlhttp.open("GET","update_rutes.php?rute=" + rute + '&a=' + a,true);
+        xmlhttp.send();
+    } 
+}
+
 function show_dist(rute, points){
     // calculates the distance between each zone (and total distance) and puts the result in a table
     table = document.getElementById("dist"); // get the table

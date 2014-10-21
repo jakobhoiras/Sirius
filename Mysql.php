@@ -8,6 +8,96 @@ class Mysql_spil {
 		$this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD) or 
 									die('there was a problem connecting to the database.');
     }
+
+    'function delete_rutes($rute) {
+        // deletes a row from zones table. 2nd and 3rd for-loop are for handling cases with rouding errors
+        $query = "SELECT zoneID,GPSx,GPSy,radius FROM test_spil.Rutes";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+            }
+        }
+        $rutes_num = sizeof($table);
+        for ($i=0; $i<$rutes_num; $i++){
+            if($table[$i][1]==$GPSx and $table[$i][2]==$GPSy){
+                if ($action == 'delete_zone'){ 
+                    $query =  "DELETE FROM test_spil.Zones WHERE GPSx = ? AND GPSy = ?";
+                }
+                    else if ($action == 'delete_base'){ 
+                        $query =  "DELETE FROM test_spil.Base WHERE GPSx = ? AND GPSy = ?";
+                    }
+                    if ($stmt = $this->conn->prepare($query)){
+                        $stmt->bind_param('ss', $GPSx, $GPSy);
+			            $stmt->execute();
+                        $stmt->close();
+                        return;
+                    }
+                }
+            }'
+
+     function save_rute($rute) {
+        if(sizeof($rute) == 1){
+            $query = "INSERT INTO test_spil.Rutes(zoneID1) 
+                      VALUES (?)";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('i', $rute[0]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        else if(sizeof($rute) == 2){
+            $query = "INSERT INTO test_spil.Rutes(zoneID1, zoneID2) 
+                      VALUES (?,?)";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('ii', $rute[0],$rute[1]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        else if(sizeof($rute) == 3){
+            $query = "INSERT INTO test_spil.Rutes(zoneID1, zoneID2, zoneID3) 
+                      VALUES (?,?,?)";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('iii', $rute[0],$rute[1],$rute[2]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        else if(sizeof($rute) == 4){
+            $query = "INSERT INTO test_spil.Rutes(zoneID1, zoneID2, zoneID3, zoneID4) 
+                      VALUES (?,?,?,?)";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('iiii', $rute[0],$rute[1],$rute[2],$rute[3]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        else if(sizeof($rute) == 5){
+            $query = "INSERT INTO test_spil.Rutes(zoneID1, zoneID2, zoneID3, zoneID4, zoneID5) 
+                      VALUES (?,?,?,?,?)";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('iiiii', $rute[0],$rute[1],$rute[2],$rute[3],$rute[4]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        
+    }
+
+    function get_rutes(){
+        $query = "SELECT * FROM test_spil.Rutes";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    } 
+    
     // FUNCTIONS FOR DRAW ZONES PAGE
     function get_zones(){
         $query = "SELECT * FROM test_spil.Zones";
