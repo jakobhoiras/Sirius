@@ -5,7 +5,7 @@
 <html>
 <head>
     <title>OSM Local Tiles</title>
-    <link rel="stylesheet" href="style.css" type="text/css" />
+    <!--link rel="stylesheet" href="style.css" type="text/css" /-->
     <!-- bring in the OpenLayers javascript library
          (here we bring it from the remote site, but you could
          easily serve up this javascript yourself) -->
@@ -58,11 +58,10 @@ function zoomChanged(){
         document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
     }
 
-/*
-function rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_start){
-    console.log('inside');
+
+function suggest_rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_start){
+    // suggests all possible rutes based on number of zones and min and max distance between each zone
     var zones;
-    document.getElementById("zoom").innerHTML='rutes';
     var rutes = [];
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
@@ -72,6 +71,7 @@ function rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_start){
             for (var rute_point=0; rute_point<num_zones; rute_point++){
                 rutes_new = [];
                 if (rute_point == 0){
+                    // find the first zone
                     var lon_base = base[1];
                     var lat_base = base[2];
                     var lonLat = new OpenLayers.LonLat(lon_base,lat_base).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
@@ -86,14 +86,14 @@ function rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_start){
                     featurecircle_big.style = {fillOpacity: 0.0, strokeColor:"black", strokeDashstyle: 'dash'};
                     featurecircle_small.attributes["type"]="perim";
                     featurecircle_big.attributes["type"]="perim";
-                    baseLayer.addFeatures([featurecircle_small,featurecircle_big]); 
+                    baseLayer.addFeatures([featurecircle_small,featurecircle_big]); // add the include perimiter
                     for (var zone=0; zone<(zones_num-1)/5; zone++){                    
                         var lon_zone = zones[zone*5+1];
                         var lat_zone = zones[zone*5+2];
                         var lonLat2 = new OpenLayers.LonLat(lon_zone,lat_zone).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
                         var point2 = new OpenLayers.Geometry.Point(lonLat2.lon, lonLat2.lat);
                         if (point_base.distanceTo(point2)*Math.cos(lat*(Math.PI/180)) < max_dist_start && point_base.distanceTo(point2)*Math.cos(lat*(Math.PI/180)) > min_dist_start){
-                            rutes.push([[zones[zone*5],point2]]);
+                            rutes.push([[zones[zone*5],point2]]); //add zoneto rute if zone is with specified distance
                         }
                     }
                 }
@@ -106,17 +106,36 @@ function rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_start){
                             var lat_zone = zones[zone*5+2];
                             var lonLat = new OpenLayers.LonLat(lon_zone,lat_zone).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
                             var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
-                            if (rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) < max_dist && rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) > min_dist){
-                                not_in_rute=true;
-                                for (var i=0; i<rutes[zone_count].length;i++){
-                                    if (rutes[zone_count][i][0] == zones[zone*5]){
-                                        not_in_rute=false;
+                            if (rute_point != num_zones-1){
+                                if (rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) < max_dist && rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) > min_dist){
+                                    not_in_rute=true;
+                                    for (var i=0; i<rutes[zone_count].length;i++){
+                                        if (rutes[zone_count][i][0] == zones[zone*5]){
+                                            not_in_rute=false;
+                                        }
+                                    }
+                                    if (not_in_rute == true){
+                                        old_rute = rutes[zone_count];
+                                        new_rute = old_rute.concat([[zones[zone*5],point]]);
+                                        rutes_new.push(new_rute);
                                     }
                                 }
-                                if (not_in_rute == true){
-                                    old_rute = rutes[zone_count];
-                                    new_rute = old_rute.concat([[zones[zone*5],point]]);
-                                    rutes_new.push(new_rute);
+                            }
+                            else if (rute_point == num_zones-1){
+                                if (rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) < max_dist && rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) > min_dist){
+                                    if (point_base.distanceTo(point)*Math.cos(lat*(Math.PI/180)) < max_dist && point_base.distanceTo(point)*Math.cos(lat*(Math.PI/180)) > min_dist){
+                                        not_in_rute=true;
+                                        for (var i=0; i<rutes[zone_count].length;i++){
+                                            if (rutes[zone_count][i][0] == zones[zone*5]){
+                                                not_in_rute=false;
+                                            }
+                                        }
+                                        if (not_in_rute == true){
+                                            old_rute = rutes[zone_count];
+                                            new_rute = old_rute.concat([[zones[zone*5],point]]);
+                                            rutes_new.push(new_rute);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -132,49 +151,90 @@ function rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_start){
 }
 
 function display_rutes(rutes){
-    console.log(rutes);
-    var table = document.getElementById("table");
-    var header = table.createTHead();
+    remove_old_content();
+    var table = document.getElementById("suggest_rutes");
     for (var i=0; i<rutes.length; i++){
-        var row = header.insertRow(i);
-        var dist = point_base.distanceTo(rutes[i][0][1]);
+        var row = table.insertRow(i);
+        add_pick_coloring(i);
         for (var j=0; j<rutes[i].length; j++){    
             var cell = row.insertCell(j);
             cell.innerHTML = rutes[i][j][0];
-            if (j != 0){
-                dist += rutes[i][j-1][1].distanceTo(rutes[i][j][1]);
-            }
-            if (j == rutes[i].length-1){
-                var cell = row.insertCell(j+1);
-                cell.innerHTML = (dist*Math.cos(lat*(Math.PI/180))).toFixed(0);
-            }
         }
     }
 }
 
-function add_rute(){
-    //var header = table.createTHead();
-    var table = document.getElementById("table");
-    var row = table.insertRow(-1);
-    for (var i=0; i<4; i++){
-        var cell = row.insertCell(0);
-        cell.innerHTML = 'not set';
-    }
+function add_pick_coloring(i){
+    var table = document.getElementById("suggest_rutes");
+    table.rows[i].onclick = function() {pick_rute(table, j=i)};
 }
 
-function add_zone_to_rute(){
-    var ZoneID = document.getElementById("addToRute").value;
-    var table = document.getElementById("table");
-    for (var i = 0; i<table.rows.length; i++){
-        for (var j = 0; j<table.rows[i].cells.length; j++){
-            if (table.rows[i].cells[j].innerHTML == 'not set'){
-                table.rows[i].cells[j].innerHTML = ZoneID;
-                return true;
+function move_to_chosen_rutes(){
+    var table = document.getElementById("suggest_rutes");
+    var table2 = document.getElementById("chosen_rutes");
+    var len = table.rows.length;
+    for (var i=0; i<len; i++){
+        if (table.rows[i].getAttribute("value") == "p"){
+            var row = table2.insertRow(-1);
+            for (var j=0; j<table.rows[i].cells.length; j++){
+                row.insertCell(-1).innerHTML = table.rows[i].cells[j].innerHTML;
             }
+            table.deleteRow(i);
+            var len = table2.rows.length-1;
+            row.onclick = function (){pick_rute(table2, j=len)};
+            for (j=0; j<table.rows.length; j++){
+                add_pick_coloring(j);
+            }
+            return true;
         }
     }
 }
-*/
+
+function pick_rute(table, j='none') {
+        // upon cliking on a rute the coloring of the table is changed accordingly.
+        // The zones belonging to the rute is colored orange on the map and finally lines are drawn.
+        // If a rute was already chosen the old zones are returned to their original color
+        var rows = table.rows;
+        for (i=0; i<rows.length; i++){
+            if(rows[i].getAttribute("value") != "edit"){
+                rows[i].style.background = "white";
+                rows[i].setAttribute("value","np");
+            }
+        }
+        console.log(j);
+        if (rows[j].getAttribute("value") != "edit"){
+            rows[j].style.background='blue';
+            rows[j].setAttribute("value","p");
+        }
+        for (var i=0; i<zoneLayer.features.length-1; i++){
+            if (zoneLayer.features[i].style.fillColor == "orange"){
+                if (zoneLayer.features[i].attributes["type"] == "notset"){
+                    zoneLayer.features[i].style.fillColor="red";
+                    zoneLayer.features[i].style.strokeColor="red";
+                    zoneLayer.drawFeature(zoneLayer.features[i]);
+                }
+                else if (zoneLayer.features[i].attributes["type"] == "set"){
+                    zoneLayer.features[i].style.fillColor="green";
+                    zoneLayer.features[i].style.strokeColor="green";
+                    zoneLayer.drawFeature(zoneLayer.features[i]);
+                }
+            }
+        }
+        for (var i=0; i<rows[j].cells.length; i++){
+            var zone = zoneLayer.getFeaturesByAttribute("ID", rows[j].cells[i].innerHTML);
+            zone[0].style.fillColor = "orange";
+            zone[0].style.strokeColor = "orange";
+            zone[0].layer.drawFeature(zone[0]);
+        }
+        draw_lines(rows[j]);
+    }
+
+function remove_old_content(){
+    var table = document.getElementById("suggest_rutes");
+    var len = table.rows.length;
+    for (var i=0; i<len; i++){
+        table.deleteRow(0);
+    }
+}
 
 function remove_lines(){
     // remove the lines connecting the zones of a given rute. Lines are drawn on the zoneLayer.
@@ -232,43 +292,8 @@ function add_manual(){
     zone_array = [zone1,zone2,zone3,zone4,zone5];
     var table = document.getElementById("chosen_rutes"); // get the table object from the UI
     var row = table.insertRow(-1); // add a new row at the end
-    row.onclick = function() {
-        // upon cliking on a rute the coloring of the table is changed accordingly.
-        // The zones belonging to the rute is colored orange on the map and finally lines are drawn.
-        // If a rute was already chosen the old zones are returned to their original color
-        var rows = table.rows;
-        for (i=0; i<rows.length; i++){
-            if(rows[i].getAttribute("value") != "edit"){
-                rows[i].style.background = "white";
-                rows[i].setAttribute("value","np");
-            }
-        }
-        if (row.getAttribute("value") != "edit"){
-            row.style.background='blue';
-            row.setAttribute("value","p");
-        }
-        for (var i=0; i<zoneLayer.features.length-1; i++){
-            if (zoneLayer.features[i].style.fillColor == "orange"){
-                if (zoneLayer.features[i].attributes["type"] == "notset"){
-                    zoneLayer.features[i].style.fillColor="red";
-                    zoneLayer.features[i].style.strokeColor="red";
-                    zoneLayer.drawFeature(zoneLayer.features[i]);
-                }
-                else if (zoneLayer.features[i].attributes["type"] == "set"){
-                    zoneLayer.features[i].style.fillColor="green";
-                    zoneLayer.features[i].style.strokeColor="green";
-                    zoneLayer.drawFeature(zoneLayer.features[i]);
-                }
-            }
-        }
-        for (var i=0; i<row.cells.length; i++){
-            var zone = zoneLayer.getFeaturesByAttribute("ID", row.cells[i].innerHTML);
-            zone[0].style.fillColor = "orange";
-            zone[0].style.strokeColor = "orange";
-            zone[0].layer.drawFeature(zone[0]);
-        }
-        draw_lines(row);
-    };
+    var len = table.rows.length-1;
+    row.onclick = function() {pick_rute(table, j=len)};
     for (var i=0; i<5; i++){
         // puts the values into the table
         if (zone_array[i] != ''){
@@ -381,14 +406,32 @@ function save_edit(){
 <!-- body.onload is called once the page is loaded (call the 'init' function) -->
 <body onload="init();">
  
-    <!-- define a DIV into which the map will appear. Make it take up the whole window -->
-    <div style="width:50%; height:70%; float:left" id="map"></div>
-    <div style="width:50%; height:70%; float:left">
+    <div style="width:20%; height:85%; float:left">
+        <table id="suggest_rutes">
+            <caption>suggested rutes</caption> 
+        </table>
+        <button type="button" onclick="suggest_rutes(4,800,1000,800,1000)">suggest rutes</button>
+        <button type="button" onclick="move_to_chosen_rutes()">----></button>
+    </div>
+
+    <div style="width:60%; height:85%; float:left">
+    <div style="width:100%; height:90%; float:left" id="map">
+    </div>
+        <p id="zoom" style="float:left"></p>
+        <table id="dist" style="float:right; border:1px solid black; text-align:center"></table>
+    </div>
+
+    <div style="width:20%; height:85%; float:left"> 
         <table id="chosen_rutes">
             <caption>Chosen rutes</caption> 
-        </table> 
+        </table>
         <button type="button" onclick="delete_chosen()">delete</button>
         <button type="button" onclick="edit_chosen()">edit</button>
+    </div>
+
+
+    <div style="width:50%; height:15%; float:left">
+        
         <p style="text-decoration:underline">Add manually</p>
         <input type="text" name="add_zone1" id="add_zone1" size="1">
         <input type="text" name="add_zone2" id="add_zone2" size="1">
@@ -396,6 +439,8 @@ function save_edit(){
         <input type="text" name="add_zone4" id="add_zone4" size="1">
         <input type="text" name="add_zone5" id="add_zone5" size="1">
         <button type="button" onclick="add_manual()">add</button>
+    </div>
+    <div style="width:50%; height:15%; float:left">
         <p style="text-decoration:underline">Edit</p>
         <input type="text" name="edit_zone1" id="edit_zone1" size="1">
         <input type="text" name="edit_zone2" id="edit_zone2" size="1">
@@ -404,17 +449,7 @@ function save_edit(){
         <input type="text" name="edit_zone5" id="edit_zone5" size="1">
         <button type="button" onclick="save_edit()">save</button>
     </div>
-    <div style="width:20%; height:40%; float:left">
-        <p id="zoom"></p> 
-        <!--p id="demo">test</p-->
-        </div>
-        <div style="width:30%; height:40%; float:left">
-       
-        </div>
-    <div style="width:100%; float:left;">
-        <table id="dist"></table>
-        
-    </div>
+    
         
 </body>
 </html>
