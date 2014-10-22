@@ -418,8 +418,16 @@ function show_dist(rute, points){
 function delete_chosen(){
     // removes a rute from the list (table)
     var table = document.getElementById("chosen_rutes");
+    var rute = [];
     for (i=0; i<table.rows.length; i++){
         if (table.rows[i].getAttribute("value") == "p"){
+            for(var j=0; j<table.rows[i].cells.length; j++){
+                rute.push(table.rows[i].cells[j].innerHTML);
+            }
+            for (var j=0; j<5-table.rows[i].cells.length; j++){
+                rute.push(0);
+            }
+            add_rute_to_db(rute, 'delete_rute');
             table.deleteRow(i);
         }
     }

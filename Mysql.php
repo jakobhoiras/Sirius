@@ -9,34 +9,17 @@ class Mysql_spil {
 									die('there was a problem connecting to the database.');
     }
 
-    'function delete_rutes($rute) {
+    function delete_rute($rute) {
         // deletes a row from zones table. 2nd and 3rd for-loop are for handling cases with rouding errors
-        $query = "SELECT zoneID,GPSx,GPSy,radius FROM test_spil.Rutes";
+        $query =  "DELETE FROM test_spil.Rutes WHERE zoneID1 = ? AND zoneID2 = ? AND zoneID3 = ? AND zoneID4 = ? AND zoneID5 = ?";           
         if ($stmt = $this->conn->prepare($query)){
-			$stmt->execute();
-            $result = $stmt->get_result();
-            if($table = $result->fetch_all()){
-                $stmt->close();
-            }
+            $stmt->bind_param('iiiii', $rute[0], $rute[1], $rute[2], $rute[3], $rute[4]);
+		    $stmt->execute();
+            $stmt->close();
+            return;
         }
-        $rutes_num = sizeof($table);
-        for ($i=0; $i<$rutes_num; $i++){
-            if($table[$i][1]==$GPSx and $table[$i][2]==$GPSy){
-                if ($action == 'delete_zone'){ 
-                    $query =  "DELETE FROM test_spil.Zones WHERE GPSx = ? AND GPSy = ?";
-                }
-                    else if ($action == 'delete_base'){ 
-                        $query =  "DELETE FROM test_spil.Base WHERE GPSx = ? AND GPSy = ?";
-                    }
-                    if ($stmt = $this->conn->prepare($query)){
-                        $stmt->bind_param('ss', $GPSx, $GPSy);
-			            $stmt->execute();
-                        $stmt->close();
-                        return;
-                    }
-                }
-            }'
-
+    }
+    
      function save_rute($rute) {
         if(sizeof($rute) == 1){
             $query = "INSERT INTO test_spil.Rutes(zoneID1) 
