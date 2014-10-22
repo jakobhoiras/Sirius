@@ -4,8 +4,7 @@
 
 <html>
 <head>
-    <title>OSM Local Tiles</title>
-    <link rel="stylesheet" href="default_style.css" type="text/css" />
+    <title>OSM gem kort</title>
     <!-- bring in the OpenLayers javascript library
          (here we bring it from the remote site, but you could
          easily serve up this javascript yourself) -->
@@ -22,7 +21,7 @@
         var lon=12.50575;
         var zoom=16;
         var map;
-              var mapBounds = new OpenLayers.Bounds( 12.3937091643, 55.7398667756, 12.6078492329, 55.8264812224);
+              var mapBounds = new OpenLayers.Bounds(12.3937091643, 55.7398667756, 12.6078492329, 55.8264812224);
               var mapMinZoom = 13;
               var mapMaxZoom = 17;
               OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
@@ -52,9 +51,9 @@
             map.addLayer(layerMapnik); 
  
             // This is the layer that uses the locally stored tiles
-            var newLayer = new OpenLayers.Layer.OSM("Local Tiles", "tiles/odense/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true, isBaseLayer: false});
+            var newLayer = new OpenLayers.Layer.OSM("Local Tiles", "tiles/lyngby/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true, isBaseLayer: false});
             map.addLayer(newLayer);
-			// This is the end of the layer
+
 
             // This is the layer that uses the locally stored tiles
             var newLayer2 = new OpenLayers.Layer.TMS("Local Tiles2", "tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL});
@@ -62,8 +61,6 @@
             if (OpenLayers.Util.alphaHack() == false) {
                       newLayer2.setOpacity(0.7);
                   }
-
-			// This is the end of the layer
  
  	        var switcherControl = new OpenLayers.Control.LayerSwitcher();
 	        map.addControl(switcherControl);
@@ -83,47 +80,41 @@
                 document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
             }
         }
-        function getURL(bounds) {
-                  bounds = this.adjustBounds(bounds);
-                  var res = this.getServerResolution();
-                  var x = Math.round((bounds.left - this.tileOrigin.lon) / (res * this.tileSize.w));
-                  var y = Math.round((bounds.bottom - this.tileOrigin.lat) / (res * this.tileSize.h));
-                  var z = map.getZoom()
-                  if (this.map.baseLayer.CLASS_NAME === 'OpenLayers.Layer.Bing') {
-                      z+=1;
-                  }
-                  var path = this.serviceVersion + "/" + this.layername + "/" + z + "/" + x + "/" + y + "." + this.type; 
-                  var url = this.url;
-                  if (OpenLayers.Util.isArray(url)) {
-                      url = this.selectUrl(path, url);
-                  }
-                  if (z >= mapMinZoom && z <= mapMaxZoom) {
-                      document.getElementById("demo").innerHTML = x;
-                      return url + path;
-                  } else {
-                      return emptyTileURL;
-                  }
-              } 
 
-        function Save_map(){
-            var zoomLevel = map.getZoom();
-            var mapCenter = map.getCenter().transform(map.projection, map.displayProjection);
-            createCookie("zoom", zoomLevel, "10");
-            createCookie("center", mapCenter, "10");
-            window.location="autorun.php";
+function getURL(bounds) {
+    bounds = this.adjustBounds(bounds);
+    var res = this.getServerResolution();
+    var x = Math.round((bounds.left - this.tileOrigin.lon) / (res * this.tileSize.w));
+    var y = Math.round((bounds.bottom - this.tileOrigin.lat) / (res * this.tileSize.h));
+    var z = map.getZoom()
+    if (this.map.baseLayer.CLASS_NAME === 'OpenLayers.Layer.Bing') {
+        z+=1;
+    }
+    var path = this.serviceVersion + "/" + this.layername + "/" + z + "/" + x + "/" + y + "." + this.type; 
+    var url = this.url;
+    if (OpenLayers.Util.isArray(url)) {
+        url = this.selectUrl(path, url);
+    }
+    if (z >= mapMinZoom && z <= mapMaxZoom) {
+        return url + path;
+    } 
+    else {
+        return emptyTileURL;
+    }
+} 
+
+function Save_map(){
+    var zoomLevel = map.getZoom();
+    var mapCenter = map.getCenter().transform(map.projection, map.displayProjection);
+    var mapID = document.getElementById("map_name").value;  
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
         }
-         function createCookie(name, value, days) {
-            var expires;
-            if (days) {
-                var date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toGMTString();
-            } 
-            else {
-                expires = "";
-            }
-            document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/";
-        }
+    }
+    xmlhttp.open("GET","autorun.php?zoomLevel=" + zoomLevel + '&mapCenter=' + mapCenter + '&mapID=' + mapID,true);
+    xmlhttp.send();
+}
     </script>
 </head>
  
@@ -131,11 +122,10 @@
 <body onload="init();">
  
     <!-- define a DIV into which the map will appear. Make it take up the whole window -->
-    <div style="width:100%; height:90%" id="map"></div>
+    <div style="width:60%; height:70%" id="map"></div>
     <div style="width:100%; height:10%">
         <p id="zoom" style="float:left"></p> 
-        <p id="demo">test</p>
-        <button type="button" onclick="Save_map()" style="float:right">Gem kort</button> 
+        <p>map name: </p> <input id="map_name" size=1 type="text"><button type="button" onclick="Save_map()" style="float:right">Gem kort</button> 
     </div>
 </body>
  

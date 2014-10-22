@@ -9,6 +9,16 @@ class Mysql_spil {
 									die('there was a problem connecting to the database.');
     }
 
+    function save_map($mapID){
+        $query = "INSERT INTO Maps.Maps(MapID) 
+                  VALUES (?)";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('s', $mapID);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+
     function delete_rute($rute) {
         // deletes a row from zones table. 2nd and 3rd for-loop are for handling cases with rouding errors
         $query =  "DELETE FROM test_spil.Rutes WHERE zoneID1 = ? AND zoneID2 = ? AND zoneID3 = ? AND zoneID4 = ? AND zoneID5 = ?";           

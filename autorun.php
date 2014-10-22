@@ -1,10 +1,20 @@
 <?php
-$zoom = $_COOKIE["zoom"];
-$center = $_COOKIE["center"];
+require 'Mysql.php';
+
+$zoom = $_GET["zoomLevel"];
+$center = $_GET["mapCenter"];
+$mapID = $_GET["mapID"];
+
+chdir('tiles');
+mkdir($mapID);
+chdir('..');
+$mysql = new Mysql_spil();
+$mysql->save_map($mapID);
+
 $lon = floatval(substr($center,4,18));
 $lat = floatval(substr($center,27,34));
 $center = array($lon,$lat);
-create_xml_file($zoom,$center);
+create_xml_file($zoom,$center,$mapID);
 chdir('JTileDownloader/jar');
 $output = shell_exec('java -jar jTileDownloader-0-6-1.jar dl=../../osm_get_file.xml 2>&1');
 
@@ -15,7 +25,7 @@ else{
 echo "<p>$output<p>";
 }
 
-function create_xml_file($zoom,$center){
+function create_xml_file($zoom,$center, $mapID){
     if ($zoom < 13 or $zoom > 14){
         echo "<p>zoom level must be between 13 and 17(temporarily 14)! go back and try again<p>";    
     }
@@ -31,7 +41,7 @@ function create_xml_file($zoom,$center){
         fwrite($myfile, $txt);
         $txt = '<entry key="Type">BBoxLatLon</entry>'."\n";
         fwrite($myfile, $txt);
-        $txt = '<entry key="OutputLocation">tiles/new</entry>'."\n";
+        $txt = '<entry key="OutputLocation">../../tiles/' . $mapID . '</entry>'."\n";
         fwrite($myfile, $txt);
         $txt = '<entry key="TileServer">http://a.tile.openstreetmap.org</entry>'."\n";
         fwrite($myfile, $txt);
