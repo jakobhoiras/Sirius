@@ -19,7 +19,7 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
 <html lang="da">
     <head>
 
-        <title>setup - create game</title>
+        <title>Lav ny bruger</title>
 
         <meta name="keywords" content="stuff" />
         <meta http-equiv="Content-Type" content="text/html; charset=utf8">
@@ -29,16 +29,6 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
     <body>
         <form method="post" action="">
             <input type="button" value="Back to start" onclick="change_page('start')"/><br>
-
-
-
-
-
-            game name:<br>
-            <input type="text" name="game_name"><br/>
-            company:<br>
-            <input type="text" name="company"><br/>
-            <input type="submit" value="Create game">
         </form>
 
     </body>
