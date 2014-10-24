@@ -5,7 +5,7 @@ class opgave {
     function gemmer($text, $filename, $name) {
 
 
-        $file = fopen($name . '/' . $filename . '.txt', "w") or die("Unable to open file!");
+        $file = fopen('Opgaver/' . $name . '/' . $filename . '.txt', "w") or die("Unable to open file!");
         $txt = $text;
         fwrite($file, $txt);
         fclose($file);
@@ -19,9 +19,12 @@ class opgave {
             $in = $_POST['question_in'];
             $mult_text = array($_POST['mult0'], $_POST['mult1'], $_POST['mult2'], $_POST['mult3'], $_POST['mult4']);
             $mult_cor = $_POST['check'];
-
-            if (!file_exists('C:/wamp/www/Sirius/' . $name)) {
-                mkdir('C:/wamp/www/Sirius/' . $name, 0777, true);
+            
+            if (!file_exists(getcwd() . '/Opgaver/')) {
+                mkdir(getcwd() . '/Opgaver');
+            }
+            if (!file_exists(getcwd() . '/Opgaver/' . $name)) {
+                mkdir(getcwd() . '/Opgaver/' . $name, 0777, true);
             } else {
                 die("Opgave navn er allerede taget");
             }
@@ -35,6 +38,17 @@ class opgave {
         } else {
             echo 'one or more fields were not filled out <br>';
         }
+    }
+
+    function select_opgave() {
+        $opgaver = scandir(getcwd() . '/Opgaver');
+        $opgaver2 = array_diff($opgaver, array('.', '..'));
+
+        echo '<select name="vælg opgave" value="">';
+        foreach ($opgaver2 as $val) {
+            echo '<option value="' . $val . '">' . $val . '</option>';
+        }
+        echo '</select>';
     }
 
 }

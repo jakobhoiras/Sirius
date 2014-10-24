@@ -10,7 +10,6 @@ if(isset($_GET['status']) && $_GET['status'] == 'loggedout'){
 if( $_POST && !empty($_POST['username']) && !empty($_POST['pwd']) ) {
 	$response = $membership->validate_User($_POST['username'], $_POST['pwd']);
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -21,7 +20,7 @@ if( $_POST && !empty($_POST['username']) && !empty($_POST['pwd']) ) {
 </head>
 
 <body>
-<div>
+<div style="background:green;width:400px;border-style:solid;">
 	<form method="post" action="">
 	<h2>Login <small>enter your credentials</small></h2>
 
