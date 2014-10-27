@@ -30,7 +30,13 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
         <form method="post" action="">
             <input type="button" value="Back to start" onclick="change_page('start')"/><br>
         </form>
-
+        <h1> Opret bruger </h1>
+        <form method="post">
+            Brugernavn: <input type="text" name="user"/><br>
+            Password: <input type="text" name="pwd"/><br>
+            Skal dette være en admin bruger?: <input type="checkbox" name="perm" value="yes"/><br>
+            <input type="submit" value="Opret bruger" name="submit1"/>
+        </form>
     </body>
 </html>	
 
@@ -39,5 +45,10 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
         window.location.href = ("http://localhost/sirius/" + page_name + ".php");
     }
 </script>
-
-
+<?php
+require 'Membership.php';
+if (isset($_POST['submit1'])) {
+    $member = new Membership();
+    $member->create_User();
+}
+?>

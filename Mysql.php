@@ -394,6 +394,41 @@ class Mysql_login {
 		}
 	}
 }
+
+class Mysql_create_user {
+     private $conn;
+
+    function __construct() {
+        $this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME) or
+                die('there was a problem connecting to the database.');
+    }
+
+    //$perm = admin || user
+    function create_user($un, $pwd, $perm) {
+
+        $query = "SELECT permission FROM users WHERE username = ?";
+
+        if ($stmt = $this->conn->prepare($query)) {
+            $stmt->bind_param('s', $un);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if (mysql_num_rows($result) >= 1) {
+                echo "Bruger findes allerede";
+            } else {
+                $query = 'INSERT INTO User(Username,Password,Permission) VALUES'
+                        . '(?,?,?)';
+
+                if ($stmt = $this->conn->prepare($query)) {
+                    $stmt->bind_param('sss', $un, $pwd, $perm);
+                    $stmt->execute();
+                    $stmt->close();
+                    echo "brugeren er nu oprettet";
+                }
+            }
+        }
+    }
+}
 #function insert_Kunde($navn1, $navn2, $navn3){
 #
 #		$query = "INSERT
