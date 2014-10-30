@@ -9,11 +9,23 @@ class Mysql_spil {
 									die('there was a problem connecting to the database.');
     }
 
-    function save_map($mapID){
-        $query = "INSERT INTO Maps.Maps(MapID) 
-                  VALUES (?)";
+    function get_maps(){
+        $query = "SELECT * FROM Maps.Maps";
         if ($stmt = $this->conn->prepare($query)){
-            $stmt->bind_param('s', $mapID);
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    } 
+
+    function save_map($mapID, $GPSx, $GPSy){
+        $query = "INSERT INTO Maps.Maps(MapID, GPSx, GPSy) 
+                  VALUES (?, ?, ?)";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('sss', $mapID, $GPSx, $GPSy);
 		    $stmt->execute();
             $stmt->close();
         }

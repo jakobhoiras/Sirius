@@ -2,7 +2,8 @@
 require 'Mysql.php';
 
 $zoom = $_GET["zoomLevel"];
-$center = $_GET["mapCenter"];
+$lon = $_GET["lon"];
+$lat = $_GET["lat"];
 $mapID = $_GET["mapID"];
 
 if ($zoom != 13){
@@ -13,24 +14,33 @@ else{
     chdir('tiles');
     mkdir($mapID);
     chdir('..');
-    $mysql = new Mysql_spil();
-    $mysql->save_map($mapID);
+    $center = array(floatval($lon),floatval($lat));
 
-    $lon = floatval(substr($center,4,18));
-    $lat = floatval(substr($center,27,34));
-    $center = array($lon,$lat);
+    $mysql = new Mysql_spil();
+    $mysql->save_map($mapID, $lon, $lat);
+
 
     create_xml_file($zoom,$center,$mapID);
     chdir('JTileDownloader/jar');
     $output = shell_exec('java -jar jTileDownloader-0-6-1.jar dl=../../osm_get_file.xml 2>&1');
-    /*chdir("../../tiles/$mapID/13");
-    echo getcwd();
+    chdir("../../tiles/$mapID/13");
     foreach ( scandir('.') as $src){
         if ($src != '.' and $src != '..'){
-            $src = "/opt/lampp/htdocs/sirius/Sirius/tiles/aarhus/13/" . $src;
-            recurse_copy($src, "../../all13/13/$src");
+            if(file_exists("../../all13/13/$src")==False){
+                chdir("../../all13/13/");
+                mkdir($src);
+                chdir("../../$mapID/13");
+            }
+            chdir($src);
+            foreach ( scandir('.') as $src2){
+                if ($src2 != '.' and $src2 != '..'){
+                    copy($src2, "../../../all13/13/$src/$src2");
+                }
+            }
+            chdir('..');
         }
-    }*/
+    }
+    chdir('../..');
     echo 'done';
 }
 /*if ($output == NULL){
@@ -41,8 +51,8 @@ echo "<p>$output<p>";
 }*/
 
 function create_xml_file($zoom,$center, $mapID){
-        $zooms = range($zoom,17);
-        $bounds = get_boundaries($center,0.05,0.02);
+        $zooms = range($zoom,15);
+        $bounds = get_boundaries($center,0.03,0.01);
         $myfile = fopen("osm_get_file.xml", "w") or die("Unable to open file!");
         $txt = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         fwrite($myfile, $txt);
@@ -85,19 +95,4 @@ function get_boundaries($center,$dx,$dy){
     return $ar;
 }
 
-function recurse_copy($src,$dst) { 
-    $dir = opendir($src); 
-    @mkdir($dst); 
-    while(false !== ( $file = readdir($dir)) ) { 
-        if (( $file != '.' ) && ( $file != '..' )) { 
-            if ( is_dir($src . '/' . $file) ) { 
-                recurse_copy($src . '/' . $file,$dst . '/' . $file); 
-            } 
-            else { 
-                copy($src . '/' . $file,$dst . '/' . $file); 
-            } 
-        } 
-    } 
-    closedir($dir); 
-}
 ?>
