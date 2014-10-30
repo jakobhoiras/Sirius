@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<entry key="Type">BBoxLatLon</entry>
+<entry key="OutputLocation">../../tiles/nakskov</entry>
+<entry key="TileServer">http://a.tile.openstreetmap.org</entry>
+<entry key="MaxLon">11.17293033</entry>
+<entry key="MinLon">11.11293033</entry>
+<entry key="MaxLat">54.84239935</entry>
+<entry key="MinLat">54.82239935</entry>
+<entry key="OutputZoomLevel">13,14,15</entry>
+</properties>
