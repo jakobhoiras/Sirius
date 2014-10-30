@@ -4,8 +4,8 @@
 <entry key="WaitAfterNrTiles">true</entry>
 <entry key="BBoxXY.MinX">0</entry>
 <entry key="SlippyMapNoDownload">false</entry>
-<entry key="WaitSeconds">30</entry>
-<entry key="WaitNrTiles">10</entry>
+<entry key="WaitSeconds">10</entry>
+<entry key="WaitNrTiles">50</entry>
 <entry key="LastOutoutFolder">tiles</entry>
 <entry key="ProxyServerPassword"/>
 <entry key="OverwriteExistingFiles">true</entry>

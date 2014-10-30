@@ -19,7 +19,7 @@
 // Start position for the map (hardcoded here for simplicity)
         var lat=55.77060;
         var lon=12.50575;
-        var zoom=16;
+        var zoom=13;
         var map;
               var mapBounds = new OpenLayers.Bounds(12.3937091643, 55.7398667756, 12.6078492329, 55.8264812224);
               var mapMinZoom = 13;
@@ -51,12 +51,12 @@
             map.addLayer(layerMapnik); 
  
             // This is the layer that uses the locally stored tiles
-            var newLayer = new OpenLayers.Layer.OSM("Local Tiles", "tiles/lyngby/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true, isBaseLayer: false});
+            var newLayer = new OpenLayers.Layer.OSM("Local Tiles", "tiles/lufthavnen/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true, isBaseLayer: false, visibility: 0});
             map.addLayer(newLayer);
 
 
             // This is the layer that uses the locally stored tiles
-            var newLayer2 = new OpenLayers.Layer.TMS("Local Tiles2", "tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL});
+            var newLayer2 = new OpenLayers.Layer.TMS("Local Tiles2", "tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL, visibility: 0});
             map.addLayer(newLayer2);
             if (OpenLayers.Util.alphaHack() == false) {
                       newLayer2.setOpacity(0.7);
@@ -106,10 +106,15 @@ function getURL(bounds) {
 function Save_map(){
     var zoomLevel = map.getZoom();
     var mapCenter = map.getCenter().transform(map.projection, map.displayProjection);
-    var mapID = document.getElementById("map_name").value;  
+    var mapID = document.getElementById("map_name").value;
+    document.getElementById("save_btn").disabled = true;
+    document.getElementById("wait").innerHTML="please wait while the map is being downloaded. This can take a while.";
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            document.getElementById("wait").innerHTML = xmlhttp.responseText;
+            document.getElementById("save_btn").disabled = false;
+            document.getElementById("map_name").value = '';
         }
     }
     xmlhttp.open("GET","autorun.php?zoomLevel=" + zoomLevel + '&mapCenter=' + mapCenter + '&mapID=' + mapID,true);
@@ -123,9 +128,14 @@ function Save_map(){
  
     <!-- define a DIV into which the map will appear. Make it take up the whole window -->
     <div style="width:60%; height:70%" id="map"></div>
-    <div style="width:100%; height:10%">
-        <p id="zoom" style="float:left"></p> 
-        <p>map name: </p> <input id="map_name" size=1 type="text"><button type="button" onclick="Save_map()" style="float:right">Gem kort</button> 
+    <div style="width:100%; height:9%">
+        <p id="zoom" style="float:left"></p>
+    </div>
+    <div style="width:100%; height:8%"> 
+        <p style="float:left;">Map name: </p> 
+        <input id="map_name" size=10 type="text" style="float:left; margin-top:12px; margin-left:8px">
+        <button id="save_btn" type="button" onclick="Save_map()" style="float:left; margin-top:12px">Save map</button> 
+        <p id="wait" style="float:left; margin-left:16px"></p>
     </div>
 </body>
  

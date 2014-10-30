@@ -32,12 +32,17 @@ function init_rutes_map(){
     map.addLayer(newLayer);
 
     // This is the layer that uses the locally stored satellite tiles
-    var newLayer2 = new OpenLayers.Layer.TMS("Local satellite tiles", "tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL,visibility: 0});
+    var newLayer2 = new OpenLayers.Layer.TMS("Local satellite tiles", "tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL, visibility: 0});
     map.addLayer(newLayer2);
     if (OpenLayers.Util.alphaHack() == false) {
         newLayer2.setOpacity(0.7);
     }
     // initialize the handler for drawing the zones and the base
+
+    // controls for switching maps/layers
+ 	var switcherControl = new OpenLayers.Control.LayerSwitcher();
+	map.addControl(switcherControl);
+	switcherControl.maximizeControl();
     
     // moves the map to the correct position
     if( ! map.getCenter() ){
