@@ -9,6 +9,49 @@ class Mysql_spil {
 									die('there was a problem connecting to the database.');
     }
 
+    function edit_team($name1, $name2, $name3, $name4, $old_name1, $old_name2, $old_name3, $old_name4) {
+        $query =  "UPDATE test_spil.Teams SET name1=?, name2=?, name3=?, name4=?
+                   WHERE name1=? AND name2=? AND name3=? AND name4=?";           
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('ssssssss', $name1, $name2, $name3, $name4,$old_name1,$old_name2,$old_name3,$old_name4);
+		    $stmt->execute();
+            $stmt->close();
+            return;
+        }
+    }
+
+    function delete_team($teamID) {
+        $query =  "DELETE FROM test_spil.Teams WHERE teamID = ?";           
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+		    $stmt->execute();
+            $stmt->close();
+            return;
+        }
+    }
+
+    function get_teams(){
+        $query = "SELECT * FROM test_spil.Teams";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    } 
+
+    function save_team($name1, $name2, $name3, $name4) {
+        $query = "INSERT INTO test_spil.Teams(name1, name2, name3, name4) 
+                  VALUES (?, ?, ?, ?)";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('ssss', $name1, $name2, $name3, $name4);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }   
+
     function get_maps(){
         $query = "SELECT * FROM Maps.Maps";
         if ($stmt = $this->conn->prepare($query)){
@@ -40,6 +83,55 @@ class Mysql_spil {
             $stmt->close();
             return;
         }
+    }
+
+    function edit_rute($rute, $old_rute) {
+        if(sizeof($old_rute) == 1){
+            $query = "UPDATE test_spil.Rutes SET zoneID1=?
+                   WHERE zoneID1=?;";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('ii', $rute[0],$old_rute[0]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        else if(sizeof($old_rute) == 2){
+            $query = "UPDATE test_spil.Rutes SET zoneID1=?, zoneID2=?
+                   WHERE zoneID1=? AND zoneID2=?;";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('iiii', $rute[0],$rute[1], $old_rute[0],$old_rute[1]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        else if(sizeof($old_rute) == 3){
+            $query = "UPDATE test_spil.Rutes SET zoneID1=?, zoneID2=?, zoneID3=?
+                   WHERE zoneID1=? AND zoneID2=? AND zoneID3=?;";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('iiiiii', $rute[0],$rute[1],$rute[2], $old_rute[0],$old_rute[1],$old_rute[2]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        else if(sizeof($old_rute) == 4){
+            $query = "UPDATE test_spil.Rutes SET zoneID1=?, zoneID2=?, zoneID3=?, zoneID4=?
+                   WHERE zoneID1=? AND zoneID2=? AND zoneID3=? AND zoneID4=?;";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('iiiiiiii', $rute[0],$rute[1],$rute[2],$rute[3],$old_rute[0],$old_rute[1],$old_rute[2],$old_rute[3]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        else if(sizeof($old_rute) == 5){
+            $query = "UPDATE test_spil.Rutes SET zoneID1=?, zoneID2=?, zoneID3=?, zoneID4=?, zoneID5=?
+                   WHERE zoneID1=? AND zoneID2=? AND zoneID3=? AND zoneID4=? AND zoneID5=?;";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('iiiiiiiiii', $rute[0],$rute[1],$rute[2],$rute[3],$rute[4], $old_rute[0],$old_rute[1],$old_rute[2],$old_rute[3],$old_rute[4]);
+			    $stmt->execute();
+                $stmt->close();
+            }
+        }
+        
     }
     
      function save_rute($rute) {

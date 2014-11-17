@@ -15,5 +15,11 @@ else if ($action == 'delete_rute'){
     $mysql = new Mysql_spil();
     $mysql->delete_rute($rute_ar);
 }
+else if ($action == 'edit'){
+    $old_rute = $_GET['old_rute'];
+    $old_rute_ar = explode(",", $old_rute);
+    $mysql = new Mysql_spil();
+    $mysql->edit_rute($rute_ar,$old_rute_ar);
+}
 
 ?>

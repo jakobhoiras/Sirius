@@ -290,10 +290,6 @@ function unpick_row(i){
         <button type="button" onclick="add_zone()" style="position:absolute; margin-left:150px;">submit</button>
     </div>
     <div style="width:100%; float:left;">
-        <p id="base#"># of bases: 0</p>
-        <button type="button" onclick="add_rute()">add rute</button>
-        <button type="button" onclick="add_zone_to_rute()">add zone</button><input type="text" name="addToRute" id="addToRute" size="3">
-        <table id="table" style="border: 1px solid black"><table>
         
     </div>
 

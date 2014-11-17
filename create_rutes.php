@@ -459,11 +459,13 @@ function save_edit(){
     var zone4 = document.getElementById("edit_zone4").value;
     var zone5 = document.getElementById("edit_zone5").value;
     zone_array = [zone1,zone2,zone3,zone4,zone5];
+    old_zone_array = [];
     var table = document.getElementById("chosen_rutes");
     for (i=0; i<table.rows.length; i++){
         if (table.rows[i].getAttribute("value") == "edit"){
             for (j=0; j<5; j++){
                 if (zone_array[j] != ''){
+                    old_zone_array.push(table.rows[i].cells[j].innerHTML);
                     table.rows[i].cells[j].innerHTML = zone_array[j];
                 }
             }
@@ -471,6 +473,19 @@ function save_edit(){
             table.rows[i].style.background = "white";
         }
     }
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+        }
+    }
+    a='edit'
+    xmlhttp.open("GET","update_rutes.php?rute=" + zone_array + "&old_rute=" + old_zone_array + '&a=' + a,true);
+    xmlhttp.send();
+    document.getElementById("edit_zone1").value = "";
+    document.getElementById("edit_zone2").value = "";
+    document.getElementById("edit_zone3").value = "";
+    document.getElementById("edit_zone4").value = "";
+    document.getElementById("edit_zone5").value = "";
 }
 
 function get_suggest_rutes_param(){
