@@ -9,6 +9,18 @@ class Mysql_spil {
 									die('there was a problem connecting to the database.');
     }
 
+    function get_games(){
+        $query = "SELECT * FROM Games.Games";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    } 
+
     function edit_team($name1, $name2, $name3, $name4, $old_name1, $old_name2, $old_name3, $old_name4) {
         $query =  "UPDATE test_spil.Teams SET name1=?, name2=?, name3=?, name4=?
                    WHERE name1=? AND name2=? AND name3=? AND name4=?";           
@@ -387,13 +399,13 @@ class Mysql_spil {
     
     function create_game($game_name, $company) {
         // Creates the new game database
-        $query = "CREATE DATABASE " . (string)$game_name;        
+        $query = "CREATE DATABASE GAME_" . (string)$game_name;        
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
         }
         // Creates table for assignments
-        $query = "CREATE TABLE " . (string)$game_name . ".Assignments (
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Assignments (
             assignmentID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(assignmentID), 
             type VARCHAR(20), 
             text_in VARCHAR(20), 
@@ -411,7 +423,7 @@ class Mysql_spil {
             $stmt->close();
         } 
         // Creates table for zones
-        $query = "CREATE TABLE " . (string)$game_name . ".Zones (
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Zones (
             zoneID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(zoneID), 
             GPSx FLOAT(20), 
             GPSy FLOAT(20), 
@@ -422,7 +434,7 @@ class Mysql_spil {
             $stmt->close();
         } 
         // Creates table for rutes
-        $query = "CREATE TABLE " . (string)$game_name . ".Rutes (
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Rutes (
             ruteID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(ruteID), 
             zoneID1 INT(5), 
             zoneID2 INT(5), 
@@ -435,7 +447,7 @@ class Mysql_spil {
             $stmt->close();
         } 
         // Creates table for teams
-        $query = "CREATE TABLE " . (string)$game_name . ".Teams (
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Teams (
             teamID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(teamID), 
             ruteID INT(5), 
             name1 VARCHAR(30), 

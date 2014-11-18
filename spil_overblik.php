@@ -16,18 +16,18 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
 <html>
     <head>
         <title>
-            Forside
+            Spil menu
         </title>
     </head>
     <h1>
         <p>opgaver du kan foretage dig:</p>
     </h1>
     <form method="post">
-        <input type="button" value="opret opgave" onclick="change_page('opret_opgave_type')"/><br>
-        <input type="button" value="opret spil" onclick="change_page('opret_spil')"/><br>
-        <input type="button" value="opret bruger" onclick="change_page('opret_bruger')"/><br>
-        <input type="button" value="opret kort" onclick="change_page('osm_gem_kort_JTD')"/><br>
-        <input type="button" value="eksisterende spil" onclick="change_page('eksisterende_spil')"/><br>
+        <input type="button" value="importer opgaver" onclick="change_page('importer_opgaver')"/><br>
+        <input type="button" value="importer kort" onclick="change_page('importer_kort')"/><br>
+        <input type="button" value="Zoner" onclick="change_page('draw_zone')"/><br>
+        <input type="button" value="Ruter" onclick="change_page('create_rutes')"/><br>
+        <input type="button" value="Hold" onclick="change_page('create_teams')"/><br>
     </form>
 </html>
 
