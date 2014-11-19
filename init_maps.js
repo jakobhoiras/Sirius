@@ -1,4 +1,4 @@
-function init_rutes_map(){ 
+function init_rutes_map(map_name){ 
     map = new OpenLayers.Map ("map", {
         controls:[
             new OpenLayers.Control.Navigation(),
@@ -28,7 +28,7 @@ function init_rutes_map(){
     map.addLayer(layerMapnik);
             
     // This is the layer that uses the locally stored OSM tiles 
-    var newLayer = new OpenLayers.Layer.OSM("Local tiles", "tiles/odense/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
+    var newLayer = new OpenLayers.Layer.OSM("Local tiles", "tiles/" + map_name + "/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
     map.addLayer(newLayer);
 
     // This is the layer that uses the locally stored satellite tiles
@@ -57,7 +57,7 @@ function init_rutes_map(){
 }
 
 
-function init_zone_map(){
+function init_zone_map(map_name){
     // the basic map object
     map = new OpenLayers.Map ("map", {
         controls:[
@@ -156,7 +156,7 @@ function init_zone_map(){
     map.addLayer(layerMapnik);
             
     // This is the layer that uses the locally stored OSM tiles 
-    var newLayer = new OpenLayers.Layer.OSM("Local tiles", "tiles/odense/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
+    var newLayer = new OpenLayers.Layer.OSM("Local tiles", "tiles/" + map_name + "/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
     map.addLayer(newLayer);
 
     // This is the layer that uses the locally stored satellite tiles

@@ -23,7 +23,7 @@ else{
     create_xml_file($zoom,$center,$mapID);
     chdir('JTileDownloader/jar');
     $output = shell_exec('java -jar jTileDownloader-0-6-1.jar dl=../../osm_get_file.xml 2>&1');
-    chdir("../../tiles/$mapID/13");
+    /*chdir("../../tiles/$mapID/13");
     foreach ( scandir('.') as $src){
         if ($src != '.' and $src != '..'){
             if(file_exists("../../all13/13/$src")==False){
@@ -40,7 +40,7 @@ else{
             chdir('..');
         }
     }
-    chdir('../..');
+    chdir('../..');*/
     echo 'done';
 }
 /*if ($output == NULL){

@@ -1,6 +1,7 @@
 <?php
 
 require_once 'constants.php';
+session_start();
 
 class Mysql_spil {
    
@@ -8,6 +9,33 @@ class Mysql_spil {
 		$this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD) or 
 									die('there was a problem connecting to the database.');
     }
+
+    function save_map_link($map_name) {
+        $query =  "TRUNCATE TABLE GAME_" . $_SESSION['cg']. ".Map";           
+        if ($stmt = $this->conn->prepare($query)){
+		    $stmt->execute();
+            $stmt->close();
+        }
+        $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Map(mapID) 
+                  VALUES (?)";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('s', $map_name);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }  
+
+    function get_map(){
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Map";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    } 
 
     function get_games(){
         $query = "SELECT * FROM Games.Games";
@@ -22,7 +50,7 @@ class Mysql_spil {
     } 
 
     function edit_team($name1, $name2, $name3, $name4, $old_name1, $old_name2, $old_name3, $old_name4) {
-        $query =  "UPDATE test_spil.Teams SET name1=?, name2=?, name3=?, name4=?
+        $query =  "UPDATE GAME_" . $_SESSION['cg']. ".Teams SET name1=?, name2=?, name3=?, name4=?
                    WHERE name1=? AND name2=? AND name3=? AND name4=?";           
         if ($stmt = $this->conn->prepare($query)){
             $stmt->bind_param('ssssssss', $name1, $name2, $name3, $name4,$old_name1,$old_name2,$old_name3,$old_name4);
@@ -33,7 +61,7 @@ class Mysql_spil {
     }
 
     function delete_team($teamID) {
-        $query =  "DELETE FROM test_spil.Teams WHERE teamID = ?";           
+        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Teams WHERE teamID = ?";           
         if ($stmt = $this->conn->prepare($query)){
             $stmt->bind_param('i', $teamID);
 		    $stmt->execute();
@@ -43,7 +71,7 @@ class Mysql_spil {
     }
 
     function get_teams(){
-        $query = "SELECT * FROM test_spil.Teams";
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg']. ".Teams";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $result = $stmt->get_result();
@@ -55,7 +83,7 @@ class Mysql_spil {
     } 
 
     function save_team($name1, $name2, $name3, $name4) {
-        $query = "INSERT INTO test_spil.Teams(name1, name2, name3, name4) 
+        $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Teams(name1, name2, name3, name4) 
                   VALUES (?, ?, ?, ?)";
         if ($stmt = $this->conn->prepare($query)){
             $stmt->bind_param('ssss', $name1, $name2, $name3, $name4);
@@ -88,7 +116,7 @@ class Mysql_spil {
 
     function delete_rute($rute) {
         // deletes a row from zones table. 2nd and 3rd for-loop are for handling cases with rouding errors
-        $query =  "DELETE FROM test_spil.Rutes WHERE zoneID1 = ? AND zoneID2 = ? AND zoneID3 = ? AND zoneID4 = ? AND zoneID5 = ?";           
+        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Rutes WHERE zoneID1 = ? AND zoneID2 = ? AND zoneID3 = ? AND zoneID4 = ? AND zoneID5 = ?";           
         if ($stmt = $this->conn->prepare($query)){
             $stmt->bind_param('iiiii', $rute[0], $rute[1], $rute[2], $rute[3], $rute[4]);
 		    $stmt->execute();
@@ -99,7 +127,7 @@ class Mysql_spil {
 
     function edit_rute($rute, $old_rute) {
         if(sizeof($old_rute) == 1){
-            $query = "UPDATE test_spil.Rutes SET zoneID1=?
+            $query = "UPDATE GAME_" . $_SESSION['cg']. ".Rutes SET zoneID1=?
                    WHERE zoneID1=?;";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('ii', $rute[0],$old_rute[0]);
@@ -108,7 +136,7 @@ class Mysql_spil {
             }
         }
         else if(sizeof($old_rute) == 2){
-            $query = "UPDATE test_spil.Rutes SET zoneID1=?, zoneID2=?
+            $query = "UPDATE GAME_" . $_SESSION['cg']. ".Rutes SET zoneID1=?, zoneID2=?
                    WHERE zoneID1=? AND zoneID2=?;";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('iiii', $rute[0],$rute[1], $old_rute[0],$old_rute[1]);
@@ -117,7 +145,7 @@ class Mysql_spil {
             }
         }
         else if(sizeof($old_rute) == 3){
-            $query = "UPDATE test_spil.Rutes SET zoneID1=?, zoneID2=?, zoneID3=?
+            $query = "UPDATE GAME_" . $_SESSION['cg']. ".Rutes SET zoneID1=?, zoneID2=?, zoneID3=?
                    WHERE zoneID1=? AND zoneID2=? AND zoneID3=?;";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('iiiiii', $rute[0],$rute[1],$rute[2], $old_rute[0],$old_rute[1],$old_rute[2]);
@@ -126,7 +154,7 @@ class Mysql_spil {
             }
         }
         else if(sizeof($old_rute) == 4){
-            $query = "UPDATE test_spil.Rutes SET zoneID1=?, zoneID2=?, zoneID3=?, zoneID4=?
+            $query = "UPDATE GAME_" . $_SESSION['cg']. ".Rutes SET zoneID1=?, zoneID2=?, zoneID3=?, zoneID4=?
                    WHERE zoneID1=? AND zoneID2=? AND zoneID3=? AND zoneID4=?;";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('iiiiiiii', $rute[0],$rute[1],$rute[2],$rute[3],$old_rute[0],$old_rute[1],$old_rute[2],$old_rute[3]);
@@ -135,7 +163,7 @@ class Mysql_spil {
             }
         }
         else if(sizeof($old_rute) == 5){
-            $query = "UPDATE test_spil.Rutes SET zoneID1=?, zoneID2=?, zoneID3=?, zoneID4=?, zoneID5=?
+            $query = "UPDATE GAME_" . $_SESSION['cg']. ".Rutes SET zoneID1=?, zoneID2=?, zoneID3=?, zoneID4=?, zoneID5=?
                    WHERE zoneID1=? AND zoneID2=? AND zoneID3=? AND zoneID4=? AND zoneID5=?;";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('iiiiiiiiii', $rute[0],$rute[1],$rute[2],$rute[3],$rute[4], $old_rute[0],$old_rute[1],$old_rute[2],$old_rute[3],$old_rute[4]);
@@ -148,7 +176,7 @@ class Mysql_spil {
     
      function save_rute($rute) {
         if(sizeof($rute) == 1){
-            $query = "INSERT INTO test_spil.Rutes(zoneID1) 
+            $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Rutes(zoneID1) 
                       VALUES (?)";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('i', $rute[0]);
@@ -157,7 +185,7 @@ class Mysql_spil {
             }
         }
         else if(sizeof($rute) == 2){
-            $query = "INSERT INTO test_spil.Rutes(zoneID1, zoneID2) 
+            $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Rutes(zoneID1, zoneID2) 
                       VALUES (?,?)";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('ii', $rute[0],$rute[1]);
@@ -166,7 +194,7 @@ class Mysql_spil {
             }
         }
         else if(sizeof($rute) == 3){
-            $query = "INSERT INTO test_spil.Rutes(zoneID1, zoneID2, zoneID3) 
+            $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Rutes(zoneID1, zoneID2, zoneID3) 
                       VALUES (?,?,?)";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('iii', $rute[0],$rute[1],$rute[2]);
@@ -175,7 +203,7 @@ class Mysql_spil {
             }
         }
         else if(sizeof($rute) == 4){
-            $query = "INSERT INTO test_spil.Rutes(zoneID1, zoneID2, zoneID3, zoneID4) 
+            $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Rutes(zoneID1, zoneID2, zoneID3, zoneID4) 
                       VALUES (?,?,?,?)";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('iiii', $rute[0],$rute[1],$rute[2],$rute[3]);
@@ -184,7 +212,7 @@ class Mysql_spil {
             }
         }
         else if(sizeof($rute) == 5){
-            $query = "INSERT INTO test_spil.Rutes(zoneID1, zoneID2, zoneID3, zoneID4, zoneID5) 
+            $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Rutes(zoneID1, zoneID2, zoneID3, zoneID4, zoneID5) 
                       VALUES (?,?,?,?,?)";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('iiiii', $rute[0],$rute[1],$rute[2],$rute[3],$rute[4]);
@@ -196,7 +224,7 @@ class Mysql_spil {
     }
 
     function get_rutes(){
-        $query = "SELECT * FROM test_spil.Rutes";
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg']. ".Rutes";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $result = $stmt->get_result();
@@ -209,7 +237,7 @@ class Mysql_spil {
     
     // FUNCTIONS FOR DRAW ZONES PAGE
     function get_zones(){
-        $query = "SELECT * FROM test_spil.Zones";
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg']. ".Zones";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $result = $stmt->get_result();
@@ -221,7 +249,7 @@ class Mysql_spil {
     }   
 
     function save_zones($GPSx, $GPSy, $radius) {
-        $query = "INSERT INTO test_spil.Zones (GPSx,GPSy,radius) 
+        $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Zones (GPSx,GPSy,radius) 
                   VALUES (?,?,?)";
         if ($stmt = $this->conn->prepare($query)){
             $stmt->bind_param('sss', $GPSx, $GPSy, $radius);
@@ -231,7 +259,7 @@ class Mysql_spil {
     }
 
     function get_bases(){
-        $query = "SELECT * FROM test_spil.Base";
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg']. ".Base";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $result = $stmt->get_result();
@@ -243,7 +271,7 @@ class Mysql_spil {
     }  
 
     function get_number_of_bases(){
-        $query = "SELECT * FROM test_spil.Base";
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg']. ".Base";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $result = $stmt->get_result();
@@ -255,7 +283,7 @@ class Mysql_spil {
     }   
 
     function save_base($GPSx, $GPSy, $radius) {
-        $query = "INSERT INTO test_spil.Base (GPSx,GPSy,radius) 
+        $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Base (GPSx,GPSy,radius) 
                   VALUES (?,?,?)";
         if ($stmt = $this->conn->prepare($query)){
             $stmt->bind_param('sss', $GPSx, $GPSy, $radius);
@@ -265,7 +293,7 @@ class Mysql_spil {
     }
 
     function update_zone_ID($zoneID, $assID) {
-        $query = "UPDATE test_spil.Zones SET assignmentID =? 
+        $query = "UPDATE GAME_" . $_SESSION['cg']. ".Zones SET assignmentID =? 
                   WHERE zoneID = ?";
         if ($stmt = $this->conn->prepare($query)){
             $stmt->bind_param('ii', $assID, $zoneID);
@@ -275,7 +303,7 @@ class Mysql_spil {
     }
 
     function get_zone_link($zoneID){
-        $query = "SELECT assignmentID FROM test_spil.Zones WHERE zoneID = ?";
+        $query = "SELECT assignmentID FROM GAME_" . $_SESSION['cg']. ".Zones WHERE zoneID = ?";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $result = $stmt->get_result();
@@ -289,10 +317,10 @@ class Mysql_spil {
     function delete_zones($GPSx, $GPSy, $action) {
         // deletes a row from zones table. 2nd and 3rd for-loop are for handling cases with rouding errors
         if ($action == 'delete_zone'){  
-            $query = "SELECT zoneID,GPSx,GPSy,radius FROM test_spil.Zones";
+            $query = "SELECT zoneID,GPSx,GPSy,radius FROM GAME_" . $_SESSION['cg']. ".Zones";
         }
         if ($action == 'delete_base'){  
-            $query = "SELECT baseID,GPSx,GPSy,radius FROM test_spil.Base";
+            $query = "SELECT baseID,GPSx,GPSy,radius FROM GAME_" . $_SESSION['cg']. ".Base";
         } 
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
@@ -305,10 +333,10 @@ class Mysql_spil {
             for ($i=0; $i<$zones_num; $i++){
                 if($table[$i][1]==$GPSx and $table[$i][2]==$GPSy){
                     if ($action == 'delete_zone'){ 
-                        $query =  "DELETE FROM test_spil.Zones WHERE GPSx = ? AND GPSy = ?";
+                        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Zones WHERE GPSx = ? AND GPSy = ?";
                     }
                     else if ($action == 'delete_base'){ 
-                        $query =  "DELETE FROM test_spil.Base WHERE GPSx = ? AND GPSy = ?";
+                        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Base WHERE GPSx = ? AND GPSy = ?";
                     }
                     if ($stmt = $this->conn->prepare($query)){
                         $stmt->bind_param('ss', $GPSx, $GPSy);
@@ -326,10 +354,10 @@ class Mysql_spil {
                     }
                     $index = array_keys($dist_list,min($dist_list));
                     if ($action == 'delete_zone'){ 
-                        $query =  "DELETE FROM test_spil.Zones WHERE zoneID = ?";
+                        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Zones WHERE zoneID = ?";
                     }
                     else if ($action == 'delete_base'){ 
-                        $query =  "DELETE FROM test_spil.Base WHERE baseID = ?";
+                        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Base WHERE baseID = ?";
                     } 
                     if ($stmt = $this->conn->prepare($query)){
                         $stmt->bind_param('i', $table[$index[0]][0]);
@@ -348,10 +376,10 @@ class Mysql_spil {
                     }
                     $index = array_keys($dist_list,min($dist_list));
                     if ($action == 'delete_zone'){
-                        $query =  "DELETE FROM test_spil.Zones WHERE zoneID = ?";
+                        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Zones WHERE zoneID = ?";
                     }
                     else if ($action == 'delete_base'){
-                        $query =  "DELETE FROM test_spil.Base WHERE baseID = ?";
+                        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Base WHERE baseID = ?";
                     }
                     if ($stmt = $this->conn->prepare($query)){
                         $stmt->bind_param('i', $table[$index[0]][0]);
@@ -370,10 +398,10 @@ class Mysql_spil {
                     }
                     $index = array_keys($dist_list,min($dist_list));
                     if ($action == 'delete_zone'){
-                        $query =  "DELETE FROM test_spil.Zones WHERE zoneID = ?";
+                        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Zones WHERE zoneID = ?";
                     }
                     else if ($action == 'delete_base'){
-                        $query =  "DELETE FROM test_spil.Base WHERE baseID = ?";
+                        $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Base WHERE baseID = ?";
                     }
                     if ($stmt = $this->conn->prepare($query)){
                         $stmt->bind_param('i', $table[$index[0]][0]);
@@ -385,7 +413,7 @@ class Mysql_spil {
             }
     }
     // OTHER FUNCTIONS
-    function display_games() {
+    /*function display_games() {
         $query = "SELECT navn FROM Spil.spil";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
@@ -395,7 +423,7 @@ class Mysql_spil {
                 return $game_names;
             }
         } 
-    }
+    }*/
     
     function create_game($game_name, $company) {
         // Creates the new game database
@@ -422,13 +450,22 @@ class Mysql_spil {
 			$stmt->execute();
             $stmt->close();
         } 
+        // Creates table for base
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Base (
+            baseID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(baseID), 
+            GPSx FLOAT(20), 
+            GPSy FLOAT(20), 
+            radius INT(6))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        } 
         // Creates table for zones
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Zones (
             zoneID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(zoneID), 
             GPSx FLOAT(20), 
             GPSy FLOAT(20), 
-            radius INT(6), 
-            assignmentID INT(5))";
+            radius INT(6))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
@@ -440,8 +477,7 @@ class Mysql_spil {
             zoneID2 INT(5), 
             zoneID3 INT(5),
             zoneID4 INT(5),
-            zoneID5 INT(5), 
-            length FLOAT(5))";
+            zoneID5 INT(5))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
@@ -454,6 +490,13 @@ class Mysql_spil {
             name2 VARCHAR(30),
             name3 VARCHAR(30),
             name4 VARCHAR(30))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        } 
+        // Creates table for Map
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Map (
+            mapID VARCHAR(30) NOT NULL, PRIMARY KEY(mapID))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();

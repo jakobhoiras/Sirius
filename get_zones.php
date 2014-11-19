@@ -10,7 +10,6 @@ for ($i=0; $i<$zones_num; $i++){
     echo $table[$i][1] . " ";
     echo $table[$i][2] . " ";
     echo $table[$i][3] . " ";
-    echo $table[$i][4] . " ";
 }
 
 ?>

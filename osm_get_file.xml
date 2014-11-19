@@ -2,11 +2,11 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <entry key="Type">BBoxLatLon</entry>
-<entry key="OutputLocation">../../tiles/vejen</entry>
+<entry key="OutputLocation">../../tiles/koge</entry>
 <entry key="TileServer">http://a.tile.openstreetmap.org</entry>
-<entry key="MaxLon">9.17959842</entry>
-<entry key="MinLon">9.11959842</entry>
-<entry key="MaxLat">55.48694549</entry>
-<entry key="MinLat">55.46694549</entry>
+<entry key="MaxLon">12.21113834</entry>
+<entry key="MinLon">12.15113834</entry>
+<entry key="MaxLat">55.46760495</entry>
+<entry key="MinLat">55.44760495</entry>
 <entry key="OutputZoomLevel">13,14,15</entry>
 </properties>

@@ -1,9 +1,9 @@
-<!--?php
-require_once 'Membership.php';
+<?php
+/*require_once 'Membership.php';
 $membership = New Membership();
 $membership->confirm_Admin();
-$membership->check_Active();
-require 'Mysql_create_game.php';
+$membership->check_Active();*/
+require 'Mysql.php';
 $mysql = new Mysql_spil();
 
 if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
@@ -12,7 +12,7 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
     //header('location: spil_GUI.php');
 }
 
-?-->
+?>
 
 <!DOCTYPE html>
 

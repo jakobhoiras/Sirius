@@ -1,10 +1,16 @@
 <?php
 
+require 'Mysql.php';
+$mysql = new Mysql_spil();
+$map_name = $mysql -> get_map($_SESSION['cg']);
+if ($map_name == ''){
+    die('There is no map linked to this game. Go to "import map" in order to set a map!');
+}
 ?>
 
 <html>
 <head>
-    <title>OSM Local Tiles</title>
+    <title>Create zones</title>
     <link rel="stylesheet" href="style.css" type="text/css" />
     <!-- bring in the OpenLayers javascript library
          (here we bring it from the remote site, but you could
@@ -46,12 +52,22 @@ function init() {
     // Sets the map center and adds a event register for change in zoom level.
     // Also listeners for handling hovering, dehovering and clicking zones as well as
     // controls for drawing and deleting zones and bases are added
-    init_zone_map();
-    get_zones_from_db(); // updates zone table on page initialization
-    add_zones(); // add zones to map on page initialization
-    add_bases();
-    get_bases_from_db();
-    get_base();
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            var map_info = xmlhttp.responseText.split(" ");
+            lat = map_info[2];
+            lon = map_info[1];
+            init_zone_map(map_info[0]);
+            get_zones_from_db(); // updates zone table on page initialization
+            add_zones(); // add zones to map on page initialization
+            add_bases();
+            //get_bases_from_db();
+            get_base();
+        }
+    }
+    xmlhttp.open("GET","get_map_name.php",true);
+    xmlhttp.send();
 }
 
 
@@ -144,7 +160,7 @@ function get_zones_from_db(){
     xmlhttp.send();
 }
 
-function get_bases_from_db(){
+/*function get_bases_from_db(){
    // gets the number of bases 
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
@@ -160,7 +176,7 @@ function get_bases_from_db(){
     }
     xmlhttp.open("GET","get_number_of_bases.php",true);
     xmlhttp.send();
-}
+}*/
 
 
 function submit_assign(){
@@ -186,12 +202,11 @@ function submit_assign(){
     get_zones_from_db(); // updates the table.
 }
 
-function pick_row(i, assID){
+function pick_row(i){
     // for controlling style and graphics when chosing a zone in the table
     document.getElementById("row" + i).style.background = "blue";
     document.getElementById("row" + i).setAttribute("value", 'p');
     document.getElementById("zoneID").innerHTML = "Zone " + (i) + " links to ";
-    document.getElementById("assID").setAttribute("value", assID);
     var zones_num = zoneLayer.features.length;
     for (var j=0; j<zones_num; j++){
         if(zoneLayer.features[j].attributes["ID"]==i){
@@ -270,12 +285,11 @@ function unpick_row(i){
         <div style="width:30%; height:40%; float:left">
         <p style="float:left">radius of zone or base:<p>
         <select name="size" onchange="setSize(parseFloat(this.value))" id="size" style="float:left">
-            <option value="" selected="selected">variable</option>
             <option value="10">10m</option>
             <option value="20">20m</option>
             <option value="30">30m</option>
             <option value="40">40m</option>
-            <option value="50">50m</option>
+            <option value="50" selected="selected">50m</option>
             <option value="100">100m</option>
             <option value="200">200m</option>
             <option value="300">300m</option>

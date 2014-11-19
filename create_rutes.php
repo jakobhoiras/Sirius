@@ -1,5 +1,11 @@
 <?php
 
+require 'Mysql.php';
+$mysql = new Mysql_spil();
+$map_name = $mysql -> get_map($_SESSION['cg']);
+if ($map_name == ''){
+    die('There is no map linked to this game. Go to "import map" in order to set a map!');
+}
 ?>
 
 <html>
@@ -44,7 +50,22 @@ var point_base;
 function init() {
     // creates the basic map object and the tile, zone and base Layers. 
     // Sets the map center and adds a event register for change in zoom level
-    init_rutes_map();  
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            var map_info = xmlhttp.responseText.split(" ");
+            lat = map_info[2];
+            lon = map_info[1];
+            init_rutes_map(map_info[0]);
+            add_zones(); // add zones to map on page initialization
+            add_bases(); // add bases to map on page initialization
+            get_base(); // writes the base information to a global variable
+            get_rutes_from_db();
+        }
+    }
+    xmlhttp.open("GET","get_map_name.php",true);
+    xmlhttp.send();
+      
 
     add_zones(); // add zones to map on page initialization
     add_bases(); // add bases to map on page initialization
@@ -86,37 +107,38 @@ function suggest_rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_s
                     featurecircle_big.style = {fillOpacity: 0.0, strokeColor:"black", strokeDashstyle: 'dash'};
                     featurecircle_small.attributes["type"]="perim";
                     featurecircle_big.attributes["type"]="perim";
+                    baseLayer.removeFeatures( baseLayer.getFeaturesByAttribute("type", "perim") );
                     baseLayer.addFeatures([featurecircle_small,featurecircle_big]); // add the include perimiter
-                    for (var zone=0; zone<(zones_num-1)/5; zone++){                    
-                        var lon_zone = zones[zone*5+1];
-                        var lat_zone = zones[zone*5+2];
+                    for (var zone=0; zone<(zones_num-1)/4; zone++){                    
+                        var lon_zone = zones[zone*4+1];
+                        var lat_zone = zones[zone*4+2];
                         var lonLat2 = new OpenLayers.LonLat(lon_zone,lat_zone).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
                         var point2 = new OpenLayers.Geometry.Point(lonLat2.lon, lonLat2.lat);
                         if (point_base.distanceTo(point2)*Math.cos(lat*(Math.PI/180)) < max_dist_start && point_base.distanceTo(point2)*Math.cos(lat*(Math.PI/180)) > min_dist_start){
-                            rutes.push([[zones[zone*5],point2]]); //add zoneto rute if zone is with specified distance
+                            rutes.push([[zones[zone*4],point2]]); //add zoneto rute if zone is with specified distance
                         }
                     }
                 }
                 else{
                     var rutes_num = rutes.length;
                     for (var zone_count=0; zone_count<rutes_num; zone_count++){
-                        for (var zone=0; zone<(zones_num-1)/5; zone++){
+                        for (var zone=0; zone<(zones_num-1)/4; zone++){
                             var old_rute=0;
-                            var lon_zone = zones[zone*5+1];
-                            var lat_zone = zones[zone*5+2];
+                            var lon_zone = zones[zone*4+1];
+                            var lat_zone = zones[zone*4+2];
                             var lonLat = new OpenLayers.LonLat(lon_zone,lat_zone).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
                             var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
                             if (rute_point != num_zones-1){
                                 if (rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) < max_dist && rutes[zone_count][rutes[zone_count].length-1][1].distanceTo(point)*Math.cos(lat*(Math.PI/180)) > min_dist){
                                     not_in_rute=true;
                                     for (var i=0; i<rutes[zone_count].length;i++){
-                                        if (rutes[zone_count][i][0] == zones[zone*5]){
+                                        if (rutes[zone_count][i][0] == zones[zone*4]){
                                             not_in_rute=false;
                                         }
                                     }
                                     if (not_in_rute == true){
                                         old_rute = rutes[zone_count];
-                                        new_rute = old_rute.concat([[zones[zone*5],point]]);
+                                        new_rute = old_rute.concat([[zones[zone*4],point]]);
                                         rutes_new.push(new_rute);
                                     }
                                 }
@@ -126,13 +148,13 @@ function suggest_rutes(num_zones, min_dist, max_dist, min_dist_start, max_dist_s
                                     if (point_base.distanceTo(point)*Math.cos(lat*(Math.PI/180)) < max_dist && point_base.distanceTo(point)*Math.cos(lat*(Math.PI/180)) > min_dist){
                                         not_in_rute=true;
                                         for (var i=0; i<rutes[zone_count].length;i++){
-                                            if (rutes[zone_count][i][0] == zones[zone*5]){
+                                            if (rutes[zone_count][i][0] == zones[zone*4]){
                                                 not_in_rute=false;
                                             }
                                         }
                                         if (not_in_rute == true){
                                             old_rute = rutes[zone_count];
-                                            new_rute = old_rute.concat([[zones[zone*5],point]]);
+                                            new_rute = old_rute.concat([[zones[zone*4],point]]);
                                             rutes_new.push(new_rute);
                                         }
                                     }
@@ -179,13 +201,7 @@ function get_rutes_from_db(){
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            display_rutes_from_db(xmlhttp.responseText.split(" "));
-            if (old_resp == xmlhttp.responseText){
-                get_rutes_from_db();            
-            }
-            else{
-                old_resp = xmlhttp.responseText;
-            }
+            display_rutes_from_db(xmlhttp.responseText.split(" "));            
         }
     }
     xmlhttp.open("GET","display_rutes_table.php",true);
@@ -309,9 +325,9 @@ function draw_lines(row){
             for (var j=0; j<row.cells.length; j++){
                 // find the points belonging to the chosen rute.
                 for (var zone=0; zone<zones.length; zone++){
-                    if (zones[5*zone]==row.cells[j].innerHTML && row.cells[j].innerHTML != ""){
-                        var lon_zone = zones[zone*5+1];
-                        var lat_zone = zones[zone*5+2];
+                    if (zones[4*zone]==row.cells[j].innerHTML && row.cells[j].innerHTML != ""){
+                        var lon_zone = zones[zone*4+1];
+                        var lat_zone = zones[zone*4+2];
                         var lonLat = new OpenLayers.LonLat(lon_zone,lat_zone).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
                         var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
                         points.push(point);

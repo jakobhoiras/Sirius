@@ -7,18 +7,18 @@ function add_zones(){
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
             zones = xmlhttp.responseText.split(" ");
             var zones_num = zones.length;
-            for (var i=0; i<(zones_num-1)/5; i++){
-                var lon_new = zones[i*5+1]; // lon of the center of the zone
-                var lat_new = zones[i*5+2]; // lat of the center of the zone
-                var radius_in_m = zones[i*5+3];
+            for (var i=0; i<(zones_num-1)/4; i++){
+                var lon_new = zones[i*4+1]; // lon of the center of the zone
+                var lat_new = zones[i*4+2]; // lat of the center of the zone
+                var radius_in_m = zones[i*4+3];
                 var lonLat = new OpenLayers.LonLat(lon_new,lat_new).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject()); //transform from map units(conventional) to map projection units(stupid)
                 var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
                 var radius = radius_in_m/Math.cos(lat*(Math.PI/180)); //transform from map units(conventional) to map projection units(stupid). this not an exact conversion.
                 var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point,radius,50,0);
                 var featurecircle = new OpenLayers.Feature.Vector(mycircle);
-                if (zones[i*5+4] == 0){
+                if (0 == 0){
                     // sets the color of the zone to red if it is not linked to an assignment
-                    featurecircle.style = {fillColor: "red", fillOpacity: 0.4, strokeColor:"red",label: zones[i*5], fontSize: 10};
+                    featurecircle.style = {fillColor: "red", fillOpacity: 0.4, strokeColor:"red",label: zones[i*4], fontSize: 10};
                     featurecircle.attributes["type"]="notset";
                     }
                 else{
@@ -26,7 +26,7 @@ function add_zones(){
                     featurecircle.style = {fillColor: "green", fillOpacity: 0.4, strokeColor:"green",label: zones[i*5], fontSize: 10};
                     featurecircle.attributes["type"]="set";
                 }
-                featurecircle.attributes["ID"]=zones[i*5]; // set an id attribute for use in later manipulation
+                featurecircle.attributes["ID"]=zones[i*4]; // set an id attribute for use in later manipulation
                 zoneLayer.addFeatures([featurecircle]); // adds the zone to the layer
             }        
         }

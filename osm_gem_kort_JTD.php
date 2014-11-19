@@ -52,8 +52,8 @@ function init() {
     map.addLayer(layerMapnik); 
  
     // This is the layer that uses the locally stored tiles
-    var overviewLayer = new OpenLayers.Layer.OSM("Overview of all maps", "tiles/all13/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
-    map.addLayer(overviewLayer);
+    /*var overviewLayer = new OpenLayers.Layer.OSM("Overview of all maps", "tiles/all13/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
+    map.addLayer(overviewLayer);*/
     
     singlesiteLayer = new OpenLayers.Layer.OSM("single site map", "tiles/lyngby/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
     map.addLayer(singlesiteLayer);
