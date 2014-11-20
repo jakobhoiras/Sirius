@@ -4,7 +4,7 @@ require 'Mysql.php';
 $mysql = new Mysql_spil();
 $table = $mysql->get_zones();
 
-echo "<table style='border-collapse:collapse'>";
+echo "<table style='border-collapse:collapse; margin-right:auto; margin-left:auto'>";
 echo "<caption>List of zones:</caption>";
 echo "<tr>";
 echo "<th>zone #</th>";

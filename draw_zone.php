@@ -244,6 +244,32 @@ function unpick_row(i){
     }
 }
 
+function show_perim(){
+    var min_dist_start = document.getElementById("min").value;
+    var max_dist_start = document.getElementById("max").value;
+    var lon_base = base[1];
+    var lat_base = base[2];
+    var lonLat = new OpenLayers.LonLat(lon_base,lat_base).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+    point_base = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
+    var radius_small = min_dist_start/Math.cos(lat*(Math.PI/180));
+    var radius_big = max_dist_start/Math.cos(lat*(Math.PI/180));
+    var mycircle_small = OpenLayers.Geometry.Polygon.createRegularPolygon(point_base,radius_small,50,0);
+    var mycircle_big = OpenLayers.Geometry.Polygon.createRegularPolygon(point_base,radius_big,50,0);
+    var featurecircle_small = new OpenLayers.Feature.Vector(mycircle_small);
+    var featurecircle_big = new OpenLayers.Feature.Vector(mycircle_big);
+    featurecircle_small.style = {fillOpacity: 0.0, strokeColor:"black", strokeDashstyle: 'dash'};
+    featurecircle_big.style = {fillOpacity: 0.0, strokeColor:"black", strokeDashstyle: 'dash'};
+    featurecircle_small.attributes["type"]="perim";
+    featurecircle_big.attributes["type"]="perim";
+    baseLayer.removeFeatures( baseLayer.getFeaturesByAttribute("type", "perim") );
+    baseLayer.addFeatures([featurecircle_small,featurecircle_big]); // add the include perimiter
+    document.getElementById("hide").disabled = false;
+}
+
+function hide_perim(){
+    baseLayer.removeFeatures( baseLayer.getFeaturesByAttribute("type", "perim") );
+    document.getElementById("hide").disabled = true;
+}
     </script>
 </head>
  
@@ -251,11 +277,12 @@ function unpick_row(i){
 <body onload="init();">
  
     <!-- define a DIV into which the map will appear. Make it take up the whole window -->
-    <div style="width:50%; height:70%; float:left" id="map"></div>
-    <div style="width:50%; height:70%; float:left">
-        <div id="zones_table"></div>
+    <div style="width:1000px; height:800px; margin-left:auto; margin-right:auto;">
+    <div style="width:60%; height:70%; float:left" id="map"></div>
+    <div style="width:40%; height:70%; float:left">
+        <div id="zones_table" style="overflow:auto"></div>
     </div>
-    <div style="width:20%; height:40%; float:left">
+    <div style="width:20%; height:40%; float:left;">
         <p id="zoom"></p> 
         <!--p id="demo">test</p-->
         <ul id="controlToggle">
@@ -282,7 +309,7 @@ function unpick_row(i){
             </li>
         </ul>
         </div>
-        <div style="width:30%; height:40%; float:left">
+        <div style="width:30%; height:40%; float:left; ">
         <p style="float:left">radius of zone or base:<p>
         <select name="size" onchange="setSize(parseFloat(this.value))" id="size" style="float:left">
             <option value="10">10m</option>
@@ -303,9 +330,26 @@ function unpick_row(i){
         <br/>
         <button type="button" onclick="add_zone()" style="position:absolute; margin-left:150px;">submit</button>
     </div>
-    <div style="width:100%; float:left;">
-        
+    <div style="width:30%; height:40%; float:left;">
+        <div style="width:100%; height:10%;"> 
+            <p style="text-align:center">Show Perimeter</p>
+        </div>
+        <div style="width:80%; height:40%; margin-left:auto; margin-right:auto;">
+            <p style="text-align:center">
+                <label for="min">min:</label>
+                <input type="text" name="min" id="min" size="3" style="">
+                
+            </p>
+            <p style="text-align:center">
+                <label for="min">max:</label>
+                <input type="text" name="max" id="max" size="3" style="">
+            </p>
+            <p style="text-align:center">
+                <button type="button" onclick="show_perim()" style="">show</button>
+                <button type="button" onclick="hide_perim()" id="hide" disabled>hide</button>
+            </p>
+        </div>  
     </div>
-
+    </div>
 </body>
 </html>
