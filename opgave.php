@@ -134,7 +134,7 @@ class opgave {
     }
 
     function populate() {
-        $directory = "C:/wamp/www/Sirius/Opgaver/";
+        $directory = getcwd()."/Opgaver/";
 
 //get all files in specified directory
         $files = array_diff(scandir($directory), array('.', '..'));
