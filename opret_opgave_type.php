@@ -13,152 +13,133 @@ if( $_POST && !empty($_POST['opret_opgave']) ) {
 ?-->
 <?php
 require_once 'opgave.php';
-require_once 'uploader.php';
 $opgave = New opgave();
-$upload = New Upload();
 ?>
 
-<!DOCTYPE html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
 
 <html lang="da">
     <head>
 
-        <style>
-            .textwindow {
-                resize:none;
-                width: 380px;
-            }
-            .input_felt{
-                width: 410px;
-                float: left;
-                border: transparent;
-            }
-            .felt {
-                width: 400px;
-                height: 250px;
-                border: solid;
-                float: left;
-            }
-            .felt2 {
-                width: 400px;
-                border: solid;
-                float: left;
-            }
-        </style>
+        <link rel="stylesheet" type="text/css" href="opgave.css">
         <title>Opsætning - opret spil</title>
 
         <meta name="keywords" content="Lektiehjælp, Uddanelse, Matematik, Fysik, Kemi, Matkon, Service" />
         <meta http-equiv="Content-Type" content="text/html; charset=utf8">
 
-        <link rel="stylesheet" type="text/css" href="styleGrøn.css" />
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+        <script src="opgave.js"></script>
 
 
 
     </head>
 
     <body>
+
         <form method="post" action="">
             <input type="button" value="Back to start" onclick="change_page('start')"/><br>
-                       
-
         </form>
+
+
+        <div class="input_felt">
+            <form Name ="form1" Method ="POST" enctype="multipart/form-data" onsubmit= "return confirm('are you sure you wish to upload this assignment?')">
+                <p>Name of assignment:<br>
+                    <input type="text" name="assignmentName"> </p>
+                <div name="inputOutDiv" class="felt">
+                    <h1> Field Team </h1>
+                    <p>Chose layout: <select onchange="optionCheck('Out')" id="formOut" name="formOut">
+                            <option value="textImage">Text + Image</option>
+                            <option value="text">Text</option>
+                            <option value="image">Image</option>
+                        </select></p>
+
+
+                    <div id="imageOut"><p> Chose a picture:<br>
+                            <input type="file" name='file1' id="files1" onchange="checkFile(1)" /><br>
+                        <output id="toolarge1"></output></p> </div>
+                    <div id="textOut"><p> Description:<br>
+                            <textarea name='questionOut' rows='4' cols='50'class='textWindow' value = 'hey'></textarea></p> </div>
+
+                </div>
+
+                <div name="inputOutDiv" class="felt">
+                    <h1> Base Team </h1>
+                    Chose layout: <select onchange="optionCheck('In')" id="formIn" name="formIn">
+                        <option value='textImage'>Text + Image</option>
+                        <option value="text">Text</option>
+                        <option value="image">Image</option>
+                    </select><br>
+
+                    <div id="imageIn"><p> Chose a picture:<br>
+                            <input type="file" name='file2' id="files2" onchange="checkFile(2)"/><br>
+                        <output id="toolarge2"></output></p> </div>
+
+                    <div id="textIn"><p> Description:<br>
+                            <textarea name='questionIn' rows='4' cols='50' class='textWindow'></textarea></p> </div>
+                    <p>Multiple-choice:<br>
+                        <small>Please choose the name to be displayed at each possible answer<br>
+                            (and please choose which one is the correct answer)</small></p>
+                    <input type='text' name='mult0' /><input type='radio' name='check' value='1'/><br>
+                    <input type='text' name='mult1' /><input type='radio' name='check' value='2'/><br>
+                    <input type='text' name='mult2' /><input type='radio' name='check' value='3'/><br>
+                    <input type='text' name='mult3' /><input type='radio' name='check' value='4'/><br>
+                    <input type='text' name='mult4' /><input type='radio' name='check' value='5'/><br>
+
+
+
+                </div>
+                <p><input TYPE = "Submit" Name = "Submit1" VALUE = "Upload"></p>
+
+            </form>
         
-       
-                <form Name ="form1" Method ="POST" enctype="multipart/form-data" onsubmit= "return check_submit()">
-                    <p>Opgavens navn:<p>
-                <input type='text' name='opgave_name' /><br>    
-<div class="input_felt">
-            <div class="felt">
-                    <h1> Udeholdet </h1>
+            <form method="post" id="deletion" onsubmit= "return confirm('are you sure you wish to Delete this assignment?')">
 
-                    Billede til udeholdet:<br>
-                    <input type="file" name='file1' id="files1" /><br>
-                    <output id="toolarge1"></output><br>
+                <div class="felt">
+                    <h2>Chose an assignment for deletion</h2>
+                    <p><?php
+                        $opgave->populate();
+                        ?></p>
+                    <input type="submit" name="submitDel" id="submitDel" value="Delete">
+                </div>
 
-                    Opgavens beskrivelse:<br>
-                    <textarea name='question_out' rows='4' cols='50' class='textwindow' value = 'hey'></textarea><br>
-                    </div>
-                    <div class="felt2">
-                        <h1> Indeholdet </h1>
 
-                        Billede til udeholdet:<br>
-                        <input type="file" name='file2' id="files2" /><br>
-                        <output id="toolarge2"></output><br>
-
-                        Opgavens beskrivelse:<br>
-                        <textarea name='question_in' rows='4' cols='50' class='textwindow'></textarea><br>
-                        <p>Multiple-choice:<br>
-                            <small>Please choose the name to be displayed at each possible answer<br>
-                                (and please choose which one is the correct answer)</small></p>
-                        <input type='text' name='mult0' /><input type='radio' name='check' value='0'/><br>
-                        <input type='text' name='mult1' /><input type='radio' name='check' value='1'/><br>
-                        <input type='text' name='mult2' /><input type='radio' name='check' value='2'/><br>
-                        <input type='text' name='mult3' /><input type='radio' name='check' value='3'/><br>
-                        <input type='text' name='mult4' /><input type='radio' name='check' value='4'/><br>
-
-                        <input TYPE = "Submit" Name = "Submit1" VALUE = "Upload">
-                        </form>
-                    </div>
-            </div>
-                    <div class="input_felt">
-            <div class="felt">
-                <img src="Opgaver/ude.jpg" alt="Her kommer billedet til at være" style="width:230px;height:150px"><br>
-                <font size="2"><?php
-                if (isset($_POST['question_out'])) {
-                    echo $_POST['question_out'];
-                }
-                ?></font>
-            </div>
-                    </div>
-            <script>
-                //Checker om en valgt fil er over en hvis størrelse, og kommer med en advarsel
-                //hvis den er.
-                function change_page(page_name) {
-                    window.location.href = ("http://localhost/sirius/" + page_name + ".php");
-                }
-
-                function large_file(fileNr, check) {
-                    var control = document.getElementById("files" + fileNr);
-
-                    function error_printer() {
-                        var file = control.files;
-                        var size = Math.round((file[0].size / 1048576) * 100) / 100;
-                        if (size > 0) {
-                            var str = 'File is too large: ' + size + 'mb' + ' - we only support 0mb';
-                            var result = str.fontcolor("red");
-                            document.getElementById('toolarge' + fileNr).innerHTML = result;
+            </form>
+        </div>
+                    <?php
+        if (isset($_POST['Submit1'])) {
+            $opgave->opgave_gemmer();
+        }
+        if (isset($_POST['submitDel'])) {
+            $opgave->deleteAssignment();
+        }
+        ?>
+        <!--<div class="input_felt">
+            <div  id="udehold-output" class="felt3">
+                <div class='header-ude'><font size="4">
+                        <php
+                        if (isset($_POST['preview-ude']) && isset($_POST['header-ude']) && $_POST['header-ude'] != "") {
+                            echo $_POST['header-ude'];
+                        } else {
+                            echo "Opgavenavn";
                         }
-                    }
-                    control.addEventListener("change", error_printer, false);
-                    if (check == 1) {
-                        var file2 = control.files;
-                        var size2 = Math.round((file2[0].size / 1048576) * 100) / 100;
-                        return size2;
-                    }
-                }
+                        ?>
+                    </font>
+                </div>
+                <div class='pic-ude'><img src="Opgaver\ude.jpg" class="center"></div>
 
-                large_file(2, 0);
-                large_file(1, 0);
+                <div class='text-ude'>
+                    <font size="2"><php
+                        if (isset($_POST['question_out']) && isset($_POST['preview-ude'])) {
+                            echo $_POST['question_out'];
+                        }
+                        ?></font>
+                </div>
+            </div>
+        </div> -->           
 
-                function check_submit() {
-                    if (large_file(2, 1) > 0) {
-                        alert("Atleast one of the files is too large");
-                        return false;
-                    }
-                    if (large_file(1, 1) > 0) {
-                        alert("Atleast one of the files is too large");
-                        return false;
-                    }
-                }
-            </script>
-            <?php
-            if (isset($_POST['Submit1'])) {
 
-                $opgave->opgave_gemmer();
-                $upload->upload_image('Opgaver', 'file1', 'ude');
-                $upload->upload_image('Opgaver', 'file2', 'inde');
-            }
-            ?>
 
     </body>
 </html>	

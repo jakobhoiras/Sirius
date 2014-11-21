@@ -588,6 +588,30 @@ class Mysql_create_user {
         }
     }
 }
+class Mysql_assignment {
+     private $conn;
+
+    function __construct() {
+        $this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME) or
+                die('there was a problem connecting to the database.');
+    }
+    
+    function create_assignment ($typeIn,$typeOut,$multiNr,$name) {
+        $query = "SELECT name FROM Assignments WHERE name = ?";
+        
+        if ($stmt = $this->conn->prepare($query)) {
+            $stmt->bind_param('s', $un);
+            $stmt->execute();
+            $result = strtolower($stmt->get_result());
+            if($result===strtolower($name)) {
+                return 1;
+            } else {
+                $query = 'INSERT INTO Assignments(Name';
+                return 0;
+            }
+        }           
+    }
+}
 #function insert_Kunde($navn1, $navn2, $navn3){
 #
 #		$query = "INSERT

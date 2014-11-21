@@ -1,0 +1,28 @@
+.textWindow {
+    resize:none;
+    width: 380px;
+}
+.current-help {
+    visibility: visible;
+}
+.current-help2 {
+    display: none;
+}
+.input_felt{
+    width: 410px;
+    float: left;
+    border: transparent;
+    margin-right: 10px;
+}
+.felt {
+    width: 400px;
+    background-color: #C0C0C0;
+-moz-border-radius: 5px;
+    border-radius: 5px;
+    float: left;
+    margin-bottom: 10px;
+    padding: 5px;
+}
+
+
+
