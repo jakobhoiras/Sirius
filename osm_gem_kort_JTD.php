@@ -133,7 +133,8 @@ function Save_map(){
             document.getElementById("map_name").value = '';
         }
     }
-    xmlhttp.open("GET","autorun.php?zoomLevel=" + zoomLevel + '&lon=' + newLon.toFixed(8) + '&lat=' + newLat.toFixed(8) + '&mapID=' + mapID,true);
+	xmlhttp.open("GET","autorun2.php?lon=" + newLon.toFixed(8) + '&lat=' + newLat.toFixed(8) + '&map_name=' + mapID,true);
+    //xmlhttp.open("GET","autorun.php?zoomLevel=" + zoomLevel + '&lon=' + newLon.toFixed(8) + '&lat=' + newLat.toFixed(8) + '&mapID=' + mapID,true);
     xmlhttp.send();
 }
 
