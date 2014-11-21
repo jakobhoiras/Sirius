@@ -565,18 +565,23 @@ class Mysql_create_user {
     //$perm = admin || user
     function create_user($un, $pwd, $perm) {
 
-        $query = "SELECT permission FROM users WHERE username = ?";
+        $query = "SELECT * FROM users";
 
         if ($stmt = $this->conn->prepare($query)) {
-            $stmt->bind_param('s', $un);
             $stmt->execute();
             $result = $stmt->get_result();
-
-            if (mysql_num_rows($result) >= 1) {
-                echo "Bruger findes allerede";
-            } else {
-                $query = 'INSERT INTO User(Username,Password,Permission) VALUES'
-                        . '(?,?,?)';
+			if($result = $result->fetch_all()){
+            	$stmt->close();
+            }
+			$already_exists = false;
+			for ($i=0; $i<sizeof($result); $i++){
+            	if ($result[$i][0] == $un) {
+                	echo "Bruger findes allerede";
+					$already_exists = true;
+            	} 
+			}
+			if ($already_exists == false) {
+                $query = 'INSERT INTO users (Username,Password,Permission) VALUES (?,?,?)';
 
                 if ($stmt = $this->conn->prepare($query)) {
                     $stmt->bind_param('sss', $un, $pwd, $perm);
