@@ -597,12 +597,12 @@ class Mysql_assignment {
      private $conn;
 
     function __construct() {
-        $this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME) or
+        $this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD) or
                 die('there was a problem connecting to the database.');
     }
     
     function create_assignment ($typeIn,$typeOut,$multiNr,$name) {
-        $query = "SELECT name FROM Assignments WHERE name = ?";
+        $query = "SELECT name FROM Assignments.Assignments WHERE name = ?";
         
         if ($stmt = $this->conn->prepare($query)) {
             $stmt->bind_param('s', $un);
@@ -611,7 +611,7 @@ class Mysql_assignment {
             if($result===strtolower($name)) {
                 return 1;
             } else {
-                $query = 'INSERT INTO Assignments(Name';
+                $query = 'INSERT INTO Assignments.Assignments (name)';
                 return 0;
             }
         }           

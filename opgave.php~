@@ -80,27 +80,28 @@ class opgave {
                         if (isset($_POST['questionOut'])) {
                             $in = $_POST['questionIn'];
                             $this->gemmer($in, 'textIn', $name);
-                    	}
-                	}
-                	if ($typeIn === "textImage" || $typeIn === "image") {
+                    }
+                }
+                if ($typeIn === "textImage" || $typeIn === "image") {
                     $this->upload_image('Opgaver/' . $name, 'file2', 'imageIn', "Base Team");
-                	}
-                	for ($i = 0; $i < 5; $i++) {
-                    	$i2 = $i + 1;
-                    	$this->gemmer($mult_text[$i], 'multiple' . $i2, $name);
-                	}
-                	$this->gemmer($mult_cor, 'multipleNr', $name);
-                	$this->gemmer($typeOut, 'typeOut', $name);
-                	$this->gemmer($typeIn, 'typeIn', $name);
+                }
+                for ($i = 0; $i < 5; $i++) {
+                    $i2 = $i + 1;
+                    $this->gemmer($mult_text[$i], 'multiple' . $i2, $name);
+                }
+                $this->gemmer($mult_cor, 'multipleNr', $name);
+                $this->gemmer($typeOut, 'typeOut', $name);
+                $this->gemmer($typeIn, 'typeIn', $name);
 
-                	echo 'The assignment has been uploaded successfully';
+
+                echo 'The assignment has been uploaded successfully';
             
-            	} else {
-            		echo 'A game with that name already exist';
-        		}
+            } else {
+            	echo 'A game with that name already exist';
         	}
+        }
         }else {
-        	echo 'one or more fields were not filled out <br>';
+            echo 'one or more fields were not filled out <br>';
         }
     }
     

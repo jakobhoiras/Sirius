@@ -581,7 +581,7 @@ class Mysql_create_user {
             	} 
 			}
 			if ($already_exists == false) {
-                $query = 'INSERT INTO users.Username (Username,Password,Permission) VALUES (?,?,?)';
+                $query = 'INSERT INTO users (Username,Password,Permission) VALUES (?,?,?)';
 
                 if ($stmt = $this->conn->prepare($query)) {
                     $stmt->bind_param('sss', $un, $pwd, $perm);
