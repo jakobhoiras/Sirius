@@ -32,14 +32,14 @@ function init(){
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
                 teams = xmlhttp.responseText.split(" ");
                 if (a == 'disp'){
-                    var number_of_teams = (teams.length-1)/6;
+                    var number_of_teams = (teams.length-1)/7;
                     var table = document.getElementById("teams");
                     for (var i=0; i<number_of_teams; i++){
                         var row = table.insertRow(-1);
                         row.setAttribute("value","np");
                         add_pick_coloring(i, teams);
                         var cell = row.insertCell(0);
-                        cell.innerHTML = "team " + (teams[i*6]);
+                        cell.innerHTML = "team " + (teams[i*7]);
                     }
                 }
             }
@@ -72,10 +72,10 @@ function init(){
     }
     
     function show_team(teams, j){
-        var name1 = teams[j*6+2];
-        var name2 = teams[j*6+3];
-        var name3 = teams[j*6+4];
-        var name4 = teams[j*6+5];
+        var name1 = teams[j*7+3];
+        var name2 = teams[j*7+4];
+        var name3 = teams[j*7+5];
+        var name4 = teams[j*7+6];
         document.getElementById("name1").innerHTML = name1;
         document.getElementById("name2").innerHTML = name2;
         document.getElementById("name3").innerHTML = name3;
@@ -119,8 +119,8 @@ function edit_chosen(){
         }
         if (table.rows[i].getAttribute("value") == "p"){
             for (j=0; j<4; j++){
-                document.getElementById("edit_name" + (j+1)).value = teams[i*6+j+2];
-                old_edit_names[j] = teams[i*6+j+2];
+                document.getElementById("edit_name" + (j+1)).value = teams[i*7+j+3];
+                old_edit_names[j] = teams[i*7+j+3];
             }
             table.rows[i].style.background = "green";
             table.rows[i].setAttribute("value","edit");

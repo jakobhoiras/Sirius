@@ -1,5 +1,6 @@
 <?php
 require_once 'constants.php';
+session_start();
 class Mysql_assignment {
 
     private $conn;
@@ -25,7 +26,7 @@ class Mysql_assignment {
             if (strtolower($result2[0]) === strtolower($name)) {
                 return 1;
             } else {
-                $query = 'INSERT INTO Assignments.Assignments(Name) VALUES' . '(?)';
+                $query = 'INSERT INTO Assignments.Assignments(name) VALUES' . '(?)';
                 $name2 = strtolower($name);
                 if ($stmt = $this->conn->prepare($query)) {
                     
@@ -46,6 +47,29 @@ class Mysql_assignment {
         }
     }
 
+	function get_assignments(){
+		$query = "SELECT name FROM Assignments.Assignments";
+		if ($stmt = $this->conn->prepare($query)) {
+        	$stmt->execute();
+            $result = $stmt->get_result();
+            if($assignments = $result->fetch_all()){
+                $stmt->close();
+				return $assignments;
+            }
+        }
+	}
+
+	function get_imported_assignments(){
+		$query = "SELECT name FROM GAME_" . $_SESSION['cg'] . ".Assignments";
+		if ($stmt = $this->conn->prepare($query)) {
+        	$stmt->execute();
+            $result = $stmt->get_result();
+            if($assignments = $result->fetch_all()){
+                $stmt->close();
+				return $assignments;
+            }
+        }
+	}
 }
 
 

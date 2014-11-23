@@ -171,10 +171,11 @@ function display_maps_from_db(maps){
 
 function add_pick_coloring(i,p){
     var table = document.getElementById("maps");
-    table.rows[i].onclick = function() {pick_map(table, j=i)};
+    table.rows[i].onclick = function() {pick_map(table, j=i);};
 }
 
-function pick_map(table, j='none') {
+function pick_map(table, j) {
+	j = j || "none";
     // upon cliking on a rute the coloring of the table is changed accordingly.
     // The zones belonging to the rute is colored orange on the map and finally lines are drawn.
     // If a rute was already chosen the old zones are returned to their original color

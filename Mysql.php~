@@ -10,6 +10,77 @@ class Mysql_spil {
 									die('there was a problem connecting to the database.');
     }
 
+	function get_imported_assignments(){
+		$query = "SELECT name FROM GAME_" . $_SESSION['cg'] . ".Assignments";
+		if ($stmt = $this->conn->prepare($query)) {
+        	$stmt->execute();
+            $result = $stmt->get_result();
+            if($assignments = $result->fetch_all()){
+                $stmt->close();
+				return $assignments;
+            }
+        }
+	}
+
+	function create_teams_assignments_table($n_rutes){
+		$query = "CREATE TABLE GAME_" . $_SESSION['cg'] . ".Teams_assignments (
+            teamID INT, PRIMARY KEY(teamID)";
+		for ($i=0; $i<$n_rutes; $i++){
+			$query += ",opgaveID" . $i . "  INT";
+		}
+	}
+	
+	function link_teams_and_rutes(){
+		$query = "SELECT ruteID FROM GAME_" . $_SESSION['cg'] . ".Rutes";
+		if ($stmt = $this->conn->prepare($query)){
+		    $stmt->execute();
+			$result = $stmt->get_result();
+            if($rutes = $result->fetch_all()){
+                $stmt->close();
+            }
+        }
+
+		$query = "SELECT teamID FROM GAME_" . $_SESSION['cg'] . ".Teams";
+		if ($stmt = $this->conn->prepare($query)){
+		    $stmt->execute();
+			$result = $stmt->get_result();
+            if($teams = $result->fetch_all()){
+                $stmt->close();
+            }
+        }
+
+		for ($i=0; $i<sizeof($rutes); $i++){
+			if ($i<sizeof($rutes)/2){
+				$query = "UPDATE GAME_" . $_SESSION['cg'] . ".Teams 
+					  	  SET GAME_" . $_SESSION['cg'] . ".Teams.ruteID1 = ? 
+					  	  WHERE GAME_" . $_SESSION['cg'] . ".Teams.teamID = ?";
+				if ($stmt = $this->conn->prepare($query)){
+					$stmt->bind_param('ii', $rutes[$i][0], $teams[$i][0]);
+		    		$stmt->execute();
+					$stmt->close(); 
+				}
+			}
+			else{
+				$query = "UPDATE GAME_" . $_SESSION['cg'] . ".Teams 
+					  	  SET GAME_" . $_SESSION['cg'] . ".Teams.ruteID2 = ? 
+					  	  WHERE GAME_" . $_SESSION['cg'] . ".Teams.teamID = ?";
+				if ($stmt = $this->conn->prepare($query)){
+					$stmt->bind_param('ii', $rutes[$i][0], $teams[$i-sizeof($rutes)/2][0]);
+		    		$stmt->execute();
+					$stmt->close(); 
+				}
+			}
+		}
+	}
+
+	function get_status(){
+		$map = $this->get_map();
+		$zones = $this->get_zones();
+		$rutes = $this->get_rutes();
+		$teams = $this->get_teams();
+		return array($map, $zones, $rutes, $teams);
+	}
+
     function save_map_link($map_name) {
         $query =  "TRUNCATE TABLE GAME_" . $_SESSION['cg']. ".Map";           
         if ($stmt = $this->conn->prepare($query)){
@@ -434,18 +505,7 @@ class Mysql_spil {
         }
         // Creates table for assignments
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Assignments (
-            assignmentID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(assignmentID), 
-            type VARCHAR(20), 
-            text_in VARCHAR(20), 
-            text_out VARCHAR(20), 
-            ref_to_pic_in VARCHAR(20), 
-            ref_to_pic_out VARCHAR(20), 
-            answer1 VARCHAR(20),
-            answer2 VARCHAR(20),
-            answer3 VARCHAR(20),
-            answer4 VARCHAR(20),
-            answer5 VARCHAR(20),
-            correct_answer VARCHAR(20) )";
+            name )";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
@@ -485,7 +545,8 @@ class Mysql_spil {
         // Creates table for teams
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Teams (
             teamID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(teamID), 
-            ruteID INT(5), 
+            ruteID1 INT(5),
+			ruteID2 INT(5), 
             name1 VARCHAR(30), 
             name2 VARCHAR(30),
             name3 VARCHAR(30),
@@ -597,12 +658,12 @@ class Mysql_assignment {
      private $conn;
 
     function __construct() {
-        $this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME) or
+        $this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD) or
                 die('there was a problem connecting to the database.');
     }
     
     function create_assignment ($typeIn,$typeOut,$multiNr,$name) {
-        $query = "SELECT name FROM Assignments WHERE name = ?";
+        $query = "SELECT name FROM Assignments.Assignments WHERE name = ?";
         
         if ($stmt = $this->conn->prepare($query)) {
             $stmt->bind_param('s', $un);
@@ -611,7 +672,7 @@ class Mysql_assignment {
             if($result===strtolower($name)) {
                 return 1;
             } else {
-                $query = 'INSERT INTO Assignments(Name';
+                $query = 'INSERT INTO Assignments.Assignments (name)';
                 return 0;
             }
         }           

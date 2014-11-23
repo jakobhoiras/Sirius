@@ -12,11 +12,12 @@ require 'Mysql.php';
 $mysql = new Mysql_spil();
 $table = $mysql->get_maps();
 
-echo '<html>
+echo '<html lang="da">
     <head>
         <title>
             Importer kort
         </title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
     </head>
     <body>
         <div style="width:400px; height:400px; margin-left:auto; margin-right:auto; overflow:auto">
