@@ -12,8 +12,11 @@ require 'Mysql.php';
 $mysql = new Mysql_spil();
 $table = $mysql->get_games();
 
-echo '<html lang="da">
+?>
+
+<html lang="da">
     <head>
+		<link rel="stylesheet" href="style.css" type="text/css" />
         <title>
             Vælg eksisterende spil
         </title>
@@ -26,22 +29,18 @@ echo '<html lang="da">
                 <tr>
                     <th>spil navn</th>
                     <th>kunde</th>
-                </tr>';
-for ($i=0; $i<sizeof($table); $i++){
-    echo '<tr id="row"' . $i . "; onclick=pick_row($i)>
-            <td>" . $table[$i][1] . "</td>
-            <td>" . $table[$i][2] . "</td>
-          </tr>";
-}
-echo '</table>
+                </tr>
+				<?php for ($i=0; $i<sizeof($table); $i++){
+					echo '<tr id="row"' . $i . "; onclick=pick_row($i)>
+							<td>" . $table[$i][1] . "</td>
+							<td>" . $table[$i][2] . "</td>
+						  </tr>";
+				} ?>
+			</table>
         </div>
-        <button type="button" onclick="change_page(' . "'" . 'spil_overblik' . "'" . ')">vælg spil</button>
+        <button type="button" onclick=change_page('spil_overblik')>vælg spil</button>
     </body>
-</html>';
-
-?>
-
-
+</html>
 <script>
     function change_page(page_name) {
         var table = document.getElementById("games");
@@ -59,7 +58,12 @@ echo '</table>
         var rows = table.rows;
         for (i=0; i<rows.length; i++){
             if(rows[i].getAttribute("value") != "edit"){
-                rows[i].style.background = "white";
+                if (i % 2 == 0){
+                	rows[i].style.background = "#fff";
+				}
+				else{
+					rows[i].style.background = "#eee";
+				}
                 rows[i].setAttribute("value","np");
             }
         }

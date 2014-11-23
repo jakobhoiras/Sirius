@@ -12,7 +12,10 @@ require 'Mysql.php';
 $mysql = new Mysql_spil();
 $table = $mysql->get_maps();
 
-echo '<html lang="da">
+?>
+
+<html lang="da">
+	<link rel="stylesheet" href="style.css" type="text/css" />
     <head>
         <title>
             Importer kort
@@ -22,19 +25,18 @@ echo '<html lang="da">
     <body>
         <div style="width:400px; height:400px; margin-left:auto; margin-right:auto; overflow:auto">
             <table id="games" style="margin-left:auto; margin-right:auto">
-                <caption>Gemte kort</caption>';
-for ($i=0; $i<sizeof($table); $i++){
-    echo '<tr id="row"' . $i . "; onclick=pick_row($i)>
-            <td>" . $table[$i][0] . "</td>
-          </tr>";
-}
-echo '</table>
+                <caption>Gemte kort</caption>
+				<?php 
+				for ($i=0; $i<sizeof($table); $i++){
+					echo '<tr id="row"' . $i . "; onclick=pick_row($i)>
+							<td>" . $table[$i][0] . "</td>
+						  </tr>";
+				} ?>
+			</table>
         </div>
         <button id="choose" type="button">vælg spil</button>
     </body>
-</html>';
-
-?>
+</html>
 
 
 <script>
@@ -76,7 +78,12 @@ echo '</table>
         var rows = table.rows;
         for (i=0; i<rows.length; i++){
             if(rows[i].getAttribute("value") != "chosen"){
-                rows[i].style.background = "white";
+				if (i % 2 == 0){
+                	rows[i].style.background = "#fff";
+				}
+				else{
+					rows[i].style.background = "#eee";
+				}
                 rows[i].setAttribute("value","np");
             }
         }

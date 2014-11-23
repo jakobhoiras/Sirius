@@ -255,23 +255,13 @@ function pick_rute(table, j='none') {
         var rows_su = document.getElementById("suggest_rutes").rows;
         for (i=0; i<rows_ch.length; i++){
             if(rows_ch[i].getAttribute("value") != "edit"){
-                if (i % 2 == 0){
-                	rows_ch[i].style.background = "#fff";
-				}
-				else{
-					rows_ch[i].style.background = "#eee";
-				}
+                rows_ch[i].style.background = "white";
                 rows_ch[i].setAttribute("value","np");
             }
         }
         for (i=0; i<rows_su.length; i++){
             if(rows_su[i].getAttribute("value") != "edit"){
-                if (i % 2 == 0){
-                	rows_su[i].style.background = "#fff";
-				}
-				else{
-					rows_su[i].style.background = "#eee";
-				}
+                rows_su[i].style.background = "white";
                 rows_su[i].setAttribute("value","np");
             }
         }
@@ -465,12 +455,7 @@ function edit_chosen(){
     var table = document.getElementById("chosen_rutes");
     for (i=0; i<table.rows.length; i++){
         if (table.rows[i].getAttribute("value") == "edit"){
-            if (i % 2 == 0){
-                	rows[i].style.background = "#fff";
-				}
-				else{
-					rows[i].style.background = "#eee";
-				}
+            table.rows[i].style.background = "white";
             table.rows[i].setAttribute("value","np");
         }
         if (table.rows[i].getAttribute("value") == "p"){
@@ -502,12 +487,7 @@ function save_edit(){
                 }
             }
             table.rows[i].setAttribute("value","np");
-            if (i % 2 == 0){
-                	rows[i].style.background = "#fff";
-				}
-				else{
-					rows[i].style.background = "#eee";
-				}
+            table.rows[i].style.background = "white";
         }
     }
     var xmlhttp = new XMLHttpRequest();

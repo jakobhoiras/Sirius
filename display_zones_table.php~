@@ -33,6 +33,6 @@ if(!isset($zoneID)){
 }
 echo "</table>";
 //echo "<p id='zoneID' style='position:absolute'>Zone " . $zoneID . " links to </p><input type='text' name='assID' id='assID' size='1' style='position:absolute;margin-left:135px;margin-top:10px' value='" . $table[0][4] . "'>";
-//echo "<button type='button' onclick='submit_assign()' style='position:absolute;margin-left:200px;margin-top:10px'>submit</button>"; 
+echo "<button type='button' onclick='submit_assign()' style='position:absolute;margin-left:200px;margin-top:10px'>submit</button>"; 
 
 ?>

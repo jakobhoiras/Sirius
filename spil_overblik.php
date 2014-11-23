@@ -56,10 +56,21 @@ if ($res[3][sizeof($res[3])-1] == NULL){
 else{
 	$yn = 'ja';
 }
+if ($res[4] == ''){
+	$n_opgaver = 0;
+}
+else{
+	$n_opgaver = sizeof($res[4]);
+}
+if ($res[5] == false){
+	$yn2='nej';
+}
+else{
+	$yn2 = 'ja';
+}
+?>
 
-$yn2 = 'nej';
-$n_opgaver = 0;
-echo '<html lang="da">
+<html lang="da">
     <head>
         <title>
             Spil menu
@@ -72,13 +83,13 @@ echo '<html lang="da">
 				<p>Muligheder</p>
 			</h1>
 			<form method="post">
-				<input type="button" value="importer opgaver" onclick="change_page(' . "'" . 'importer_opgaver' . "'" . ')"/><br>
-				<input type="button" value="importer kort" onclick="change_page(' . "'" . 'importer_kort' . "'" . ')"/><br>
-				<input type="button" value="Zoner" onclick="change_page(' . "'" . 'draw_zone' . "'" . ')"/><br>
-				<input type="button" value="Ruter" onclick="change_page(' . "'" . 'create_rutes' . "'" . ')"/><br>
-				<input type="button" value="Hold" onclick="change_page(' . "'" . 'create_teams' . "'" . ')"/><br>
-				<input type="button" value="Fordel ruter" onclick="fordel_ruter(' . $n_ruter . ',' . $n_hold . ')"/><br>
-				<input type="button" value="Fordel opgaver" onclick="fordel_opgaver(' . $n_opgaver . ',' . $n_rute_length . ',' . $n_hold . ')"/><br>
+				<input type="button" value="importer opgaver" onclick=change_page("importer_opgaver") /><br>
+				<input type="button" value="importer kort" onclick=change_page("importer_kort") /><br>
+				<input type="button" value="Zoner" onclick=change_page("draw_zone") /><br>
+				<input type="button" value="Ruter" onclick=change_page("create_rutes") /><br>
+				<input type="button" value="Hold" onclick=change_page("create_teams") /><br>
+				<input type="button" value="Fordel ruter" onclick="fordel_ruter(<?php echo $n_ruter . ',' . $n_hold; ?>)" /><br>
+				<input type="button" value="Fordel opgaver" onclick="fordel_opgaver(<?php echo $n_opgaver . ',' . $n_rute_length . ',' . $n_hold; ?>)" /><br>
 				<p id="res"></p>
 			</form>
 		</div>
@@ -86,20 +97,17 @@ echo '<html lang="da">
 			<h1>
 				<p>Status</p>
 			</h1>
-			<p>Map: ' . $map_name . '</p>
-			<p>Opgaver: ' . $n_opgaver . '</p>
-			<p>Zoner: ' . $n_zoner . '</p>
-			<p>Ruter: ' . $n_ruter . '</p>
-			<p>Rute længde: ' . $n_rute_length . '</p>
-			<p>Hold: ' . $n_hold . '</p>
-			<p id="fordel_ruter">Ruter fordelt: ' . $yn . '</p>
-			<p id="fordel_opgaver">opgaver fordelt: ' . $yn2 . '</p>
+			<p>Map:  <?php echo $map_name; ?> </p>
+			<p>Opgaver: <?php echo $n_opgaver; ?></p>
+			<p>Zoner: <?php echo $n_zoner; ?></p>
+			<p>Ruter: <?php echo $n_ruter; ?></p>
+			<p>Rute længde: <?php echo $n_rute_length; ?></p>
+			<p>Hold: <?php echo $n_hold; ?></p>
+			<p id="fordel_ruter">Ruter fordelt: <?php echo $yn; ?></p>
+			<p id="fordel_opgaver">Opgaver fordelt: <?php echo $yn2; ?></p>
 		</div>
 	</body>
-</html>';
-?>
-
-
+</html>
 
 <script>
     function change_page(page_name) {
@@ -131,13 +139,12 @@ echo '<html lang="da">
 		else{
 			var xmlhttp = new XMLHttpRequest();
 			xmlhttp.onreadystatechange=function() {
-		    	if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-		        	xmlhttp.responseText.split(" ");  
-					document.getElementById("fordel_ruter").innerHTML = 'Ruter fordelt: ja'; 
+		    	if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
+					document.getElementById("fordel_opgaver").innerHTML = 'Opgaver fordelt: ja'; 
 					document.getElementById("res").innerHTML = "";         
 		    	}
 			}
-			xmlhttp.open("GET","fordel_ruter.php",true);
+			xmlhttp.open("GET","fordel_opgaver.php?rute_length=" + n_rute_length + "&n_hold=" + n_hold, true);
 			xmlhttp.send();
 		}
 	}

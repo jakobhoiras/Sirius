@@ -5,7 +5,7 @@ $membership->confirm_Admin();
 $membership->check_Active();*/
 require 'Mysql.php';
 $mysql = new Mysql_spil();
-$res='n';
+
 if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
 	$res = $mysql -> check_if_game_exists($_POST['game_name']);
 	if($res == 'success'){
@@ -41,7 +41,7 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
             <input type="text" name="company"><br/>
             <input type="submit" value="Create game">
         </form>
-		<p><?php if($res != 'n'){echo $res;}else{echo "";} ?></p>
+		<p><?php if($res){echo $res;}else{echo "";} ?></p>
     </body>
 </html>	
 

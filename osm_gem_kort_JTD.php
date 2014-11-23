@@ -5,6 +5,7 @@
 <html>
 <head>
     <title>OSM gem kort</title>
+	<link rel="stylesheet" href="style.css" type="text/css" />
     <!-- bring in the OpenLayers javascript library
          (here we bring it from the remote site, but you could
          easily serve up this javascript yourself) -->
@@ -144,12 +145,6 @@ function get_maps_from_db(){
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
             display_maps_from_db(xmlhttp.responseText.split(" "));
-            if (old_resp == xmlhttp.responseText){
-                get_rutes_from_db();            
-            }
-            else{
-                old_resp = xmlhttp.responseText;
-            }
         }
     }
     xmlhttp.open("GET","display_maps_table.php",true);
@@ -175,13 +170,18 @@ function add_pick_coloring(i,p){
 }
 
 function pick_map(table, j) {
-	j = j || "none";
+	//j = j || "none";
     // upon cliking on a rute the coloring of the table is changed accordingly.
     // The zones belonging to the rute is colored orange on the map and finally lines are drawn.
     // If a rute was already chosen the old zones are returned to their original color
     var rows = table.rows;
     for (i=0; i<rows.length; i++){
-        rows[i].style.background = "white";
+        if (i % 2 == 0){
+                	rows[i].style.background = "#fff";
+				}
+				else{
+					rows[i].style.background = "#eee";
+				}
         rows[i].setAttribute("value","np");
     }
     if (rows[j].getAttribute("value") != "edit"){
@@ -202,8 +202,8 @@ function pick_map(table, j) {
 <body onload="init();">
  
     <div style="width:60%; height:70%; float:left" id="map"></div>
-    <div style="width:40%; height:70%; float:left"> 
-        <table id="maps">
+    <div style="width:40%; height:70%; float:left; overflow:auto"> 
+        <table id="maps" style="width:50%; margin-left:auto; margin-right:auto">
             <caption>Maps</caption> 
         </table>
     </div>

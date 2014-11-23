@@ -9,25 +9,101 @@ class Mysql_spil {
 		$this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD) or 
 									die('there was a problem connecting to the database.');
     }
-
-	function get_imported_assignments(){
-		$query = "SELECT name FROM GAME_" . $_SESSION['cg'] . ".Assignments";
-		if ($stmt = $this->conn->prepare($query)) {
-        	$stmt->execute();
-            $result = $stmt->get_result();
-            if($assignments = $result->fetch_all()){
+	
+	function check_if_game_exists($game_name){
+		$query = "SELECT game_name FROM Games.Games WHERE game_name=?";
+		if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('s', $game_name);
+		    $stmt->execute();
+			$result = $stmt->get_result();
+			if($result = $result->fetch_all()){
                 $stmt->close();
-				return $assignments;
-            }
+			}
+			echo $result[0];
+			if ( $result[0][0] != ""){
+				return 'The game already exists. Pick another name';
+			}
+			else{
+				return 'success';
+			}
+        }
+	}
+		
+
+	function check_if_Teams_assignments_exists(){
+		$query =  "SELECT 1 from GAME_" . $_SESSION['cg']. ".Teams_assignments";           
+        if ($stmt = $this->conn->prepare($query)){
+		    $stmt->execute();
+            $stmt->close();
+			return true;
+        }
+		else{
+			return false;
+		}
+	}
+
+	function drop_teams_assignments_table(){
+		$query =  "DROP TABLE GAME_" . $_SESSION['cg']. ".Teams_assignments";           
+        if ($stmt = $this->conn->prepare($query)){
+		    $stmt->execute();
+            $stmt->close();
         }
 	}
 
-	function create_teams_assignments_table($n_rutes){
-		$query = "CREATE TABLE GAME_" . $_SESSION['cg'] . ".Teams_assignments (
-            teamID INT, PRIMARY KEY(teamID)";
-		for ($i=0; $i<$n_rutes; $i++){
-			$query += ",opgaveID" . $i . "  INT";
+	function get_assignments(){
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Assignments";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    } 
+
+	function save_assignment($name) {
+        $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Assignments (name) 
+                  VALUES (?)";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('s', $name);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }   
+
+	function save_teams_assignments($teamID, $ass){
+
+		$query = "INSERT INTO GAME_" . $_SESSION['cg'] . ".Teams_assignments	(teamID";
+		for ($i=0; $i<sizeof($ass); $i++){
+			$query .= ", opgaveID" . (string)($i + 1);
 		}
+		$query .= ")";
+		$query .= " VALUES (" . $teamID;
+		for ($i=0; $i<sizeof($ass); $i++){
+			$query .= ", " . "'" . $ass[$i][0] . "'";
+		}
+		$query .= ");";
+		echo $query;
+		if ($stmt = $this->conn->prepare($query)){
+		    $stmt->execute();
+            $stmt->close();
+        }
+		else{ echo "Prepare failed: (" . $this->conn->errno . ") " . $this->conn->error; }
+	}
+
+	function create_teams_assignments_table($rute_length){
+		$query = "CREATE TABLE GAME_" . $_SESSION['cg'] . ".Teams_assignments(
+            teamID INT";
+		for ($i=0; $i<2*3*$rute_length; $i++){
+			$query .= ",opgaveID" . (string)($i + 1) . "  VARCHAR(250)";
+		}
+		$query .= ")";
+		echo $query;
+		if ($stmt = $this->conn->prepare($query)){
+		    $stmt->execute();
+            $stmt->close();
+        }
 	}
 	
 	function link_teams_and_rutes(){
@@ -78,7 +154,9 @@ class Mysql_spil {
 		$zones = $this->get_zones();
 		$rutes = $this->get_rutes();
 		$teams = $this->get_teams();
-		return array($map, $zones, $rutes, $teams);
+		$ass = $this->get_assignments();
+		$team_ass = $this->check_if_Teams_assignments_exists();
+		return array($map, $zones, $rutes, $teams, $ass, $team_ass);
 	}
 
     function save_map_link($map_name) {
@@ -186,7 +264,6 @@ class Mysql_spil {
     }
 
     function delete_rute($rute) {
-        // deletes a row from zones table. 2nd and 3rd for-loop are for handling cases with rouding errors
         $query =  "DELETE FROM GAME_" . $_SESSION['cg']. ".Rutes WHERE zoneID1 = ? AND zoneID2 = ? AND zoneID3 = ? AND zoneID4 = ? AND zoneID5 = ?";           
         if ($stmt = $this->conn->prepare($query)){
             $stmt->bind_param('iiiii', $rute[0], $rute[1], $rute[2], $rute[3], $rute[4]);
@@ -505,7 +582,7 @@ class Mysql_spil {
         }
         // Creates table for assignments
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Assignments (
-            name )";
+            name VARCHAR(250))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
@@ -533,11 +610,11 @@ class Mysql_spil {
         // Creates table for rutes
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Rutes (
             ruteID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(ruteID), 
-            zoneID1 INT(5), 
-            zoneID2 INT(5), 
-            zoneID3 INT(5),
-            zoneID4 INT(5),
-            zoneID5 INT(5))";
+            zoneID1 INT(5) DEFAULT 0, 
+            zoneID2 INT(5) DEFAULT 0, 
+            zoneID3 INT(5) DEFAULT 0,
+            zoneID4 INT(5) DEFAULT 0,
+            zoneID5 INT(5) DEFAULT 0)";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();

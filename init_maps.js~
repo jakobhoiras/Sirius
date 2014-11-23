@@ -170,7 +170,7 @@ function init_zone_map(map_name){
         zone: new OpenLayers.Control.DrawFeature(zoneLayer, OpenLayers.Handler.RegularPolygon, { 
             handlerOptions: {
                 sides: 50,
-				radius: 91.80392293883315 //defualt 50m
+				radius:  91.80392293883315
             }
         }),
         base: new OpenLayers.Control.DrawFeature(baseLayer, OpenLayers.Handler.RegularPolygon, { 
