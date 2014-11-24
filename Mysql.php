@@ -646,7 +646,7 @@ class Mysql_spil {
 			$stmt->execute();
             $stmt->close();
         }
-        if(mkdir((string)$game_name)){}
+        if(mkdir((string)$game_name) and mkdir((string)$game_name . '/json'){}
         else{die('error');}
     }
     
