@@ -68,6 +68,8 @@ if ($res[5] == false){
 else{
 	$yn2 = 'ja';
 }
+
+$yn3 = 'nej';
 ?>
 
 <html lang="da">
@@ -90,8 +92,12 @@ else{
 				<input type="button" value="Hold" onclick=change_page("create_teams") /><br>
 				<input type="button" value="Fordel ruter" onclick="fordel_ruter(<?php echo $n_ruter . ',' . $n_hold; ?>)" /><br>
 				<input type="button" value="Fordel opgaver" onclick="fordel_opgaver(<?php echo $n_opgaver . ',' . $n_rute_length . ',' . $n_hold; ?>)" /><br>
+                <input type="button" value="Lav QR-koder" onclick=create_qr_codes() /><br>
 				<p id="res"></p>
 			</form>
+            <form method="get" action="<?php echo $_SESSION['cg'] . 'json/qr_codes.zip' ?>">
+                <button type="submit">Download QR-koder</button>
+            </form>
 		</div>
 		<div style="width:50%; float:left">
 			<h1>
@@ -105,6 +111,7 @@ else{
 			<p>Hold: <?php echo $n_hold; ?></p>
 			<p id="fordel_ruter">Ruter fordelt: <?php echo $yn; ?></p>
 			<p id="fordel_opgaver">Opgaver fordelt: <?php echo $yn2; ?></p>
+            <p id="qr_gen">QR-koder genereret: <?php echo $yn3; ?></p>
 		</div>
 	</body>
 </html>
@@ -148,4 +155,18 @@ else{
 			xmlhttp.send();
 		}
 	}
+
+    function create_qr_codes(){
+        var xmlhttp = new XMLHttpRequest();
+	    xmlhttp.onreadystatechange=function() {
+	    	if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
+                if (xmlhttp.responseText == true){  
+				    document.getElementById("qr_gen").innerHTML = 'QR-koder genereret: ja'; 
+				    document.getElementById("res").innerHTML = "";
+                }      
+	       	}
+		}
+		xmlhttp.open("GET","make_qr_json.php", true);
+		xmlhttp.send();
+    }
 </script>

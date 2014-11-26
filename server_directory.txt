@@ -1,0 +1,40 @@
+Games
+    json
+        {identify_team_n.json}
+        qr_codes.zip
+        qr_codes
+            {qr_code_team_n.png}
+        
+
+Maps
+    denmark.osm.bz2
+    osm
+        {game_name}
+            {z}
+                {x}
+                    {y.png}
+                    
+    satellite
+        {game_name}
+            {z}
+                {x}
+                    {y.png}
+
+Assignments
+    {assignment_name}
+        multiple1.txt
+        multiple2.txt
+        multiple3.txt
+        multiple4.txt
+        multiple5.txt
+        multipleNr.txt
+        textIn.txt
+        textOut.txt
+        typeIn.txt
+        typeOut.txt
+        imageIn.format
+        imageOut.format
+
+Maperitve
+OpenLayers
+{alle scripts}
