@@ -1,32 +1,65 @@
 <?php
 
-require 'mysql_json.php';
-require 'json_creater.php';
+require_once 'mysql.php';
 
-$json = new json();
-$mysql = new mysql_json();
-$teamID = $mysql -> get_teamID();
+function createJson($teamId, $gameId) {
 
-for ($i=0; $i<sizeof($teamID); $i++){
-	$array = array(
-                      "targetFile": "http://t-a-g.dk/games/" . $_SESSION['cg'] . "/targetFile.php"
-                      "mapFile": "http://t-a-g.dk/games/" . $_SESSION['cg'] . "/mapFile.zip",
-                      "centerLat": "55.7259",
-                      "centerLong": "12.4433",
-                      "minLat": "55.7080",
-                      "minLong": "12.4046",
-                      "maxLat": "55.7409",
-                      "maxLong": "12.4766",
-                      "questionFile": "http://t-a-g.dk/games/" . $_SESSION['cg'] . "/questionfile.zip",
-                      "answerFile": "http://t-a-g.dk/games/" . $_SESSION['cg'] . "/answerfile.zip",
-                      "postCoords": "http://t-a-g.dk/action/postCoords.php",
-                      "getCoords": "http://t-a-g.dk/action/getCoords.php",
-                      "postAnswer": "http://t-a-g.dk/action/postAnswer.php"
-				  );
-	$path = $_SESSION['cg'] . "/json/identify_team_" . $teamID[$i][0];
-	$json -> createJson($array,$path);
+    $gameCoords = getGameCoords($gameId);
+
+    $array = array(
+        "targetFile" => "http//:t-a-g.dk/games/" . $gameId . "/targetFile.php",
+        "mapFile" => "http://t-a-g.dk/games/" . $gameId . "/mapFile.zip",
+        "centerLat" => $gameCoords[0],
+        "centerLong" => $gameCoords[1],
+        "minLat" => $gameCoords[2],
+        "minLong" => $gameCoords[3],
+        "maxLat" => $gameCoords[4],
+        "maxLong" => $gameCoords[5],
+        "questionFile" => "http://t-a-g.dk/games/" . $gameId . "/questionfile.zip",
+        "answerFile" => "http://t-a-g.dk/games/" . $gameId . "/answerfile.zip",
+        "postCoords" => "http://t-a-g.dk/action/postCoords.php",
+        "getCoords" => "http://t-a-g.dk/action/getCoords.php",
+        "postAnswer" => "http://t-a-g.dk/action/postAnswer.php"
+    );
+
+    header('Content-Type: application/json');
+    $array2 = json_encode($array);
+    echo $array2;
 }
 
-include 'create_qr_codes.php';
+function getGameCoords($id) {
 
-echo create_qr_codes();
+    $gameCoords = array();
+    $Mysql = new Mysql_spil();
+    $games = $Mysql->get_games();
+
+    for ($i = 0; $i < sizeof($games); $i++) {
+        if ($games[$i][0] === $id) {
+            $gameName = $games[$i][1];
+        }
+    }
+
+    $_SESSION['cg'] = $gameName;
+    $map = $Mysql->get_map();
+    $mapId = $map[0][0];
+    $maps = $Mysql->get_maps();
+
+    for ($i = 0; $i < sizeof($maps); $i++) {
+        if ($maps[$i][0] === $mapId) {
+            $centerLat = $maps[$i][1];
+            $centerLong = $maps[$i][2];
+            $minLat = $maps[$i][1] - 0.09; 
+            $maxLat = $maps[$i][1] + 0.09;
+            $minLong = $maps[$i][2] - 0.18;
+            $maxLong = $maps[$i][2] + 0.18;
+        }
+    }
+    array_push($gameCoords, $centerLat, $centerLong, $minLat, $minLong, $maxLat, $maxLong);
+    return $gameCoords;
+}
+
+if (isset($_POST['teamId'], $_POST['gameId'])) {
+    $teamId = $_POST['teamId'];
+    $gameId = $_POST['gameId'];
+    createJson($teamId, $gameId);
+}
