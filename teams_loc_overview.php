@@ -6,6 +6,10 @@ $map_name = $mysql -> get_map($_SESSION['cg']);
 if ($map_name == ''){
     die('There is no map linked to this game. Go to "import map" in order to set a map!');
 }
+
+$res = $mysql->get_half_time();
+$half_time = $res[0][0];
+
 ?>
 
 <html>
@@ -28,6 +32,7 @@ if ($map_name == ''){
  
     <script type="text/javascript">
 // Start position for the map (hardcoded here for simplicity)
+var start_time = new Date(<?php echo time()*1000 ?>);
 var lat=55.398;
 var lon=10.385;
 var zoom=13;
@@ -58,18 +63,123 @@ function init() {
             var map_info = xmlhttp.responseText.split(" ");
             lat = map_info[2];
             lon = map_info[1];
-            init_zone_map(map_info[0]);
+            init_overview_map(map_info[0]);
             get_zones_from_db(); // updates zone table on page initialization
             add_zones(); // add zones to map on page initialization
             add_bases();
             //get_bases_from_db();
             get_base()
-			setTimeout(function() {map.zoomToExtent(zoneLayer.getDataExtent());},1250);
+			setInterval(function() {map.zoomToExtent(zoneLayer.getDataExtent());},3000);
         }
     }
     xmlhttp.open("GET","get_map_name.php",true);
     xmlhttp.send();
 	setSize(50);
+    startInterval(<?php echo $half_time ?>);
+    update_score_table();
+    update_division_score_table();
+    setInterval(function(){update_score_table();},30000);
+    setInterval(function(){update_division_score_table();},30000);
+}
+
+function sortFunction(a, b) {
+    if (a[2] === b[2]) {
+        return 0;
+    }
+    else {
+        return (a[2] > b[2]) ? -1 : 1;
+    }
+}
+
+function onlyUnique(value, index, self) { 
+    return self.indexOf(value) === index;
+}
+
+function update_division_score_table(){
+    remove_score("div");
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            var score = xmlhttp.responseText.split(" ");
+            var number_of_teams = (score.length-1)/4;
+            var table = document.getElementById("div_score");
+            var div = [];
+            var cp = [];
+            var points = [];
+            for (var i=0; i<number_of_teams; i++){
+                div.push(score[i*4+1]);
+                cp.push(score[i*4+2]);
+                points.push(score[i*4+3]);
+            }
+            var unique_divs = div.filter(onlyUnique);
+            var res = [];
+            for (var j=0; j<unique_divs.length; j++){
+                cp_tot = 0;
+                points_tot = 0;
+                for (var i=0; i<number_of_teams; i++){
+                    if (div[i] == unique_divs[j]){
+                        cp_tot += parseInt(cp[i]);
+                        points_tot += parseInt(points[i]);
+                    }
+                }
+                res.push([unique_divs[j],cp_tot,points_tot]);
+            }
+            res.sort(sortFunction);
+            for (var i=0; i<res.length; i++){
+                var row = table.insertRow(-1);
+                var cell0 = row.insertCell(0);
+                var cell1 = row.insertCell(1);
+                var cell2 = row.insertCell(2);
+                var cell3 = row.insertCell(3);
+                cell0.innerHTML = i + 1;
+                cell1.innerHTML = res[i][0];
+                cell2.innerHTML = res[i][1];
+                cell3.innerHTML = res[i][2];
+            }
+        }
+    }
+    xmlhttp.open("GET","get_score.php",true);
+    xmlhttp.send();
+}
+
+function remove_score(a){
+    if (a == "teams"){
+        var table = document.getElementById("score");
+    }
+    else{
+        var table = document.getElementById("div_score");
+    }
+    var number_of_rows = table.rows.length;
+    for (var i=1; i<number_of_rows; i++){
+        table.deleteRow(-1);
+    }
+}
+
+function update_score_table(){
+    remove_score("teams");
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            var score = xmlhttp.responseText.split(" ");
+            var number_of_teams = (score.length-1)/4;
+            var table = document.getElementById("score");
+            for (var i=0; i<number_of_teams; i++){
+                var row = table.insertRow(-1);
+                var cell0 = row.insertCell(0);
+                var cell1 = row.insertCell(1);
+                var cell2 = row.insertCell(2);
+                var cell3 = row.insertCell(3);
+                var cell4 = row.insertCell(4);
+                cell0.innerHTML = i + 1;
+                cell1.innerHTML = score[i*4];
+                cell2.innerHTML = score[i*4+1];
+                cell3.innerHTML = score[i*4+2];
+                cell4.innerHTML = score[i*4+3];
+            }
+        }
+    }
+    xmlhttp.open("GET","get_score.php",true);
+    xmlhttp.send();
 }
 
 
@@ -111,8 +221,8 @@ function setSize(radius_in_m) {
     // sets the radius of the zones
     // corrects the distance to match the mercator projection (not exact)
     var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
-    drawControls['zone'].handler.setOptions({radius: radius, angle: 0});
-    drawControls['base'].handler.setOptions({radius: radius, angle: 0});
+    //drawControls['zone'].handler.setOptions({radius: radius, angle: 0});
+    //drawControls['base'].handler.setOptions({radius: radius, angle: 0});
 }
 
 function add_zone(){
@@ -276,6 +386,58 @@ function hide_perim(){
     baseLayer.removeFeatures( baseLayer.getFeaturesByAttribute("type", "perim") );
     document.getElementById("hide").disabled = true;
 }
+
+function zoomChanged(){
+        // updates the zoom level display
+        var zoomLevel = map.getZoom();
+        document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
+}
+
+function startInterval(game_time){  
+    setInterval('updateTime(' + game_time + ');', 100);  
+}
+
+function updateTime(game_time_min){
+    var game_time_ms = game_time_min * 60000;
+    var nowMS = Date.now();
+    var minutes = (game_time_ms - (nowMS - start_time.getTime()))/(1000*60);
+    var seconds = 60*(game_time_min-Math.floor(minutes)) - (game_time_ms - minutes*60000)/1000.0;
+    var clock = document.getElementById('time');
+    if(clock){
+        if(seconds>=0 && minutes>=0){ 
+            if(seconds>=10 && minutes>=10){ 
+                clock.innerHTML = 'Time: -' + Math.floor(minutes) + ':' + Math.floor(seconds);
+            }
+            else if(minutes>=10 && seconds<10){
+                clock.innerHTML = 'Time: -' + Math.floor(minutes) + ':0' + Math.floor(seconds);
+            }
+            else if(seconds>=10 && minutes<10){
+                clock.innerHTML = 'Time: -0' + Math.floor(minutes) + ':' + Math.floor(seconds);
+            }
+            else{
+                clock.innerHTML = 'Time: -0' + Math.floor(minutes) + ':0' + Math.floor(seconds);
+            }
+        }
+        else{
+            if(Math.floor(seconds)<1){
+                seconds=60;
+                minutes -= 1;
+            }
+            if(seconds<=51 && minutes<=-10){ 
+                clock.innerHTML = 'Time: ' + Math.floor(Math.abs(minutes)) + ':' + (60 - Math.floor(seconds));
+            }
+            else if(minutes<=-10 && seconds>51){
+               clock.innerHTML = 'Time: ' + Math.floor(Math.abs(minutes)) + ':0' + (60 - Math.floor(seconds));
+            }
+            else if(seconds<=51 && minutes>=-10){
+                clock.innerHTML = 'Time: 0' + Math.floor(Math.abs(minutes)) + ':' + (60 - Math.floor(seconds));
+            }
+            else{
+                clock.innerHTML = 'Time: 0' + Math.floor(Math.abs(minutes)) + ':0' + (60 - Math.floor(seconds));
+            }
+        }
+    }
+} 
     </script>
 </head>
  
@@ -283,79 +445,35 @@ function hide_perim(){
 <body onload="init();">
  
     <!-- define a DIV into which the map will appear. Make it take up the whole window -->
-    <div style="width:1000px; height:700px; margin-left:auto; margin-right:auto;">
-    <div style="width:60%; height:70%; float:left" id="map"></div>
-    <div style="width:40%; height:70%; float:left">
-        <div id="zones_table" style="width:70%; height:100%; margin-left:auto; margin-right:auto; overflow:auto"></div>
-    </div>
-    <div style="width:20%; height:40%; float:left;">
-        <p id="zoom"></p> 
-        <!--p id="demo">test</p-->
-        <ul id="controlToggle">
-            <li>
-                <input type="radio" name="type" value="none" id="noneToggle"
-                       onclick="toggleControl(this)" checked="checked" />
-                <label for="noneToggle">navigate</label>
-            </li>
-            <li>
-                <input type="radio" name="type" value="zone" id="zoneToggle" onclick="toggleControl(this)" />
-                <label for="zoneToggle">add zone</label>
-            </li>
-            <li>
-                <input type="radio" name="type" value="base" id="baseToggle" onclick="toggleControl(this);" />
-                <label for="baseToggle">add base</label>
-            </li>
-            <li>
-                <input type="radio" name="type" value="del_zone" id="delzToggle" onclick="toggleControl(this);" />
-                <label for="delzToggle">delete zone</label>
-            </li>
-            <li>
-                <input type="radio" name="type" value="del_base" id="delbToggle" onclick="toggleControl(this);" />
-                <label for="delbToggle">delete base</label>
-            </li>
-        </ul>
+    <div style="width:1000px; height:600px; margin-left:auto; margin-right:auto;">
+        <div style="width:60%; height:100%; float:left" id="map"></div>
+        <div style="width:40%; height:100%; float:left">
+            <div style="width:60%;height:10%;margin-left:auto;margin-right:auto"><h1 id="time">Time: 60:00</h1></div>
+            <div style="width:70%; height:60%; margin-left:auto; margin-right:auto; overflow:auto">
+                <table id="score" style="margin-left:auto; margin-right:auto;">
+                    <caption>Score</caption>
+                    <tr>
+                        <th>rank</th>
+                        <th>team</th>
+                        <th>div</th>
+                        <th>cp</th>
+                        <th>points</th>
+                </table>
+            </div>
+            <div style="width:70%; height:30%; margin-left:auto; margin-right:auto; overflow:auto">
+                <table id="div_score" style="margin-left:auto; margin-right:auto;">
+                    <caption>Division Score</caption>
+                    <tr>
+                        <th>rank</th>
+                        <th>div</th>
+                        <th>cp</th>
+                        <th>points</th>
+                </table>
+            </div>
         </div>
-        <div style="width:30%; height:40%; float:left; ">
-        <p style="float:left">radius of zone or base:<p>
-        <select name="size" onchange="setSize(parseFloat(this.value))" id="size" style="float:left">
-            <option value="10">10m</option>
-            <option value="20">20m</option>
-            <option value="30">30m</option>
-            <option value="40">40m</option>
-            <option value="50" selected="selected">50m</option>
-            <option value="100">100m</option>
-            <option value="200">200m</option>
-            <option value="300">300m</option>
-        </select>
-        <br/>
-        <p style="float:left">add zone with GPS coord.:</p>
-        <br/>
-        <p style="position:absolute; margin-top:25px;">lat:</p><input type="text" name="lat" id="lat" size="3" style="position:absolute; margin-top:25px; margin-left:-180px">
-        <br/>        
-        <p style="position:absolute; margin-top:45px;">lon:</p><input type="text" name="lon" id="lon" size="3" style="position:absolute; margin-top:45px; margin-left:-180px">
-        <br/>
-        <button type="button" onclick="add_zone()" style="position:absolute; margin-left:150px;">submit</button>
-    </div>
-    <div style="width:30%; height:30%; float:left; background:grey">
-        <div style="width:100%; height:10%;"> 
-            <p style="text-align:center">Show Perimeter</p>
-        </div>
-        <div style="width:80%; height:40%; margin-left:auto; margin-right:auto; ">
-            <p style="text-align:center">
-                <label for="min">min:</label>
-                <input type="text" name="min" id="min" size="3" style="">
-                
-            </p>
-            <p style="text-align:center">
-                <label for="min">max:</label>
-                <input type="text" name="max" id="max" size="3" style="">
-            </p>
-            <p style="text-align:center">
-                <button type="button" onclick="show_perim()" style="">show</button>
-                <button type="button" onclick="hide_perim()" id="hide" disabled>hide</button>
-            </p>
-        </div>  
-    </div>
+        <p id="zoom"></p>
+    
+    
     </div>
 </body>
 </html>

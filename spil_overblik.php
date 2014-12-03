@@ -68,8 +68,23 @@ if ($res[5] == false){
 else{
 	$yn2 = 'ja';
 }
+if ($res[6] == ''){
+    $time = 0;
+}
+else{
+    $time = $res[6][0][0];
+}
+if( $_POST && !empty($_POST['time'])) {
+    $mysql->update_half_time($_POST['time']);
+    $time = $_POST['time'];
+}
+if ($res[7][0][0] == 0){
+    $divs = 'Ingen divisioner';
+}
+else{
+    $divs = $res[7][0][0];
+}
 
-$yn3 = 'nej';
 ?>
 
 <html lang="da">
@@ -79,8 +94,8 @@ $yn3 = 'nej';
         </title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
     </head>
-	<body style="width:600px; margin-left:auto; margin-right:auto;">
-		<div style="width:50%; float:left">
+	<body style="width:800px; margin-left:auto; margin-right:auto;">
+		<div style="width:38%; float:left">
 			<h1>
 				<p>Muligheder</p>
 			</h1>
@@ -90,16 +105,13 @@ $yn3 = 'nej';
 				<input type="button" value="Zoner" onclick=change_page("draw_zone") /><br>
 				<input type="button" value="Ruter" onclick=change_page("create_rutes") /><br>
 				<input type="button" value="Hold" onclick=change_page("create_teams") /><br>
+                <input type="button" value="Divisioner" onclick=change_page("set_div") /><br>
 				<input type="button" value="Fordel ruter" onclick="fordel_ruter(<?php echo $n_ruter . ',' . $n_hold; ?>)" /><br>
 				<input type="button" value="Fordel opgaver" onclick="fordel_opgaver(<?php echo $n_opgaver . ',' . $n_rute_length . ',' . $n_hold; ?>)" /><br>
-                <input type="button" value="Lav QR-koder" onclick=create_qr_codes() /><br>
 				<p id="res"></p>
 			</form>
-            <form method="get" action="<?php echo $_SESSION['cg'] . 'json/qr_codes.zip' ?>">
-                <button type="submit">Download QR-koder</button>
-            </form>
 		</div>
-		<div style="width:50%; float:left">
+		<div style="width:38%; float:left">
 			<h1>
 				<p>Status</p>
 			</h1>
@@ -109,9 +121,24 @@ $yn3 = 'nej';
 			<p>Ruter: <?php echo $n_ruter; ?></p>
 			<p>Rute længde: <?php echo $n_rute_length; ?></p>
 			<p>Hold: <?php echo $n_hold; ?></p>
+            <p>Divisioner: <?php echo $divs; ?></p>
 			<p id="fordel_ruter">Ruter fordelt: <?php echo $yn; ?></p>
 			<p id="fordel_opgaver">Opgaver fordelt: <?php echo $yn2; ?></p>
-            <p id="qr_gen">QR-koder genereret: <?php echo $yn3; ?></p>
+		</div>
+        <div style="width:24%; float:left">
+			<h1>
+				<p>Tid</p>
+			</h1>
+            <p>Tid pr. halveg: <?php echo $time; ?>min</p>
+            <form method="post" action="">
+            <p style="text-align:center">
+                <label for="time" style="text-decoration:underline;">Angiv tid i min: </label>
+                <input type="text" name="time" />
+            </p>
+            <p style="text-align:center">
+                <input type="submit" value="submit" name="submit"/>
+            </p>
+	        </form>
 		</div>
 	</body>
 </html>
@@ -155,18 +182,4 @@ $yn3 = 'nej';
 			xmlhttp.send();
 		}
 	}
-
-    function create_qr_codes(){
-        var xmlhttp = new XMLHttpRequest();
-	    xmlhttp.onreadystatechange=function() {
-	    	if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
-                if (xmlhttp.responseText == true){  
-				    document.getElementById("qr_gen").innerHTML = 'QR-koder genereret: ja'; 
-				    document.getElementById("res").innerHTML = "";
-                }      
-	       	}
-		}
-		xmlhttp.open("GET","make_qr_json.php", true);
-		xmlhttp.send();
-    }
 </script>

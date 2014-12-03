@@ -9,6 +9,62 @@ class Mysql_spil {
 		$this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD) or 
 									die('there was a problem connecting to the database.');
     }
+
+    function update_division_settings($n_divs){
+        $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Divisions 
+					  	  SET GAME_" . $_SESSION['cg'] . ".Divisions.divs = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $n_divs);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    function get_divs(){
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Divisions";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    }
+
+    function get_points_all_teams(){
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Score ORDER BY points DESC";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    }
+    
+    function update_half_time($time){
+        $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Time 
+					  	  SET GAME_" . $_SESSION['cg'] . ".Time.time = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $time);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+    
+    function get_half_time(){
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Time";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    }
 	
 	function check_if_game_exists($game_name){
 		$query = "SELECT game_name FROM Games.Games WHERE game_name=?";
@@ -155,7 +211,9 @@ class Mysql_spil {
 		$teams = $this->get_teams();
 		$ass = $this->get_assignments();
 		$team_ass = $this->check_if_Teams_assignments_exists();
-		return array($map, $zones, $rutes, $teams, $ass, $team_ass);
+        $time = $this->get_half_time();
+        $divs = $this->get_divs();
+		return array($map, $zones, $rutes, $teams, $ass, $team_ass,$time,$divs);
 	}
 
     function save_map_link($map_name) {
@@ -638,6 +696,44 @@ class Mysql_spil {
 			$stmt->execute();
             $stmt->close();
         } 
+        // Creates table for Score
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Score (
+            teamID INT(5) NOT NULL, PRIMARY KEY(teamID),
+            division VARCHAR(4),
+            check_points INT(5),
+            points INT(5))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+        // Creates table for Divisions
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Divisions (
+            divs INT(5) NOT NULL, PRIMARY KEY(divs))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+        // Inserts default time into Divisions table
+        $query = "INSERT INTO GAME_". (string)$game_name . ".Divisions (divs) 
+                  VALUES (0)";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+        // Creates table for Time
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Time (
+            time INT(4) NOT NULL, PRIMARY KEY(time))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+        // Inserts default time into time table
+        $query = "INSERT INTO GAME_". (string)$game_name . ".Time (time) 
+                  VALUES (60)";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
         // Inserts entry into games database
         $query = "INSERT INTO Games.Games (gameID, game_name, company) 
                   VALUES (?,?,?)";

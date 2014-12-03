@@ -225,3 +225,62 @@ function init_zone_map(map_name){
     }
     document.getElementById('noneToggle').checked = true; // sets control to map navigation
 }
+
+function init_overview_map(map_name){ 
+    map = new OpenLayers.Map ("map", {
+        controls:[
+            new OpenLayers.Control.Navigation(),
+            new OpenLayers.Control.PanZoomBar(),
+            new OpenLayers.Control.Permalink(),
+            new OpenLayers.Control.ScaleLine({geodesic: true}),
+            new OpenLayers.Control.Permalink('permalink'),
+            new OpenLayers.Control.MousePosition(),                    
+            new OpenLayers.Control.Attribution()
+        ],
+        maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
+        maxResolution: 156543.0339,
+        numZoomLevels: 19,
+        units: 'm',
+        projection: new OpenLayers.Projection("EPSG:900913"),
+        displayProjection: new OpenLayers.Projection("EPSG:4326"),
+    });
+    // zonelayer functionality
+
+    // adds the layers for points marking zones and base
+    zoneLayer = new OpenLayers.Layer.Vector("Zone Layer");
+    map.addLayers([zoneLayer]);
+    baseLayer = new OpenLayers.Layer.Vector("Base Layer");
+    map.addLayers([baseLayer]);
+    // adds the map layer from mapnik
+    var layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
+    map.addLayer(layerMapnik);
+            
+    // This is the layer that uses the locally stored OSM tiles 
+    var newLayer = new OpenLayers.Layer.OSM("Local tiles", "tiles/" + map_name + "/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
+    map.addLayer(newLayer);
+
+    // This is the layer that uses the locally stored satellite tiles
+    var newLayer2 = new OpenLayers.Layer.TMS("Local satellite tiles", "tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL, visibility: 0});
+    map.addLayer(newLayer2);
+    if (OpenLayers.Util.alphaHack() == false) {
+        newLayer2.setOpacity(0.7);
+    }
+    // initialize the handler for drawing the zones and the base
+
+    // controls for switching maps/layers
+ 	var switcherControl = new OpenLayers.Control.LayerSwitcher();
+	map.addControl(switcherControl);
+	switcherControl.maximizeControl();
+    
+    // moves the map to the correct position
+    if( ! map.getCenter() ){
+        var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+        map.setCenter (lonLat, zoom);
+        // for displaying the current zoom level
+        
+        var zoomLevel = map.getZoom();
+        document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
+    }
+    // registers when zoom level is changed and updates zoom display
+    map.events.register("zoomend", map, zoomChanged);
+}
