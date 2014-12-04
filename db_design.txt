@@ -1,0 +1,108 @@
+Database	table	entry	
+			
+Users			
+	Users		
+		Username	
+		Password	
+		Access	
+			
+			
+Game (Alle spildatabaser får prefixet "GAME_" (det samler dem alle under en fane i phpmyadmin GUI'en), dvs at et spil der hedder "kilroy" får database navnet "GAME_kilroy")
+
+    Teams_assignments
+        teamID 
+        assignmentID1
+        assignmentID2
+        .
+        .
+        .
+
+			
+	Assignments		
+		assignmentID	
+		ass. Name (opt.)	
+		type	
+		text_in	
+		text_out	
+		ref_to_pic_in	
+		ref_to_pic_out	
+		answer1	
+		answer2	
+		answer3	
+		answer4	
+		answer5	
+		correct_answer		
+			
+	Zones		
+		zoneID	
+		GPSx
+        	GPSy
+        	radius	
+			
+	Rutes 		
+		ruteID	
+		Zone 1 ID	
+		Zone 2 ID	
+		Zone 3 ID	
+		Zone 4 ID	
+		Zone 5 ID	
+			
+	Teams		
+		teamID	
+		ruteID	
+		name1	
+		name2	
+		name3	
+		name4	
+
+	Team_pos_ID (ID = holdets ID)(til opdatering af holdets position)
+		count(id)
+		lat
+		long
+		time
+
+	Team_answer_ID (ID = holdets ID)(til opdatering af holdets svar)		
+		assignmentID
+		answer
+		time
+
+
+    Map		
+	    mapID (henviser til mapID i Maps databasen)
+
+    Base
+        baseID
+        GPSx 
+        GPSy 
+        radius
+
+Maps
+    Maps
+        mapID
+        GPSx
+        GPSy
+			
+Assignments			
+	Assignments		
+		assignmentID	
+		type	
+		text_in	
+		text_out	
+		Ref_to_pic_in	
+		Ref_to_pic_out	
+		Answer_1	
+		Answer_2	
+		Answer_3	
+		Answer_4	
+		Answer_5	
+		correct_answer	
+		Owner	
+		MapID	
+
+Games (database til at holde styr på alle de enkelte spil databaser, skal bruges når der skal skabes et overblik over alle de gemte spil i brugerfladen)
+    Games
+        gameID
+        game name
+        company
+			
+Måske det også kan betale sig at have en seperat database med “maps” og “rutes”, men det kommer lidt an på hvordan sirius arbejder			

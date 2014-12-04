@@ -33,7 +33,7 @@ class postCoords {
             $query = 'INSERT INTO Game_' . $gameName . '.Team_pos_' . $gameId . ' VALUES (?, ?, ?)';
 
             if ($stmt = $this->conn->prepare($query)) {
-                $stmt->bind_param('iii', $lat, $long, $time);
+                $stmt->bind_param('ddi', $lat, $long, $time);
                 $stmt->execute();
                 $stmt->close();
             }
