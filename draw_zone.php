@@ -1,6 +1,11 @@
 <?php
 
-require 'Mysql.php';
+require_once 'Membership.php';
+$membership = New Membership();
+$membership->confirm_Admin();
+$membership->check_Active();
+
+
 $mysql = new Mysql_spil();
 $map_name = $mysql -> get_map($_SESSION['cg']);
 if ($map_name == ''){
@@ -161,6 +166,10 @@ function get_zones_from_db(){
     xmlhttp.send();
 }
 
+function change_page(page_name) {
+   window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+}
+
 /*function get_bases_from_db(){
    // gets the number of bases 
     var xmlhttp = new XMLHttpRequest();
@@ -282,6 +291,9 @@ function hide_perim(){
 <body onload="init();">
  
     <!-- define a DIV into which the map will appear. Make it take up the whole window -->
+    <div style="width:100%; padding-bottom:5px">
+        <button id="back" type="button" onclick=change_page('spil_overblik')>Game menu</button>
+    </div>
     <div style="width:1000px; height:700px; margin-left:auto; margin-right:auto;">
     <div style="width:60%; height:70%; float:left" id="map"></div>
     <div style="width:40%; height:70%; float:left">

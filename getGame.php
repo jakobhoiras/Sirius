@@ -1,22 +1,37 @@
 <?php
 
+
+"""
+Receives gameID and teamID from tablet and creates a JSON-object with all the links needed for the tablet
+"""
 require_once 'mysql.php';
 
 function createJson($teamId, $gameId) {
 
-    $gameCoords = getGameCoords($gameId);
+    $mapCoords = getMapCoords($gameId);
+    $baseCoords = getBaseCoords($gameId);
+    $time = getTime($gameId);
 
     $array = array(
-        "targetFile" => "http//:t-a-g.dk/games/" . $gameId . "/targetFile.php",
-        "mapFile" => "http://t-a-g.dk/games/" . $gameId . "/mapFile.zip",
-        "centerLat" => $gameCoords[0],
-        "centerLong" => $gameCoords[1],
-        "minLat" => $gameCoords[2],
-        "minLong" => $gameCoords[3],
-        "maxLat" => $gameCoords[4],
-        "maxLong" => $gameCoords[5],
-        "questionFile" => "http://t-a-g.dk/games/" . $gameId . "/questionfile.zip",
-        "answerFile" => "http://t-a-g.dk/games/" . $gameId . "/answerfile.zip",
+        "gameId" => $gameId,
+        "teamId" => $teamId,
+        "targetFile" => "http//:t-a-g.dk/Games/" . $gameId . "/targetFile.php",
+        "mapFile" => "http://t-a-g.dk/tiles/" . $mapCoords[6] . ".zip",
+        "centerLat" => $mapCoords[0],
+        "centerLong" => $mapCoords[1],
+        "minLat" => $mapCoords[2],
+        "minLong" => $mapCoords[3],
+        "maxLat" => $mapCoords[4],
+        "maxLong" => $mapCoords[5],
+        "homeMinLat" => $baseCoords[2],
+        "homeMinLong" => $baseCoords[3],
+        "homeMaxLat" => $baseCoords[4],
+        "homeMaxLong" => $baseCoords[5],
+        "gameRunTime" => $time[0][0],
+        "gameRounds" => 2,
+        "postStateChange" => "http://t-a-g.dk/action/postStateChange.php",
+        "getState" => "http://t-a-g.dk/action/getState.php",
+        "questionFile" => "http://t-a-g.dk/Games/" . $gameId . "/questionfile.zip",
         "postCoords" => "http://t-a-g.dk/action/postCoords.php",
         "getCoords" => "http://t-a-g.dk/action/getCoords.php",
         "postAnswer" => "http://t-a-g.dk/action/postAnswer.php"
@@ -27,9 +42,9 @@ function createJson($teamId, $gameId) {
     echo $array2;
 }
 
-function getGameCoords($id) {
+function getMapCoords($id) {
 
-    $gameCoords = array();
+    $mapCoords = array();
     $Mysql = new Mysql_spil();
     $games = $Mysql->get_games();
 
@@ -54,8 +69,36 @@ function getGameCoords($id) {
             $maxLong = $maps[$i][2] + 0.18;
         }
     }
-    array_push($gameCoords, $centerLat, $centerLong, $minLat, $minLong, $maxLat, $maxLong);
-    return $gameCoords;
+    array_push($mapCoords, $centerLat, $centerLong, $minLat, $minLong, $maxLat, $maxLong, $mapId);
+    return $mapCoords;
+}
+
+function getBaseCoords($id) {
+
+    $baseCoords = array();
+    $Mysql = new Mysql_spil();
+
+    $base = $Mysql->get_bases();
+    $R = 6378137;
+    $cenLon = $base[0][1];
+    $cenLat = $base[0][2];
+    $radius = $base[0][3];
+    $dx = $radius / sqrt(2);
+    $dLat = $dx/$R
+    $dLon = $dx/($R*cos(pi()*$cenLat/180))
+    $homeMinLat = $cenLat - $dLat;
+    $homeMinLon = $cenLon - $dLon;
+    $homeMaxLat = $cenLat + $dLat;
+    $homeMaxLon = $cenLon + $dLon;
+
+    array_push($baseCoords, $cenLat, $cenLon, $homeMinLat, $homeMinLon, $homeMaxLat, $homeMaxLon);
+    return $baseCoords;
+}
+
+function getTime($id) {
+    $Mysql = new Mysql_spil();
+    $time = $Mysql->get_time();
+    return $time;
 }
 
 if (isset($_POST['teamId'], $_POST['gameId'])) {

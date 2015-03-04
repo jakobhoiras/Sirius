@@ -13,7 +13,7 @@ for ($i=0; $i<sizeof($teamID); $i++){
 					"gameID"=>$_SESSION['cg'],
 					"teamID"=>$teamID[$i][0],
 				  );
-	$path = $_SESSION['cg'] . "/json/identify_team_" . $teamID[$i][0];
+	$path = 'Games/' . $_SESSION['cg'] . "/json/identify_team_" . $teamID[$i][0];
 	$json -> createJson($array,$path);
 }
 

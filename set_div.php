@@ -1,10 +1,14 @@
 <?php
-require 'Mysql.php';
+
+require_once 'Membership.php';
+$membership = New Membership();
+$membership->confirm_Admin();
+$membership->check_Active();
 
 $mysql = new Mysql_spil();
 $n_divs = $mysql->get_divs()[0][0];
-$n_teams_temp = $mysql->get_teams();
-$n_teams = sizeof($n_teams_temp);
+$teams = $mysql->get_teams();
+$n_teams = sizeof($teams);
 if($n_divs != 0){
     $n_teams_divs = $n_teams / $n_divs;
 }
@@ -20,6 +24,28 @@ if( $_POST && !empty($_POST['submit'])) {
     else{
         $n_teams_divs=0;
     }   
+}
+$yn = 'yes';
+for ($i=0; $i<$n_teams; $i++){
+    if ($teams[$i][7] == NULL){
+       $yn = 'no';
+    }
+}
+
+if( isset($_POST['distribute'])){
+    $teamIDs = array();
+    for ($i=0; $i<$n_teams; $i++){
+        array_push($teamIDs,$teams[$i][0]);
+    }
+    shuffle($teamIDs);
+    $div_names = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z');
+    for($i=0; $i<$n_divs; $i++){
+        for($j=$i*($n_teams/$n_divs); $j<($i+1)*($n_teams/$n_divs); $j++){
+            $mysql->set_team_div($teamIDs[$j],$div_names[$i]);
+            $mysql->init_team_score($teamIDs[$j],$div_names[$i]);
+        }
+    }
+    $yn = 'yes';
 }
 
 function populate($n_teams, $n_divs){
@@ -45,6 +71,13 @@ function factor($n){
 
 ?>
 
+<script>
+
+function change_page(page_name) {
+   window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+}
+
+</script>
 
 
 <html>
@@ -54,10 +87,14 @@ function factor($n){
         </title>
     </head>
     <body>
+        <div style="width:100%; padding-bottom:5px">
+            <button id="back" type="button" onclick=change_page('spil_overblik')>Game menu</button>
+        </div>
         <div style="width:580px; margin-left:auto; margin-right:auto">
             <p>number of teams: <?php echo $n_teams; ?></p>
             <p>number of divisions: <?php echo $n_divs; ?></p>
             <p>number of teams per division: <?php echo $n_teams_divs; ?></p>
+            <p>teams distributed to divisions: <?php echo $yn; ?></p>
             <form method="post" id="set_div">
                 <div>
                     <label for="choices">division options:</label>
@@ -65,6 +102,11 @@ function factor($n){
                         <?php populate($n_teams, $n_divs); ?>
                     </p>
                     <input type="submit" name="submit" id="submit" value="Set">
+                </div>
+            </form>
+            <form method="post" id="set_div2">
+                <div>
+                    <input type="submit" name="distribute" id="distribute" value="distribute">
                 </div>
             </form>
         </div>

@@ -1,5 +1,7 @@
 <?php
-
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 require 'Mysql.php';
 
 class Membership {
@@ -10,11 +12,14 @@ class Membership {
         $mysql = New Mysql_create_user();
         $un = $_POST['user'];
         $pwd = $_POST['pwd'];
-        if (strlen($un) > 2 || strlen($pwd) > 2) {
+        $game_name = $_POST['game'];
+        if (strlen($un) > 2 && strlen($pwd) > 2) {
             if (isset($_POST['perm'])) {
-                $mysql->create_user($un, $pwd, 'admin');
+                $mysql->create_user($un, $pwd, 'admin', $game_name);
             } else {
-                $mysql->create_user($un, $pwd, 'user');
+                if(strlen($game_name) > 2){
+                    $mysql->create_user($un, $pwd, 'user', $game_name);
+                }
             }
         } else {
             echo "Alle felter skal udfyldes";
@@ -24,13 +29,14 @@ class Membership {
     function validate_User($un, $pwd) {
         $mysql = New Mysql_login();
         $ensure_credentials = $mysql->verify_Username_and_Pass($un, $pwd);
-
-        if ($ensure_credentials[0] == true && $ensure_credentials[1] == "admin") {
+        echo json_encode($ensure_credentials);
+        $_SESSION['cg'] = $ensure_credentials[1]['GameName'];
+        if ($ensure_credentials[0] == true && $ensure_credentials[1]['Permission'] == "admin") {
             $_SESSION['status'] = 'authorized_admin';
-            header("location: start.php");
-        } elseif ($ensure_credentials[0] == true && $ensure_credentials[1] == "user") {
+            header("location: start_admin.php");
+        } elseif ($ensure_credentials[0] == true && $ensure_credentials[1]['Permission'] == "user") {
             $_SESSION['status'] = 'authorized_user';
-            header("location: spil_GUI.php");
+            header("location: start_user.php");
         } else
             return "Please enter a correct username and password";
     }
@@ -46,14 +52,28 @@ class Membership {
         }
     }
 
+    function confirm_Both(){
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+        if ($_SESSION['status'] == 'authorized_admin' or $_SESSION['status'] == 'authorized_user')
+            return;
+        else
+            header("location: login.php");
+    }
+
     function confirm_Admin() {
-        session_start();
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
         if ($_SESSION['status'] != 'authorized_admin')
             header("location: login.php");
     }
 
     function confirm_User() {
-        session_start();
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
         if ($_SESSION['status'] != 'authorized_user')
             header("location: login.php");
     }

@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 require_once 'Membership.php';
 $membership = new Membership();
 //ffsdfd
@@ -20,21 +20,22 @@ if( $_POST && !empty($_POST['username']) && !empty($_POST['pwd']) ) {
 </head>
 
 <body>
-<div style="background:green;width:400px;border-style:solid;">
-	<form method="post" action="">
-	<h2>Login <small>enter your credentials</small></h2>
 
-	<p>
+<div style="background:green;width:400px;border-style:solid;margin-right:auto;margin-left:auto; margin-top:150px">
+	<form method="post" action="">
+	<h2 style="text-align:center">Login <small>enter your credentials</small></h2>
+
+	<p style="text-align:center">
 		<label for="name">Username: </label>
 		<input type="text" name="username" />
 	</p>
 
-	<p>
+	<p style="text-align:center">
 		<label for="pwd">Password: </label>
 		<input type="password" name="pwd" />
 	</p>
 
-	<p>
+	<p style="text-align:center">
 		<input type="submit" value="Login" name="submit"/>
 	</p>
 	</form>

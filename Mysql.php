@@ -1,13 +1,487 @@
 <?php
 
 require_once 'constants.php';
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
 class Mysql_spil {
    
     function __construct() {
 		$this->conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD) or 
 									die('there was a problem connecting to the database.');
+    }
+
+    function get_zone($game_name, $zoneID){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Zones
+                  WHERE GAME_" . $game_name . ".Zones.zoneID = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $zoneID);
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    }
+
+    function get_rute($game_name, $teamID){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Rutes
+                  WHERE GAME_" . $game_name . ".Rutes.teamID = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
+    }
+
+    function get_coords($game_name, $teamID){
+        $query = "SELECT * FROM Game_" . $game_name . ".Team_pos_" . $teamID . " ORDER BY count DESC LIMIT 1";
+        if ($stmt = $this->conn->prepare($query)) {
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($coords = $result->fetch_all()) {
+                $stmt->close();
+                return $coords;
+            }
+        }
+    }
+
+    function get_penalty($score,$i){
+        $progress = $this -> get_game_progress($_SESSION['cg']);
+        $teams_state = $this -> get_teams_state($_SESSION['cg']);
+        $time = $this -> get_time($_SESSION['cg']);
+        for ($j=0; $j<sizeof($teams_state); $j++){
+            if ($teams_state[$j][0] == $score[$i][0]){
+                $end_time1 = $teams_state[$j][5];
+                $end_time2 = $teams_state[$j][6];
+                if ($end_time1 == 0){
+                    $end_time1 = time();
+                }
+                if ($end_time2 == 0){
+                    $end_time2 = time();
+                }
+            }
+        } 
+        $offset = $this -> get_time_offset($_SESSION['cg'], 'first');
+        $time_diff = $end_time1 - $time[0][1] - $offset - $time[0][0]*60;
+        if ( $time_diff <= 0 or $progress=='start' or $progress=='waiting first half'){
+            $penalty1 = 0;
+        } else{
+            $penalty1 = pow(2,ceil($time_diff/60.));
+        }
+        $offset = $this -> get_time_offset($_SESSION['cg'], 'second');
+        $time_diff = $end_time2 - $time[0][3] - $offset - $time[0][0]*60;
+        if ($time_diff<=0 or $progress=='start' or $progress=='waiting first half' or $progress=='first half'
+           or $progress == 'waiting second half'){
+            $penalty2 = 0;
+        }else{
+            $penalty2 = pow(2,ceil($time_diff/60.));
+        }
+        return array($penalty1, $penalty2);
+    }
+
+    function team_found_zone($game_name, $teamID){
+        $progress = $this -> get_game_progress($game_name);
+        if ($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
+            $query = "UPDATE GAME_" . $game_name . ".Score
+				      SET GAME_" . $game_name . ".Score.points = points + 3 
+                      WHERE GAME_" . $game_name . ".Score.teamID = ?";
+        } else {
+            $query = "UPDATE GAME_" . $game_name . ".Score
+				      SET GAME_" . $game_name . ".Score.points2 = points2 + 3 
+                      WHERE GAME_" . $game_name . ".Score.teamID = ?";
+        }
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+		    $stmt->execute();
+            $stmt->close();
+        }
+        if ($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
+            $query = "UPDATE GAME_" . $game_name . ".Score
+				      SET GAME_" . $game_name . ".Score.check_points = check_points + 1 
+                      WHERE GAME_" . $game_name . ".Score.teamID = ?";
+        } else{
+            $query = "UPDATE GAME_" . $game_name . ".Score
+				      SET GAME_" . $game_name . ".Score.check_points2 = check_points2 + 1 
+                      WHERE GAME_" . $game_name . ".Score.teamID = ?";
+        }
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+		    $stmt->execute();
+            $stmt->close();
+        }
+        if ($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
+            $query = "UPDATE GAME_" . $game_name . ".Teams_state
+				      SET GAME_" . $game_name . ".Teams_state.current_cp = current_cp + 1 
+                      WHERE GAME_" . $game_name . ".Team_state.teamID = ?";
+        } else{
+            $query = "UPDATE GAME_" . $game_name . ".Teams_state
+				      SET GAME_" . $game_name . ".Teams_state.current_cp2 = current_cp2 + 1 
+                      WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
+        }
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+    
+    function update_team_score($game_name, $teamID, $points){
+        $progress = $this -> get_game_progress($game_name);
+        if ($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
+            $query = "UPDATE GAME_" . $game_name . ".Score
+				      SET GAME_" . $game_name . ".Score.points = points + $points
+                      WHERE GAME_" . $game_name . ".Score.teamID = ?";
+        } else{
+            $query = "UPDATE GAME_" . $game_name . ".Score
+				      SET GAME_" . $game_name . ".Score.points2 = points2 + $points
+                      WHERE GAME_" . $game_name . ".Score.teamID = ?";
+        }
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    function get_guesses($game_name, $teamID, $assID){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Guesses 
+                  WHERE teamID=? AND assID=?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('ii', $teamID, $assID);
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($guesses = $result->fetch_all()){
+                $stmt->close();
+                return $guesses[0][2];
+            }
+        } 
+    }
+
+    function make_guess($game_name, $teamID, $assID){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Guesses 
+                  WHERE teamID=? AND assID=?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('ii', $teamID, $assID);
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($guesses = $result->fetch_all()){
+                $stmt->close();
+            }
+        } 
+        if ($guesses==[]){
+            $query = 'INSERT INTO GAME_' . $game_name . '.Guesses(teamID, assID) VALUES (?, ?)';
+            if ($stmt = $this->conn->prepare($query)) {
+                $stmt->bind_param('ii', $teamID, $assID);
+                $stmt->execute();
+                $stmt->close();   
+            }
+        }
+        else{
+            $query = "UPDATE GAME_" . $game_name . ".Guesses
+				  SET GAME_" . $game_name . ".Guesses.tries = tries + 1
+                  WHERE GAME_" . $game_name . ".Guesses.teamID = ? AND GAME_" . $game_name . ".Guesses.assID = ?";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('ii', $teamID, $assID);
+		        $stmt->execute();
+                $stmt->close();
+            }
+        }
+    }
+    
+    function init_team_score($teamID, $div_name){
+        $query = 'INSERT INTO GAME_' . $_SESSION['cg'] . '.Score(teamID, division) VALUES (?, ?)';
+        if ($stmt = $this->conn->prepare($query)) {
+            $stmt->bind_param('is', $teamID, $div_name);
+            $stmt->execute();
+            $stmt->close();   
+        }
+    }
+
+    function set_team_div($teamID, $div_name){
+        $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Teams
+				  SET GAME_" . $_SESSION['cg'] . ".Teams.division = ?
+                  WHERE GAME_" . $_SESSION['cg'] . ".Teams.teamID = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('si', $div_name, $teamID);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    function get_time_offset($game_name, $half){
+        if ( $half == 'first'){
+            $query = "SELECT n_pause FROM GAME_" . $game_name . ".Time";
+        }
+        else if ( $half == 'second'){
+            $query = "SELECT n_pause2 FROM GAME_" . $game_name . ".Time";
+        }
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($n_pause = $result->fetch_all()){
+                $stmt->close();
+                
+            }
+        }
+        if ( $half == 'first'){
+            $query = "SELECT * FROM GAME_" . $game_name . ".Pause";
+        }
+        else if ( $half == 'second'){
+            $query = "SELECT * FROM GAME_" . $game_name . ".Pause2";
+        }
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($pause = $result->fetch_all()){
+                $stmt->close();
+                
+            }
+        }
+        $diff=0;
+        for($i=0; $i<$n_pause[0][0]; $i++){
+            $diff += $pause[$i][2] - $pause[$i][1];
+        }
+        return $diff;
+    }
+
+    function get_game_progress($game_name){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Game_progress";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if($progress = $result->fetch_all()){
+                $stmt->close();
+                return $progress[0][0];
+            }
+        }
+    }
+    
+    function update_game_progress($game_name, $progress){
+        $query = "UPDATE GAME_" . $game_name . ".Game_progress
+			      SET GAME_" . $game_name . ".Game_progress.state = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('s', $progress);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    function get_state(){
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Game_state";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if($game_state = $result->fetch_all()){
+                $stmt->close();
+                return $game_state[0][0];
+            }
+        }  
+    }
+
+    function get_game_state($game_name){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Game_state";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if($game_state = $result->fetch_all()){
+                $stmt->close();
+                return $game_state;
+            }
+        }  
+    }
+
+    function get_state_all($game_name, $teamID){
+        $query = "SELECT * FROM GAME_" . $gameName . ".Game_state";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if($game_state = $result->fetch_all()){
+                $stmt->close();
+            }
+        }  
+        $query = "SELECT * FROM GAME_" . $game_name . ".Teams_state 
+                  WHERE teamID=?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($team_state = $result->fetch_all()){
+                $stmt->close();
+            }
+        } 
+        return array($game_state[0][0],$team_state[0][1]);
+    }
+    
+    function get_teams_state($game_name){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Teams_state";
+        if ($stmt = $this->conn->prepare($query)){
+		    $stmt->execute();
+            $result = $stmt->get_result();
+            if($team_state = $result->fetch_all()){
+                $stmt->close();
+                return $team_state;
+            }
+        } 
+    }
+
+    function get_team_state($game_name, $teamID){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Teams_state
+                  WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+		    $stmt->execute();
+            $result = $stmt->get_result();
+            if($team_state = $result->fetch_all()){
+                $stmt->close();
+                return $team_state;
+            }
+        } 
+    }
+
+    function change_team_state($game_name, $teamID){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Teams_state 
+                      WHERE teamID=?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+		    $stmt->execute();
+            $result = $stmt->get_result();
+            if($team_state = $result->fetch_all()){
+                $stmt->close();
+            }
+        } 
+
+        $game_state = $this->get_game_state($game_name);
+
+        if ($team_state[0][1] == 'IN'){
+            $query = "UPDATE GAME_" . $game_name . ".Teams_state
+					  	  SET GAME_" . $game_name . ".Teams_state.IO = 'OUT'
+                          WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('i', $team_state[0][0]);
+		        $stmt->execute();
+                $stmt->close();
+            }
+            if ($game_state[0][0] == 'open'){
+                $query = "UPDATE GAME_" . $game_name . ".Teams_state
+					  	  SET GAME_" . $game_name . ".Teams_state.state = 'running'
+                          WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
+                if ($stmt = $this->conn->prepare($query)){
+                    $stmt->bind_param('i', $team_state[0][0]);
+		            $stmt->execute();
+                    $stmt->close();
+                }
+            }
+            $progress = $this -> get_game_progress($game_name);
+            $start_time = time();
+            if ($progress == 'waiting first half'){
+                $this -> update_game_progress($game_name, 'first half');                
+                $this -> update_start_time_first_half($game_name, $start_time);
+            }
+            else if ($progress == 'waiting second half'){
+                $this -> update_game_progress($game_name, 'second half');                
+                $this -> update_start_time_second_half($game_name, $start_time);  
+            }
+        }
+        else if ($team_state[0][1] == 'OUT'){
+            $query = "UPDATE GAME_" . $game_name . ".Teams_state
+					  	  SET GAME_" . $game_name . ".Teams_state.IO = 'IN', GAME_" . $_SESSION['cg'] . ".Teams_state.state = 'waiting'
+                        WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
+            if ($stmt = $this->conn->prepare($query)){
+                $stmt->bind_param('i', $team_state[0][0]);
+		        $stmt->execute();
+                $stmt->close();
+            }
+            if ($game_state[0][0] == 'open' or $game_state[0][0] == 'pause'){
+                $progress = $this -> get_game_progress($game_name);
+                if ($progress == 'first half'){
+                    $query = "UPDATE GAME_" . $game_name . ".Teams_state
+		    			  	  SET GAME_" . $game_name . ".Teams_state.end_half = ?
+                              WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
+                }
+                else if ($progress == 'second half'){
+                    $query = "UPDATE GAME_" . $game_name . ".Teams_state
+		    			  	  SET GAME_" . $game_name . ".Teams_state.end_half2 = ?
+                              WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
+                }
+                if ($progress == 'first half' or $progress == 'second half'){
+                    if ($stmt = $this->conn->prepare($query)){
+                        $time = time();
+                        $stmt->bind_param('ii', $time, $team_state[0][0]);
+		                $stmt->execute();
+                        $stmt->close();
+                    }
+                }
+            }
+        }
+    }
+
+    function update_start_time_first_half($game_name, $time){
+        $query = "UPDATE GAME_" . $game_name . ".Time 
+					  	  SET GAME_" . $game_name . ".Time.start1 = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $time);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    function update_start_time_second_half($game_name, $time){
+        $query = "UPDATE GAME_" . $game_name . ".Time 
+					  	  SET GAME_" . $game_name . ".Time.start2 = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $time);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    function update_freq_setting($freq){
+        $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Overview_settings
+					  	  SET GAME_" . $_SESSION['cg'] . ".Overview_settings.freq = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $freq);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    function update_shifts_setting($shifts){
+        $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Overview_settings
+					  	  SET GAME_" . $_SESSION['cg'] . ".Overview_settings.shifts = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $shifts);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+    
+    function update_screens_setting($screens){
+        $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Overview_settings
+					  	  SET GAME_" . $_SESSION['cg'] . ".Overview_settings.screens = ?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $screens);
+		    $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    function get_overview_settings(){
+        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Overview_settings";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
     }
 
     function update_division_settings($n_divs){
@@ -31,9 +505,18 @@ class Mysql_spil {
             }
         } 
     }
+    
 
-    function get_points_all_teams(){
-        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Score ORDER BY points DESC";
+    function get_points_all_teams($sort, $half){
+        if ($sort=='sort'){
+            if ($half == 'first'){
+                $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Score ORDER BY points DESC";
+            } else{
+                $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Score ORDER BY points2 DESC";
+            }
+        }else{
+            $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Score";
+        }
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $result = $stmt->get_result();
@@ -54,8 +537,8 @@ class Mysql_spil {
         }
     }
     
-    function get_half_time(){
-        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Time";
+    function get_time($game_name){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Time";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $result = $stmt->get_result();
@@ -211,7 +694,7 @@ class Mysql_spil {
 		$teams = $this->get_teams();
 		$ass = $this->get_assignments();
 		$team_ass = $this->check_if_Teams_assignments_exists();
-        $time = $this->get_half_time();
+        $time = $this->get_time($_SESSION['cg']);
         $divs = $this->get_divs();
 		return array($map, $zones, $rutes, $teams, $ass, $team_ass,$time,$divs);
 	}
@@ -272,6 +755,11 @@ class Mysql_spil {
             $stmt->bind_param('i', $teamID);
 		    $stmt->execute();
             $stmt->close();
+        }
+        $query =  "DROP TABLE GAME_" . $_SESSION['cg']. ".Team_pos_$teamID";           
+        if ($stmt = $this->conn->prepare($query)){
+		    $stmt->execute();
+            $stmt->close();
             return;
         }
     }
@@ -296,6 +784,33 @@ class Mysql_spil {
 		    $stmt->execute();
             $stmt->close();
         }
+        $query = "SELECT teamID FROM GAME_" . $_SESSION['cg']. ".Teams WHERE name1=? AND name2=? AND name3=? AND name4=?";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('ssss', $name1, $name2, $name3, $name4);
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+            }
+        }
+        $teamID = $table[0][0];
+        $query = "CREATE TABLE GAME_" . $_SESSION['cg'] . ".Team_pos_$teamID (
+            count INT(7) NOT NULL AUTO_INCREMENT, PRIMARY KEY(count),
+            lon FLOAT(15),
+            lat FLOAT(15),
+            time FLOAT(20))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+        $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Teams_state(teamID, IO, state) 
+                  VALUES (?, 'IN', 'waiting')";
+        if ($stmt = $this->conn->prepare($query)){
+            $stmt->bind_param('i', $teamID);
+		    $stmt->execute();
+            $stmt->close();
+        }
+        
     }   
 
     function get_maps(){
@@ -644,6 +1159,42 @@ class Mysql_spil {
 			$stmt->execute();
             $stmt->close();
         } 
+
+        // Creates table for Guesses
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Guesses (
+            teamID INT(5) NOT NULL, PRIMARY KEY(Id),
+            assID VARCHAR(250),
+            tries INT(5) DEFAULT 1)";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        } 
+
+        // Creates table for Game state
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Game_state (
+            state VARCHAR(30), PRIMARY KEY(state))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        } 
+
+        // Creates table for Game progress
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Game_progress (
+            state VARCHAR(30), PRIMARY KEY(state))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        } 
+
+        // Inserts default state into Game state
+        $query = "INSERT INTO GAME_". (string)$game_name . ".Game_state (state) 
+                  VALUES ('ready')";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+
+
         // Creates table for base
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Base (
             baseID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(baseID), 
@@ -684,11 +1235,32 @@ class Mysql_spil {
             name1 VARCHAR(30), 
             name2 VARCHAR(30),
             name3 VARCHAR(30),
-            name4 VARCHAR(30))";
+            name4 VARCHAR(30),
+            division VARCHAR(5))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
         } 
+        // Creates table for teams state
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Teams_state (
+            teamID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(teamID), 
+            IO VARCHAR(5),
+            state VARCHAR(10),
+            current_cp INT(5) DEFAULT 1,
+            current_cp2 INT(5) DEFAULT 1,
+            end_half INT(20) DEFAULT 0,
+            end_half2 INT(20) DEFAULT 0)";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        } 
+        // Inserts default values into teams state
+        #$query = "INSERT INTO GAME_". (string)$game_name . ".Teams_state (IO, state) 
+        #          VALUES ('IN', 'waiting')";
+        #if ($stmt = $this->conn->prepare($query)){
+		#	$stmt->execute();
+        #    $stmt->close();
+        #}
         // Creates table for Map
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Map (
             mapID VARCHAR(30) NOT NULL, PRIMARY KEY(mapID))";
@@ -700,8 +1272,10 @@ class Mysql_spil {
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Score (
             teamID INT(5) NOT NULL, PRIMARY KEY(teamID),
             division VARCHAR(4),
-            check_points INT(5),
-            points INT(5))";
+            check_points INT(5) DEFAULT 0,
+            points INT(5) DEFAULT 0,
+            check_points2 INT(5) DEFAULT 0,
+            points2 INT(5) DEFAULT 0)";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
@@ -713,7 +1287,7 @@ class Mysql_spil {
 			$stmt->execute();
             $stmt->close();
         }
-        // Inserts default time into Divisions table
+        //  s default time into Divisions table
         $query = "INSERT INTO GAME_". (string)$game_name . ".Divisions (divs) 
                   VALUES (0)";
         if ($stmt = $this->conn->prepare($query)){
@@ -722,14 +1296,54 @@ class Mysql_spil {
         }
         // Creates table for Time
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Time (
-            time INT(4) NOT NULL, PRIMARY KEY(time))";
+            time INT(4) NOT NULL, PRIMARY KEY(time),
+            start1 INT(20),
+            end1 INT(20),
+            start2 INT(20),
+            end2 INT(20),
+            n_pause INT(20) DEFAULT 0,
+            n_pause2 INT(20) DEFAULT 0)";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+        // Creates table for Pause
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Pause (
+            id INT(5) NOT NULL, PRIMARY KEY(id),
+            start INT(20)
+            end INT(20))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+        // Creates table for Pause2
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Pause2 (
+            id INT(5) NOT NULL, PRIMARY KEY(id),
+            start INT(20)
+            end INT(20))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
         }
         // Inserts default time into time table
-        $query = "INSERT INTO GAME_". (string)$game_name . ".Time (time) 
-                  VALUES (60)";
+        $query = "INSERT INTO GAME_". (string)$game_name . ".Time (time, start1, end1, start2, end2) 
+                  VALUES (60, 0, 0, 0 ,0)";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+        // Creates table for Overview_settings
+        $query = "CREATE TABLE GAME_" . (string)$game_name . ".Overview_settings (
+            screens INT(4) NOT NULL, PRIMARY KEY(screens),
+            shifts INT(4),
+            freq INT(5))";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
+        // Inserts default time into Overview_settings table
+        $query = "INSERT INTO GAME_". (string)$game_name . ".Overview_settings (screens, shifts, freq) 
+                  VALUES (1, 1, 0)";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
@@ -742,7 +1356,7 @@ class Mysql_spil {
 			$stmt->execute();
             $stmt->close();
         }
-        if(mkdir((string)$game_name) and mkdir((string)$game_name . '/json')){}
+        if(mkdir('Games/' . (string)$game_name) and mkdir('Games/' . (string)$game_name . '/json')){}
         else{die('error');}
     }
     
@@ -768,20 +1382,18 @@ class Mysql_login {
 
 	function verify_Username_and_Pass($un, $pwd) {
 	
-		$query = "SELECT permission
+		$query = "SELECT *
 							FROM users
 							WHERE username = ? AND password = ?
 							LIMIT 1";
        
 		if ($stmt = $this->conn->prepare($query)){
 			$stmt->bind_param('ss', $un, $pwd);
-			$stmt->execute();
-			
+			$stmt->execute();		
 			$result = $stmt->get_result();
-
 			if ($myrow = $result->fetch_assoc()){
 				$stmt->close();
-				return [true, $myrow['permission']];
+				return [true, $myrow];
     	    }
 		}
 	}
@@ -796,7 +1408,7 @@ class Mysql_create_user {
     }
 
     //$perm = admin || user
-    function create_user($un, $pwd, $perm) {
+    function create_user($un, $pwd, $perm, $game_name) {
 
         $query = "SELECT * FROM users";
 
@@ -814,10 +1426,10 @@ class Mysql_create_user {
             	} 
 			}
 			if ($already_exists == false) {
-                $query = 'INSERT INTO users (Username,Password,Permission) VALUES (?,?,?)';
+                $query = 'INSERT INTO users (Username,Password,Permission,GameName) VALUES (?,?,?,?)';
 
                 if ($stmt = $this->conn->prepare($query)) {
-                    $stmt->bind_param('sss', $un, $pwd, $perm);
+                    $stmt->bind_param('ssss', $un, $pwd, $perm, $game_name);
                     $stmt->execute();
                     $stmt->close();
                     echo "brugeren er nu oprettet";
@@ -826,7 +1438,7 @@ class Mysql_create_user {
         }
     }
 }
-class Mysql_assignment {
+/*class Mysql_assignment {
      private $conn;
 
     function __construct() {
@@ -849,7 +1461,7 @@ class Mysql_assignment {
             }
         }           
     }
-}
+}*/
 #function insert_Kunde($navn1, $navn2, $navn3){
 #
 #		$query = "INSERT

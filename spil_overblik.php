@@ -1,13 +1,9 @@
 <?php
-/*require_once 'Membership.php';
+require_once 'Membership.php';
 $membership = New Membership();
 $membership->confirm_Admin();
 $membership->check_Active();
-require 'Mysql_create_game.php';
-$mysql = new Mysql_spil();
-*/
 
-require 'Mysql.php';
 
 $current_game = $_GET['cg'];
 $_SESSION['cg'] = $current_game;
@@ -85,6 +81,8 @@ else{
     $divs = $res[7][0][0];
 }
 
+$yn3 = 'nej';
+
 ?>
 
 <html lang="da">
@@ -94,10 +92,14 @@ else{
         </title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
     </head>
-	<body style="width:800px; margin-left:auto; margin-right:auto;">
-		<div style="width:38%; float:left">
+	<body>
+        <div style="width:100%; float:left; ">
+            <button id="back" type="button" onclick=change_page('start_admin')>Back to start</button>
+        </div>
+        <div style="width:800px; margin-left:auto; margin-right:auto;">
+        <div style="width:38%; float:left;">
 			<h1>
-				<p>Muligheder</p>
+				<p>Actions</p>
 			</h1>
 			<form method="post">
 				<input type="button" value="importer opgaver" onclick=change_page("importer_opgaver") /><br>
@@ -106,33 +108,41 @@ else{
 				<input type="button" value="Ruter" onclick=change_page("create_rutes") /><br>
 				<input type="button" value="Hold" onclick=change_page("create_teams") /><br>
                 <input type="button" value="Divisioner" onclick=change_page("set_div") /><br>
+                <input type="button" value="Skærmopsætning" onclick=change_page("set_overview_screen") /><br>
+                <input type="button" value="Skærme" onclick=change_page("screen_options") /><br>
+                <input type="button" value="Konsulent panel" onclick=change_page("consultant_panel") /><br>
 				<input type="button" value="Fordel ruter" onclick="fordel_ruter(<?php echo $n_ruter . ',' . $n_hold; ?>)" /><br>
 				<input type="button" value="Fordel opgaver" onclick="fordel_opgaver(<?php echo $n_opgaver . ',' . $n_rute_length . ',' . $n_hold; ?>)" /><br>
+                <input type="button" value="Lav QR-koder" onclick=create_qr_codes() /><br>
 				<p id="res"></p>
 			</form>
+            <form method="get" action="<?php echo 'Games/' . $_SESSION['cg'] . '/json/qr_codes.zip' ?>">
+                <button type="submit">Download QR-codes</button>
+            </form>
 		</div>
-		<div style="width:38%; float:left">
+		<div style="width:38%; float:left;">
 			<h1>
 				<p>Status</p>
 			</h1>
 			<p>Map:  <?php echo $map_name; ?> </p>
-			<p>Opgaver: <?php echo $n_opgaver; ?></p>
-			<p>Zoner: <?php echo $n_zoner; ?></p>
-			<p>Ruter: <?php echo $n_ruter; ?></p>
-			<p>Rute længde: <?php echo $n_rute_length; ?></p>
-			<p>Hold: <?php echo $n_hold; ?></p>
-            <p>Divisioner: <?php echo $divs; ?></p>
-			<p id="fordel_ruter">Ruter fordelt: <?php echo $yn; ?></p>
-			<p id="fordel_opgaver">Opgaver fordelt: <?php echo $yn2; ?></p>
+			<p>Assignments: <?php echo $n_opgaver; ?></p>
+			<p>Zones: <?php echo $n_zoner; ?></p>
+			<p>Rutes: <?php echo $n_ruter; ?></p>
+			<p>Rute length: <?php echo $n_rute_length; ?></p>
+			<p>Team: <?php echo $n_hold; ?></p>
+            <p>Divisions: <?php echo $divs; ?></p>
+			<p id="fordel_ruter">Rutes distributed: <?php echo $yn; ?></p>
+			<p id="fordel_opgaver">Assignment distributed: <?php echo $yn2; ?></p>
+            <p id="qr_gen">QR-codes generated: <?php echo $yn3; ?></p>
 		</div>
         <div style="width:24%; float:left">
 			<h1>
-				<p>Tid</p>
+				<p>Time</p>
 			</h1>
-            <p>Tid pr. halveg: <?php echo $time; ?>min</p>
+            <p>Time per period: <?php echo $time; ?>min</p>
             <form method="post" action="">
             <p style="text-align:center">
-                <label for="time" style="text-decoration:underline;">Angiv tid i min: </label>
+                <label for="time" style="text-decoration:underline;">Time in minutes: </label>
                 <input type="text" name="time" />
             </p>
             <p style="text-align:center">
@@ -140,6 +150,7 @@ else{
             </p>
 	        </form>
 		</div>
+        </div>
 	</body>
 </html>
 
@@ -182,4 +193,18 @@ else{
 			xmlhttp.send();
 		}
 	}
+
+    function create_qr_codes(){
+        var xmlhttp = new XMLHttpRequest();
+	    xmlhttp.onreadystatechange=function() {
+	    	if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
+                if (xmlhttp.responseText == true){  
+				    document.getElementById("qr_gen").innerHTML = 'QR-koder genereret: ja'; 
+				    document.getElementById("res").innerHTML = "";
+                }      
+	       	}
+		}
+		xmlhttp.open("GET","make_qr_json.php", true);
+		xmlhttp.send();
+    }
 </script>

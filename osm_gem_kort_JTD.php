@@ -1,4 +1,9 @@
 <?php
+require_once 'Membership.php';
+$membership = New Membership();
+$membership->confirm_Admin();
+$membership->check_Active();
+
 
 ?>
 
@@ -195,12 +200,18 @@ function pick_map(table, j) {
     }
 }
 
+function change_page(page_name) {
+        window.location.href = ("http://localhost/sirius/" + page_name + ".php");
+    }
+
     </script>
 </head>
  
 <!-- body.onload is called once the page is loaded (call the 'init' function) -->
 <body onload="init();">
- 
+    <div style="width:100%; padding-bottom:5px;">
+        <button id="back" type="button" onclick=change_page('start_admin')>Back to start</button>
+    </div>
     <div style="width:60%; height:70%; float:left" id="map"></div>
     <div style="width:40%; height:70%; float:left; overflow:auto"> 
         <table id="maps" style="width:50%; margin-left:auto; margin-right:auto">

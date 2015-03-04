@@ -1,16 +1,16 @@
-<!--?php
+<?php
 require_once 'Membership.php';
 $membership = New Membership();
-$membership->confirm_Admin();
+$membership->confirm_Both();
 $membership->check_Active();
-$mysql = new Mysql_spil();
+//$mysql = new Mysql_spil();
 
-if( $_POST && !empty($_POST['opret_opgave']) ) {
-    $response = $mysql->opret_opgave($_POST['opret_opgave'], $_SESSION['spil_navn']);
-    header('location: opgave_GUI.php');
-}
+//if( $_POST && !empty($_POST['opret_opgave']) ) {
+//    $response = $mysql->opret_opgave($_POST['opret_opgave'], $_SESSION['spil_navn']);
+//    header('location: opgave_GUI.php');
+//}
 
-?-->
+?>
 <?php
 require_once 'opgave.php';
 $opgave = New opgave();
@@ -39,7 +39,13 @@ $opgave = New opgave();
     <body>
 
         <form method="post" action="">
-            <input type="button" value="Back to start" onclick="change_page('start')"/><br>
+            <?php
+                if ($_SESSION['status'] == 'authorized_admin'){
+                    echo '<input type="button" value="Start menu" onclick=change_page("start_admin") />';
+                } else{
+                    echo '<input type="button" value="Start menu" onclick=change_page("start_user") />';
+                }
+            ?>
         </form>
 
 

@@ -1,5 +1,8 @@
 <?php
-require 'Mysql.php';
+require_once 'Membership.php';
+$membership = New Membership();
+$membership->confirm_Both();
+$membership->check_Active();
 
 $mysql = new Mysql_spil();
 
@@ -30,16 +33,16 @@ function init(){
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-                teams = xmlhttp.responseText.split(" ");
+                teams = JSON.parse(xmlhttp.responseText);
                 if (a == 'disp'){
-                    var number_of_teams = (teams.length-1)/7;
+                    var number_of_teams = teams.length;
                     var table = document.getElementById("teams");
                     for (var i=0; i<number_of_teams; i++){
                         var row = table.insertRow(-1);
                         row.setAttribute("value","np");
                         add_pick_coloring(i, teams);
                         var cell = row.insertCell(0);
-                        cell.innerHTML = "team " + (teams[i*7]);
+                        cell.innerHTML = "team " + (teams[i][0]);
                     }
                 }
             }
@@ -72,10 +75,10 @@ function init(){
     }
     
     function show_team(teams, j){
-        var name1 = teams[j*7+3];
-        var name2 = teams[j*7+4];
-        var name3 = teams[j*7+5];
-        var name4 = teams[j*7+6];
+        var name1 = teams[j][3];
+        var name2 = teams[j][4];
+        var name3 = teams[j][5];
+        var name4 = teams[j][6];
         document.getElementById("name1").innerHTML = name1;
         document.getElementById("name2").innerHTML = name2;
         document.getElementById("name3").innerHTML = name3;
@@ -119,8 +122,8 @@ function edit_chosen(){
         }
         if (table.rows[i].getAttribute("value") == "p"){
             for (j=0; j<4; j++){
-                document.getElementById("edit_name" + (j+1)).value = teams[i*7+j+3];
-                old_edit_names[j] = teams[i*7+j+3];
+                document.getElementById("edit_name" + (j+1)).value = teams[i][j+3];
+                old_edit_names[j] = teams[i][j+3];
             }
             table.rows[i].style.background = "green";
             table.rows[i].setAttribute("value","edit");
@@ -165,10 +168,27 @@ function remove_old_content(){
     }
 }
 
+function change_page(page_name) {
+    if (page_name == 'spil_overblik'){
+        window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+    } else{
+        window.location.href = ("http://localhost/sirius/" + page_name + ".php");
+    }
+}
+
 </script>
         
     </head>
     <body onload=init();>
+        <div style="width:100%; padding-bottom:5px">
+            <?php
+                if ($_SESSION['status'] == 'authorized_admin'){
+                    echo '<button id="back" type="button" onclick=change_page("spil_overblik") >Game menu</button>';
+                } else{
+                    echo '<button id="back" type="button" onclick=change_page("start_user") >Start menu</button>';
+                }
+            ?>
+        </div>
         <div style="width:580px; margin-left:auto; margin-right:auto">
             <div style="width:320px; float:left;">
             <form method="post" action="">

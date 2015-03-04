@@ -1,6 +1,8 @@
 <?php
 require_once 'constants.php';
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 class Mysql_assignment {
 
     private $conn;
@@ -28,7 +30,7 @@ class Mysql_assignment {
                     $already_exists = true;
                 }
             }
-            if ($already_exists == false) {
+            if ($already_exists == true) {
                 return 1;
             } else {
                 $query = 'INSERT INTO Assignments.Assignments(name) VALUES' . '(?)';
@@ -75,6 +77,14 @@ class Mysql_assignment {
             }
         }
 	}
+
+    function delete_imported_assignment($ass_name) {
+        $query = "Delete FROM GAME_" . $_SESSION['cg'] . ".Assignments WHERE name = ?";
+        if ($stmt = $this->conn->prepare($query)) {
+            $stmt->bind_param('s', $ass_name);
+            $stmt->execute();
+        }
+    }
 }
 
 

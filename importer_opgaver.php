@@ -1,11 +1,10 @@
 <?php
-/*require_once 'Membership.php';
+require_once 'Membership.php';
 $membership = New Membership();
 $membership->confirm_Admin();
 $membership->check_Active();
-require 'Mysql_create_game.php';
+
 $mysql = new Mysql_spil();
-*/
 
 require 'Mysql_opgave.php';
 
@@ -23,16 +22,19 @@ for ($i=0; $i<sizeof($table2); $i++){
     <head>
 		<link rel="stylesheet" href="style.css" type="text/css" />
         <title>
-            Importer kort
+            Import map
         </title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
     </head>
     <body>
+        <div style="width:10%">
+            <button id="back" type="button" onclick=change_page('spil_overblik')>Game menu</button>
+        </div>
         <div style="width:500px; height:400px; margin-left:auto; margin-right:auto;">
 			<div style="width:48%; height:100%; float:left; overflow:auto">
 				<div style="width:100%; height:90%; float:left; overflow:auto">
 					<table id="db" style="margin-left:auto; margin-right:auto">
-				        <caption>Opgave database</caption>
+				        <caption>Assignment database</caption>
 						<?php 
 						$j=0;
 						for ($i=0; $i<sizeof($table); $i++){
@@ -45,14 +47,11 @@ for ($i=0; $i<sizeof($table2); $i++){
 						} ?>
 					</table>
 				</div>
-				<div style="width:20%; height:10%; margin-left:auto; margin-right:auto;">
-					<button style="" type="button" onclick="import_ass()">Import</button>
-				</div>
 			</div>
 			<div style="width:48%; height:100%; float:right; overflow:auto">
 				<div style="width:100%; height:90%; float:left; overflow:auto">
 					<table id="import" style="margin-left:auto; margin-right:auto">
-				        <caption>Importerede opgaver</caption>
+				        <caption>Imported assignments</caption>
 						<?php 
 						for ($i=0; $i<sizeof($table2); $i++){
 							echo '<tr id="row_s"' . $i . "; onclick=pick_row($i," . '"import"' . ")>
@@ -61,8 +60,9 @@ for ($i=0; $i<sizeof($table2); $i++){
 						} ?>
 					</table>
 				</div>
-				<div style="width:20%; height:10%; margin-left:auto; margin-right:auto;">
-					<button style="" type="button" onclick="delete_chosen()">Delete</button>
+				<div style="width:70%; height:10%; margin-left:auto; margin-right:auto;">
+                    <button style="float:left" type="button" onclick="import_ass()">Import</button>
+					<button style="float:left" type="button" onclick="delete_chosen()">Delete</button>
 				</div>
 			</div>
         </div>
@@ -109,16 +109,16 @@ for ($i=0; $i<sizeof($table2); $i++){
 		table.rows[i].onclick = function() {pick_row(i,  p)};
 	}
 
-    /*function change_page(page_name) {
-        var table = document.getElementById("games");
-        var rows = table.rows;
-        for (i=0; i<rows.length; i++){
-            if(rows[i].getAttribute("value") == "p"){
-                var current_game = rows[i].cells[0].innerHTML;
-            }
-        }
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + current_game);
-    }*/
+    function change_page(page_name) {
+        //var table = document.getElementById("games");
+        //var rows = table.rows;
+        //for (i=0; i<rows.length; i++){
+        //    if(rows[i].getAttribute("value") == "p"){
+        //        var current_game = rows[i].cells[0].innerHTML;
+        //    }
+        //}
+        window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+    }
 
     function pick_row(j, table_name) {
         var rows = document.getElementById(table_name).rows;
@@ -152,22 +152,26 @@ for ($i=0; $i<sizeof($table2); $i++){
         }
     }
 
-	/*function delete_chosen(){
-    // removes a rute from the list (table)
-    var table = document.getElementById("import");
-    var rute = [];
-    for (i=0; i<table.rows.length; i++){
-        if (table.rows[i].getAttribute("value") == "p"){
-            for(var j=0; j<table.rows[i].cells.length; j++){
-                rute.push(table.rows[i].cells[j].innerHTML);
+	function delete_chosen(){
+        var table = document.getElementById("import");
+        for (i=0; i<table.rows.length; i++){
+            if (table.rows[i].getAttribute("value") == "p"){
+                var name = table.rows[i].cells[0].innerHTML;
             }
-            for (var j=0; j<5-table.rows[i].cells.length; j++){
-                rute.push(0);
-            }
-			console.log(rute);
-            add_rute_to_db(rute, 'delete_rute');
-            table.deleteRow(i);
         }
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange=function() {
+            if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+                var table = document.getElementById("import");
+                for (i=0; i<table.rows.length; i++){
+                    if (table.rows[i].getAttribute("value") == "p"){
+                        table.deleteRow(i);
+                    }
+                }
+            }
+        }
+        console.log(name);
+        xmlhttp.open("GET","delete_assignment.php?ass=" + name,true);
+        xmlhttp.send();
     }
-}*/
 </script>

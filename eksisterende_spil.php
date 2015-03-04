@@ -1,13 +1,9 @@
 <?php
-/*require_once 'Membership.php';
+require_once 'Membership.php';
 $membership = New Membership();
 $membership->confirm_Admin();
 $membership->check_Active();
-require 'Mysql_create_game.php';
-$mysql = new Mysql_spil();
-*/
 
-require 'Mysql.php';
 
 $mysql = new Mysql_spil();
 $table = $mysql->get_games();
@@ -18,17 +14,20 @@ $table = $mysql->get_games();
     <head>
 		<link rel="stylesheet" href="style.css" type="text/css" />
         <title>
-            Vælg eksisterende spil
+            Choose Game
         </title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
     </head>
     <body>
+        <div style="width:10%">
+            <button id="back" type="button" onclick=back_to_start('start_admin')>Back to start</button>
+        </div>
         <div style="width:400px; height:400px; margin-left:auto; margin-right:auto; overflow:auto">
             <table id="games" style="margin-left:auto; margin-right:auto">
-                <caption>Gemte spil</caption>
+                <caption>Saved games</caption>
                 <tr>
-                    <th>spil navn</th>
-                    <th>kunde</th>
+                    <th>Game name</th>
+                    <th>Customer</th>
                 </tr>
 				<?php for ($i=0; $i<sizeof($table); $i++){
 					echo '<tr id="row"' . $i . "; onclick=pick_row($i)>
@@ -37,8 +36,9 @@ $table = $mysql->get_games();
 						  </tr>";
 				} ?>
 			</table>
+            <button type="button" onclick=change_page('spil_overblik')>Choose game</button>
         </div>
-        <button type="button" onclick=change_page('spil_overblik')>vælg spil</button>
+        
     </body>
 </html>
 <script>
@@ -71,5 +71,9 @@ $table = $mysql->get_games();
             rows[j+1].style.background='blue';
             rows[j+1].setAttribute("value","p");
         }
+    }
+
+    function back_to_start(page_name) {
+        window.location.href = ("http://localhost/sirius/" + page_name + ".php");
     }
 </script>

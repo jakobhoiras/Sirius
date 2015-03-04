@@ -3,7 +3,7 @@
 include 'phpqrcode/qrlib.php';
 
 function create_qr_codes(){
-    $path = getcwd() . "/" . $_SESSION['cg'] . "/json/";
+    $path = getcwd() . "/Games/" . $_SESSION['cg'] . "/json/";
     $files = array_diff(scandir($path),array('.','..'));
     if(array_search('qr_codes', scandir($path))==FALSE){
         mkdir($path . 'qr_codes');

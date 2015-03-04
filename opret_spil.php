@@ -1,9 +1,9 @@
 <?php
-/*require_once 'Membership.php';
+require_once 'Membership.php';
 $membership = New Membership();
 $membership->confirm_Admin();
-$membership->check_Active();*/
-require 'Mysql.php';
+$membership->check_Active();
+//require 'Mysql.php';
 $mysql = new Mysql_spil();
 $res='n';
 if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
@@ -20,7 +20,7 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
 <html lang="da">
     <head>
 
-        <title>setup - create game</title>
+        <title>Create game</title>
 
         <meta name="keywords" content="stuff" />
         <meta http-equiv="Content-Type" content="text/html; charset=utf8">
@@ -28,20 +28,19 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
     </head>
 
     <body>
+        <div style="width:10%">
+            <button id="back" type="button" onclick=change_page('start_admin')>Back to start</button>
+        </div>
+        <div style="margin-left:auto; margin-right:auto; margin-top:150px; width:400px;">
         <form method="post" action="">
-            <input type="button" value="Back to start" onclick="change_page('start')"/><br>
-
-
-
-
-
-            game name:<br>
+            Game name:<br>
             <input type="text" name="game_name"><br/>
-            company:<br>
+            Company:<br>
             <input type="text" name="company"><br/>
             <input type="submit" value="Create game">
         </form>
 		<p><?php if($res != 'n'){echo $res;}else{echo "";} ?></p>
+        </div>
     </body>
 </html>	
 

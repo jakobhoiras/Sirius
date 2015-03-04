@@ -1,14 +1,96 @@
 <?php
 
-require 'Mysql.php';
+require_once 'Membership.php';
+$membership = New Membership();
+$membership->confirm_Both();
+$membership->check_Active();
+//require 'game_control.php';
+
 $mysql = new Mysql_spil();
 $map_name = $mysql -> get_map($_SESSION['cg']);
 if ($map_name == ''){
     die('There is no map linked to this game. Go to "import map" in order to set a map!');
 }
 
-$res = $mysql->get_half_time();
-$half_time = $res[0][0];
+$state = $mysql -> get_state();
+$progress = $mysql -> get_game_progress($_SESSION['cg']);
+
+
+$time = $mysql->get_time($_SESSION['cg']);
+
+if ($progress == 'start' or $progress == 'waiting first half' or $progress == 'waiting second half'){
+    $time_disp = '-' . $time[0][0] . ':00:00';
+}
+else if ($progress == 'first half'){ 
+    $time_disp = clock('first', $mysql, $time);
+}
+else if ($progress == 'second half' or $progress == 'ended'){
+    $time_disp = clock('second', $mysql, $time);
+}
+
+function clock($half, $mysql, $time){
+    $offset = ($mysql -> get_time_offset($_SESSION['cg'], $half));
+    if ($half == 'first'){
+        $se = $time[0][2]-$time[0][1];
+    }
+    else if ($half == 'second'){
+        $se = $time[0][4]-$time[0][3];
+    }
+    $ctime = $se - $offset;
+    $half_time = $time[0][0]*60;
+    $rest_time = $half_time - $ctime;
+    $min = ($rest_time)/(60);
+    $sec = ($half_time-floor($min)*60) - ($half_time-$min*60);
+    if ($min >= 0 and $sec >= 0){
+        if ($min >= 10 and $sec >= 10){
+           $time_disp1 = '-' . floor($min) . ':' . floor($sec); 
+        }
+        else if ($min >= 10 and $sec < 10){
+           $time_disp1 = '-' . floor($min) . ':0' . floor($sec);
+        }
+        else if ($min < 10 and $sec >= 10){
+           $time_disp1 = '-0' . floor($min) . ':' . floor($sec);
+        }
+        else{
+            $time_disp1 = '-0' . floor($min) . ':0' . floor($sec);
+        }
+    }
+    else{
+        if(floor($sec)<1){
+            $sec=60;
+            $min -= 1;
+        }
+        if($sec<=51 && $min<=-10){ 
+            $time_disp1 = floor(abs($min)) . ':' . (60 - floor($sec));
+        }
+        else if($min<=-10 && $sec>51){
+            $time_disp1 = floor(abs($min)) . ':0' . (60 - floor($sec));
+        }
+        else if($sec<=51 && $min>=-10){
+            $time_disp1 = '0' . floor(abs($min)) . ':' . (60 - floor($sec));
+        }
+        else{
+            $time_disp1 = '0' . floor(abs($min)) . ':0' . (60 - floor($sec));
+        }
+    }
+    return $time_disp1;
+}
+
+
+$time = implode(" ",$time[0]);
+
+$screen = $_GET['screen'];
+$res = $mysql->get_overview_settings();
+$screens = $res[0][0];
+$shifts = $res[0][1];
+$freq = $res[0][2];
+$games = $mysql->get_games();
+for ($i = 0; $i < sizeof($games); $i++) {
+    if ($games[$i][1] === $_SESSION['cg']) {
+        $gameID = $games[$i][0];
+    }
+}
+
 
 ?>
 
@@ -32,7 +114,11 @@ $half_time = $res[0][0];
  
     <script type="text/javascript">
 // Start position for the map (hardcoded here for simplicity)
-var start_time = new Date(<?php echo time()*1000 ?>);
+var gameID = <?php echo $gameID; ?>;
+var progress = <?php echo json_encode($progress); ?>;
+var state = <?php echo json_encode($state) ?>;
+var time = (<?php echo json_encode($time) ?>).split(" "); 
+//var start_time = new Date(<?php $start_time ?>);
 var lat=55.398;
 var lon=10.385;
 var zoom=13;
@@ -51,12 +137,32 @@ var row_picked=0;
 var base_layer=0;
 var base=0;
 var point_base;
-//Initialise the 'map' object
-function init() {
-    // creates the basic map object and the tile, zone and base Layers. 
-    // Sets the map center and adds a event register for change in zoom level.
-    // Also listeners for handling hovering, dehovering and clicking zones as well as
-    // controls for drawing and deleting zones and bases are added
+
+var timerIDstartgame;
+var start_time;
+var timerIDCheck;
+var timerIDupdate;
+var old_state = 0;
+var old_progress = 0;
+var pass = false;
+var offset=0;
+var initTimerID
+
+function start_clock_init(new_progress1,new_progress2){
+    if (pass == true){ 
+        clearInterval(initTimerID);
+        var new_progress = new_progress1 + ' ' + new_progress2;
+        if (new_progress == 'first half'){
+            start_clock(offset*1000,'first');
+        }
+        if (new_progress == 'second half'){
+            start_clock(offset*1000,'second');
+        }
+        pass = false;
+    }         
+}
+
+function init_map_elements(){
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
@@ -64,25 +170,180 @@ function init() {
             lat = map_info[2];
             lon = map_info[1];
             init_overview_map(map_info[0]);
-            get_zones_from_db(); // updates zone table on page initialization
-            add_zones(); // add zones to map on page initialization
+            //get_zones_from_db(); // updates zone table on page initialization
+            //add_active_zones(); // add zones to map on page initialization
             add_bases();
             //get_bases_from_db();
-            get_base()
-			setInterval(function() {map.zoomToExtent(zoneLayer.getDataExtent());},3000);
+            get_base();
         }
     }
     xmlhttp.open("GET","get_map_name.php",true);
     xmlhttp.send();
-	setSize(50);
-    startInterval(<?php echo $half_time ?>);
-    update_score_table();
-    update_division_score_table();
-    setInterval(function(){update_score_table();},30000);
-    setInterval(function(){update_division_score_table();},30000);
 }
 
-function sortFunction(a, b) {
+function get_offset(){
+    var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange=function() {
+            if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+                offset = xmlhttp.responseText;
+                pass = true;
+            }
+        }
+    xmlhttp.open("GET","game_control.php?func=get_offset",true);
+    xmlhttp.send();
+}
+
+function super_init(){
+    if (progress == 'first half' || progress == 'second half'){ 
+        if (state == 'open'){
+            document.getElementById('state').innerHTML = progress;
+            // start clock
+            get_offset(); 
+            var input = progress.split(" ");
+            initTimerID = setInterval('start_clock_init("' + input[0] + '","' + input[1] + '")',1000);
+        }
+    } 
+
+    // start check of state/progress change
+    old_state = state;
+    old_progress = progress;
+    setInterval('check_state_progress()',5000);
+    // creates the basic map object and the tile, zone and base Layers. 
+    // Sets the map center and adds a event register for change in zoom level.
+    // Also listeners for handling hovering, dehovering and clicking zones as well as
+    // controls for drawing and deleting zones and bases are added
+    init_map_elements();
+    
+    //setInterval(function() {map.zoomToExtent(zoneLayer.getDataExtent());},3000);
+	setSize(50);
+    var screen = <?php echo $screen; ?>;
+    var shifts = <?php echo $shifts; ?>;
+    var group=1;
+    setInterval(
+        function() { 
+            init(screen,group);
+            add_active_zones(screen,group);
+            if (group == shifts){
+                group = 1;
+            }else{
+                group += 1;
+            }
+        },
+        <?php echo $freq*1000; ?>
+    );
+    i=1;
+    setInterval(function() {get_coord(i);if(i==4){i=1;}else{i+=1;}},2000);
+}
+
+function check_state_progress(){
+    //get state and progress
+    var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange=function() {
+            if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
+                var sp_ar = xmlhttp.responseText.split(" ");
+                var new_state = sp_ar[0];
+                if (sp_ar[2]){
+                    var new_progress = sp_ar[1] + ' ' + sp_ar[2];
+                }
+                else{
+                    var new_progress = sp_ar[1];
+                }
+                if (new_state == old_state && new_progress == old_progress){
+                    return;
+                }
+                if (new_state == 'pause' || new_state == 'stop'){
+                    //stop clock
+                    clearInterval(timerIDupdate);
+                    //print state
+                    document.getElementById('state').innerHTML = new_progress;
+                }
+                else if (new_state == 'ready'){
+                    if (new_progress == 'waiting second'){
+                        //stop clock
+                        clearInterval(timerIDupdate);
+                        //print state
+                        document.getElementById('state').innerHTML = new_progress;
+                    }
+                }
+                else if (new_state == 'open'){
+                    if (new_progress == 'first half'){
+                        document.getElementById('state').innerHTML = new_progress;
+                        get_offset();
+                        setInterval('start_clock_init("' + sp_ar[1] + '","' + sp_ar[2] + '")',1000);
+                    }
+                    else if (new_progress == 'second half'){
+                        document.getElementById('state').innerHTML = new_progress;
+                        get_offset();
+                        setInterval('start_clock_init("' + sp_ar[1] + '","' + sp_ar[2] + '")',1000);
+                    }
+                    else if (new_progress == 'waiting first'){
+                        document.getElementById('state').innerHTML = 'waiting for someone to leave the base!';
+                    }
+                    else{
+                    }
+                }
+                old_state = new_state;
+                old_progress = new_progress;                
+           	}
+        }
+    xmlhttp.open("GET","game_control.php?func=sp", true);
+    xmlhttp.send();
+}
+
+
+function start_clock(offset, half){
+    var xmlhttp = new XMLHttpRequest();
+	xmlhttp.onreadystatechange=function() {
+	 	if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
+            start_time = new Date(parseInt(xmlhttp.responseText)); // gemmer first half start tid
+            startInterval(time[0], offset, half); // skal kaldes når tiden skal startes   
+	    }
+    }
+    if (half == 'first'){
+	    xmlhttp.open("GET","get_time.php?func=first_half", true);
+    }
+    else if (half == 'second'){
+        xmlhttp.open("GET","get_time.php?func=second_half", true);
+    }
+	xmlhttp.send();
+}
+
+function get_coord(teamID){
+                var http = new XMLHttpRequest();
+                var url = "getCoords_server.php";
+                var params = "gameId=" + gameID + "&teamId=" + teamID;
+                http.open("POST", url, true);
+                //Send the proper header information along with the request
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                http.setRequestHeader("Content-length", params.length);
+                http.setRequestHeader("Connection", "close");
+
+                http.onreadystatechange=function() {
+                    if (http.readyState==4 && http.status==200) {
+                        var res = http.responseText.split(" ");
+                        var lonLat = new OpenLayers.LonLat(res[1],res[0]).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+                        var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
+                        var radius_in_m = 30
+                        var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
+                        var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point,radius,3,0);
+                        var featurecircle = new OpenLayers.Feature.Vector(mycircle);
+                        featurecircle.style = {fillColor: "blue", fillOpacity: 0.4, strokeColor:"red", label: String(teamID)};
+                        featurecircle.attributes["team_pos"] = teamID;
+                        zoneLayer.removeFeatures( zoneLayer.getFeaturesByAttribute("team_pos", teamID) );
+                        zoneLayer.addFeatures([featurecircle]);
+                    }
+                }
+                http.send(params);
+}
+//Initialise the 'map' object
+function init(screen,group) {
+    update_score_table(screen,group);
+    update_division_score_table(screen,group);
+    //setInterval(function(){update_score_table();},30000);
+    //setInterval(function(){update_division_score_table();},30000);
+}
+
+function sortFunction_divs(a, b) {
     if (a[2] === b[2]) {
         return 0;
     }
@@ -91,27 +352,58 @@ function sortFunction(a, b) {
     }
 }
 
+function sortFunction(a, b) {
+    if (a[3] === b[3]) {
+        return 0;
+    }
+    else {
+        return (a[3] > b[3]) ? -1 : 1;
+    }
+}
+
 function onlyUnique(value, index, self) { 
     return self.indexOf(value) === index;
 }
 
-function update_division_score_table(){
+function update_division_score_table(screen,group){
     remove_score("div");
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            var score = xmlhttp.responseText.split(" ");
-            var number_of_teams = (score.length-1)/4;
+            var score = JSON.parse(xmlhttp.responseText);
+            var number_of_teams = score[0].length;
             var table = document.getElementById("div_score");
-            var div = [];
-            var cp = [];
-            var points = [];
-            for (var i=0; i<number_of_teams; i++){
-                div.push(score[i*4+1]);
-                cp.push(score[i*4+2]);
-                points.push(score[i*4+3]);
+            //var div = [];
+            //var cp = [];
+            //var points = [];
+            var res = [];
+            if (score[1] == 'first'){
+                for (var i=0; i<number_of_teams; i++){
+                    res.push([i+1,
+                              score[0][i][0],
+                              score[0][i][3],
+                              score[0][i][8],
+                              score[0][i][6],
+                              score[0][i][1],
+                              score[0][i][5]]);
+                    //cp.push(score[0][i][2]);
+                    //points.push(score[0][i][3]);
+                }
+            } else{
+                for (var i=0; i<number_of_teams; i++){
+                    //div.push(score[0][i][1]);
+                    //cp.push(score[0][i][4]);
+                    //points.push(score[0][i][5]);
+                    res.push([i+1,
+                              score[0][i][0],
+                              score[0][i][4],
+                              score[0][i][9],
+                              score[0][i][7],
+                              score[0][i][2],
+                              score[0][i][5]]);
+                }
             }
-            var unique_divs = div.filter(onlyUnique);
+            /*var unique_divs = div.filter(onlyUnique);
             var res = [];
             for (var j=0; j<unique_divs.length; j++){
                 cp_tot = 0;
@@ -124,21 +416,28 @@ function update_division_score_table(){
                 }
                 res.push([unique_divs[j],cp_tot,points_tot]);
             }
-            res.sort(sortFunction);
+            res.sort(sortFunction_divs);*/
+            //console.log(res);
             for (var i=0; i<res.length; i++){
                 var row = table.insertRow(-1);
                 var cell0 = row.insertCell(0);
                 var cell1 = row.insertCell(1);
                 var cell2 = row.insertCell(2);
                 var cell3 = row.insertCell(3);
-                cell0.innerHTML = i + 1;
-                cell1.innerHTML = res[i][0];
-                cell2.innerHTML = res[i][1];
-                cell3.innerHTML = res[i][2];
+                var cell4 = row.insertCell(4);
+                var cell5 = row.insertCell(5);
+                var cell6 = row.insertCell(6);
+                cell0.innerHTML = res[i][0];
+                cell1.innerHTML = res[i][1];
+                cell2.innerHTML = res[i][2];
+                cell3.innerHTML = res[i][3];
+                cell4.innerHTML = res[i][4];
+                cell5.innerHTML = res[i][5];
+                cell6.innerHTML = res[i][6];
             }
         }
     }
-    xmlhttp.open("GET","get_score.php",true);
+    xmlhttp.open("GET","get_score.php?screen=" + screen + "&group=" + group + "&a=div",true);
     xmlhttp.send();
 }
 
@@ -155,14 +454,41 @@ function remove_score(a){
     }
 }
 
-function update_score_table(){
+function update_score_table(screen,group){
     remove_score("teams");
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-            var score = xmlhttp.responseText.split(" ");
-            var number_of_teams = (score.length-1)/4;
+            var score = JSON.parse(xmlhttp.responseText);
+            var number_of_teams = score[0].length;
             var table = document.getElementById("score");
+            var res = [];
+            if (score[1] == 'first'){
+                for (var i=0; i<number_of_teams; i++){
+                    res.push([
+                    score[2][i],
+                    score[0][i][0],
+                    score[0][i][1],
+                    parseInt(score[0][i][4]),
+                    score[0][i][5],
+                    score[0][i][8],
+                    score[0][i][2],
+                    score[0][i][10]])
+                }
+            } else{
+                for (var i=0; i<number_of_teams; i++){
+                    res.push([
+                    score[2][i],
+                    score[0][i][0],
+                    score[0][i][1],
+                    parseInt(score[0][i][6]),
+                    score[0][i][7],
+                    score[0][i][9],
+                    score[0][i][3],
+                    score[0][i][10]])
+                }
+            }
+            res.sort(sortFunction);
             for (var i=0; i<number_of_teams; i++){
                 var row = table.insertRow(-1);
                 var cell0 = row.insertCell(0);
@@ -170,15 +496,21 @@ function update_score_table(){
                 var cell2 = row.insertCell(2);
                 var cell3 = row.insertCell(3);
                 var cell4 = row.insertCell(4);
-                cell0.innerHTML = i + 1;
-                cell1.innerHTML = score[i*4];
-                cell2.innerHTML = score[i*4+1];
-                cell3.innerHTML = score[i*4+2];
-                cell4.innerHTML = score[i*4+3];
+                var cell5 = row.insertCell(5);
+                var cell6 = row.insertCell(6);
+                var cell7 = row.insertCell(7);
+                cell0.innerHTML = res[i][0];
+                cell1.innerHTML = res[i][1];
+                cell2.innerHTML = res[i][2];
+                cell3.innerHTML = res[i][3];
+                cell4.innerHTML = res[i][4];
+                cell5.innerHTML = '-' + res[i][5];
+                cell6.innerHTML = res[i][6];
+                cell7.innerHTML = res[i][7];
             }
         }
     }
-    xmlhttp.open("GET","get_score.php",true);
+    xmlhttp.open("GET","get_score.php?screen=" + screen + "&group=" + group + "&a=teams",true);
     xmlhttp.send();
 }
 
@@ -393,14 +725,14 @@ function zoomChanged(){
         document.getElementById("zoom").innerHTML = 'Zoom Level: ' + zoomLevel;
 }
 
-function startInterval(game_time){  
-    setInterval('updateTime(' + game_time + ');', 100);  
+function startInterval(game_time, offset, half){  
+    timerIDupdate = setInterval('updateTime(' + game_time + ',' + offset + ',"' + half + '");', 100);   
 }
 
-function updateTime(game_time_min){
+function updateTime(game_time_min, offset, half){
     var game_time_ms = game_time_min * 60000;
     var nowMS = Date.now();
-    var minutes = (game_time_ms - (nowMS - start_time.getTime()))/(1000*60);
+    var minutes = (game_time_ms - (nowMS - start_time.getTime() - offset))/(1000*60);
     var seconds = 60*(game_time_min-Math.floor(minutes)) - (game_time_ms - minutes*60000)/1000.0;
     var clock = document.getElementById('time');
     if(clock){
@@ -438,18 +770,28 @@ function updateTime(game_time_min){
         }
     }
 } 
+
+function change_page(page_name) {
+   window.location.href = ("http://localhost/sirius/" + page_name + ".php");
+}
     </script>
 </head>
  
 <!-- body.onload is called once the page is loaded (call the 'init' function) -->
-<body onload="init();">
+<body onload="super_init();">
  
     <!-- define a DIV into which the map will appear. Make it take up the whole window -->
+    <div style="width:100%; padding-bottom:5px">
+        <button id="back" type="button" onclick=change_page('screen_options')>Screen menu</button>
+    </div>
     <div style="width:1000px; height:600px; margin-left:auto; margin-right:auto;">
         <div style="width:60%; height:100%; float:left" id="map"></div>
         <div style="width:40%; height:100%; float:left">
-            <div style="width:60%;height:10%;margin-left:auto;margin-right:auto"><h1 id="time">Time: 60:00</h1></div>
-            <div style="width:70%; height:60%; margin-left:auto; margin-right:auto; overflow:auto">
+            <div style="width:60%;height:15%;margin-left:auto;margin-right:auto">
+                <p id="state"><?php echo $progress; ?></p>
+                <h1 id="time"> <?php echo $time_disp; ?> </h1>
+            </div>
+            <div style="width:90%; height:60%; margin-left:auto; margin-right:auto; overflow:auto">
                 <table id="score" style="margin-left:auto; margin-right:auto;">
                     <caption>Score</caption>
                     <tr>
@@ -457,17 +799,23 @@ function updateTime(game_time_min){
                         <th>team</th>
                         <th>div</th>
                         <th>cp</th>
-                        <th>points</th>
+                        <th>asgn</th>
+                        <th>pen</th>
+                        <th>half</th>
+                        <th>tot</th>
                 </table>
             </div>
-            <div style="width:70%; height:30%; margin-left:auto; margin-right:auto; overflow:auto">
+            <div style="width:90%; height:25%; margin-left:auto; margin-right:auto; overflow:auto">
                 <table id="div_score" style="margin-left:auto; margin-right:auto;">
                     <caption>Division Score</caption>
                     <tr>
                         <th>rank</th>
                         <th>div</th>
                         <th>cp</th>
-                        <th>points</th>
+                        <th>asgn</th>
+                        <th>pen</th>
+                        <th>half</th>
+                        <th>tot</th>
                 </table>
             </div>
         </div>

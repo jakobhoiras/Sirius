@@ -1,10 +1,10 @@
-<!--?php
+<?php
 require_once 'Membership.php';
 $membership = New Membership();
 $membership->confirm_Admin();
 $membership->check_Active();
-require 'Mysql_create_game.php';
-$mysql = new Mysql_spil();
+//require 'Mysql_create_game.php';
+//$mysql = new Mysql_spil();
 
 if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
     //$_SESSION['spil_navn'] = $_POST['spil_navn'];
@@ -12,14 +12,14 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
     //header('location: spil_GUI.php');
 }
 
-?-->
+?>
 
 <!DOCTYPE html>
 
 <html lang="da">
     <head>
 
-        <title>Lav ny bruger</title>
+        <title>Create user</title>
 
         <meta name="keywords" content="stuff" />
         <meta http-equiv="Content-Type" content="text/html; charset=utf8">
@@ -27,16 +27,18 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
     </head>
 
     <body>
-        <form method="post" action="">
-            <input type="button" value="Back to start" onclick="change_page('start')"/><br>
-        </form>
-        <h1> Opret bruger </h1>
+        <div style="width:10%">
+            <button id="back" type="button" onclick=change_page('start_admin')>Back to start</button>
+        </div>
+        <div style="margin-left:auto; margin-right:auto; margin-top:150px; width:400px;">
         <form method="post">
-            Brugernavn: <input type="text" name="user"/><br>
+            Username: <input type="text" name="user"/><br>
             Password: <input type="text" name="pwd"/><br>
+            Game: <input type="text" name="game"/><br>
             Skal dette være en admin bruger?: <input type="checkbox" name="perm" value="yes"/><br>
             <input type="submit" value="Opret bruger" name="submit1"/>
         </form>
+        </div>
     </body>
 </html>	
 
@@ -46,9 +48,7 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
     }
 </script>
 <?php
-require 'Membership.php';
 if (isset($_POST['submit1'])) {
-    $member = new Membership();
-    $member->create_User();
+    $membership->create_User();
 }
 ?>

@@ -26,7 +26,7 @@ class getCoords {
                     $gameName = $games[$i][1];
                 }
             }
-            $query = "SELECT * FROM Game_" . $gameName . ".Team_pos_" . $gameId . " ORDER BY count DESC LIMIT 1";
+            $query = "SELECT * FROM Game_" . $gameName . ".Team_pos_" . $teamId . " ORDER BY count DESC LIMIT 1";
             if ($stmt = $this->conn->prepare($query)) {
                 $stmt->execute();
                 $result = $stmt->get_result();

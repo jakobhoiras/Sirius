@@ -1,6 +1,11 @@
 <?php
 
-require 'Mysql.php';
+require_once 'Membership.php';
+$membership = New Membership();
+$membership->confirm_Admin();
+$membership->check_Active();
+
+
 $mysql = new Mysql_spil();
 $map_name = $mysql -> get_map($_SESSION['cg']);
 if ($map_name == ''){
@@ -532,12 +537,19 @@ function get_suggest_rutes_param(){
     suggest_rutes(zones_number,min_d,max_d,min_d,max_d);
 }
 
+function change_page(page_name) {
+   window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+}
+
     </script>
 </head>
  
 <!-- body.onload is called once the page is loaded (call the 'init' function) -->
 <body onload="init()"; style="width:1200px; height=800px">
- 
+
+    <div style="width:100%; padding-bottom:5px">
+        <button id="back" type="button" onclick=change_page('spil_overblik')>Game menu</button>
+    </div> 
     <div style="width:21%; height:85%; float:left; overflow:auto">
         <table id="suggest_rutes">
             <caption>suggested rutes</caption> 
