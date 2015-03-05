@@ -40,8 +40,20 @@ class Mysql_spil {
         } 
     }
 
+    function get_all_coords($game_name, $teamID){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Team_pos_" . $teamID;
+        if ($stmt = $this->conn->prepare($query)) {
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($coords = $result->fetch_all()) {
+                $stmt->close();
+                return $coords;
+            }
+        }
+    }
+
     function get_coords($game_name, $teamID){
-        $query = "SELECT * FROM Game_" . $game_name . ".Team_pos_" . $teamID . " ORDER BY count DESC LIMIT 1";
+        $query = "SELECT * FROM GAME_" . $game_name . ".Team_pos_" . $teamID . " ORDER BY count DESC LIMIT 1";
         if ($stmt = $this->conn->prepare($query)) {
             $stmt->execute();
             $result = $stmt->get_result();

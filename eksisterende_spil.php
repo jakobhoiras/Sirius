@@ -5,6 +5,11 @@ $membership->confirm_Admin();
 $membership->check_Active();
 
 
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 $mysql = new Mysql_spil();
 $table = $mysql->get_games();
 
@@ -19,8 +24,11 @@ $table = $mysql->get_games();
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
     </head>
     <body>
-        <div style="width:10%">
-            <button id="back" type="button" onclick=back_to_start('start_admin')>Back to start</button>
+        <div style="width:100%">
+            <button id="back" type="button" onclick=back_to_start('start_admin')>Start menu</button>
+            <form method="post" style="display:inline">
+                <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+            </form>
         </div>
         <div style="width:400px; height:400px; margin-left:auto; margin-right:auto; overflow:auto">
             <table id="games" style="margin-left:auto; margin-right:auto">

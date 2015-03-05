@@ -5,6 +5,12 @@ $membership = New Membership();
 $membership->confirm_Admin();
 $membership->check_Active();
 
+
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 $mysql = new Mysql_spil();
 $n_divs = $mysql->get_divs()[0][0];
 $teams = $mysql->get_teams();
@@ -89,6 +95,9 @@ function change_page(page_name) {
     <body>
         <div style="width:100%; padding-bottom:5px">
             <button id="back" type="button" onclick=change_page('spil_overblik')>Game menu</button>
+            <form method="post" style="display:inline">
+                <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+            </form>
         </div>
         <div style="width:580px; margin-left:auto; margin-right:auto">
             <p>number of teams: <?php echo $n_teams; ?></p>

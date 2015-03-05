@@ -6,6 +6,11 @@ $membership->confirm_Admin();
 $membership->check_Active();
 
 
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 $mysql = new Mysql_spil();
 $state = $mysql -> get_state();
 $progress = $mysql -> get_game_progress($_SESSION['cg']);
@@ -90,6 +95,9 @@ function clock($half, $mysql, $time){
 	<body onload="init();">
         <div style="width:100%; padding-bottom:5px">
             <button id="back" type="button" onclick=change_page('consultant_panel')>Consultant menu</button>
+            <form method="post" style="display:inline">
+                <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+            </form>
         </div>
         <div style="width:800px; margin-left:auto; margin-right:auto;">
 		<div style="width:38%; float:left">

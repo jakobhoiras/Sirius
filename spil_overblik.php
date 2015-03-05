@@ -5,6 +5,11 @@ $membership->confirm_Admin();
 $membership->check_Active();
 
 
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 $current_game = $_GET['cg'];
 $_SESSION['cg'] = $current_game;
 
@@ -94,7 +99,10 @@ $yn3 = 'nej';
     </head>
 	<body>
         <div style="width:100%; float:left; ">
-            <button id="back" type="button" onclick=change_page('start_admin')>Back to start</button>
+            <button id="back" type="button" onclick=change_page('start_admin')>Start menu</button>
+            <form method="post" style="display:inline">
+                <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+            </form>
         </div>
         <div style="width:800px; margin-left:auto; margin-right:auto;">
         <div style="width:38%; float:left;">
@@ -129,7 +137,7 @@ $yn3 = 'nej';
 			<p>Zones: <?php echo $n_zoner; ?></p>
 			<p>Rutes: <?php echo $n_ruter; ?></p>
 			<p>Rute length: <?php echo $n_rute_length; ?></p>
-			<p>Team: <?php echo $n_hold; ?></p>
+			<p>Teams: <?php echo $n_hold; ?></p>
             <p>Divisions: <?php echo $divs; ?></p>
 			<p id="fordel_ruter">Rutes distributed: <?php echo $yn; ?></p>
 			<p id="fordel_opgaver">Assignment distributed: <?php echo $yn2; ?></p>

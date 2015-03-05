@@ -11,6 +11,12 @@ $map_name = $mysql -> get_map($_SESSION['cg']);
 if ($map_name == ''){
     die('There is no map linked to this game. Go to "import map" in order to set a map!');
 }
+
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 ?>
 
 <html>
@@ -293,6 +299,9 @@ function hide_perim(){
     <!-- define a DIV into which the map will appear. Make it take up the whole window -->
     <div style="width:100%; padding-bottom:5px">
         <button id="back" type="button" onclick=change_page('spil_overblik')>Game menu</button>
+        <form method="post" style="display:inline">
+            <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+        </form>
     </div>
     <div style="width:1000px; height:700px; margin-left:auto; margin-right:auto;">
     <div style="width:60%; height:70%; float:left" id="map"></div>

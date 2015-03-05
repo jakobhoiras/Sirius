@@ -16,6 +16,12 @@ for ($i=0; $i<sizeof($table2); $i++){
 	array_push($table2_new, $table2[$i][0]);
 }
 
+
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 ?>
 
 <html lang="da">
@@ -27,8 +33,11 @@ for ($i=0; $i<sizeof($table2); $i++){
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
     </head>
     <body>
-        <div style="width:10%">
+        <div style="width:100%">
             <button id="back" type="button" onclick=change_page('spil_overblik')>Game menu</button>
+            <form method="post" style="display:inline">
+                <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+            </form>
         </div>
         <div style="width:500px; height:400px; margin-left:auto; margin-right:auto;">
 			<div style="width:48%; height:100%; float:left; overflow:auto">

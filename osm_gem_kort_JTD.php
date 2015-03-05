@@ -4,12 +4,17 @@ $membership = New Membership();
 $membership->confirm_Admin();
 $membership->check_Active();
 
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 
 ?>
 
 <html>
 <head>
-    <title>OSM gem kort</title>
+    <title>OSM save map</title>
 	<link rel="stylesheet" href="style.css" type="text/css" />
     <!-- bring in the OpenLayers javascript library
          (here we bring it from the remote site, but you could
@@ -210,7 +215,10 @@ function change_page(page_name) {
 <!-- body.onload is called once the page is loaded (call the 'init' function) -->
 <body onload="init();">
     <div style="width:100%; padding-bottom:5px;">
-        <button id="back" type="button" onclick=change_page('start_admin')>Back to start</button>
+        <button id="back" type="button" onclick=change_page('start_admin')>Start menu</button>
+        <form method="post" style="display:inline">
+            <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+        </form>
     </div>
     <div style="width:60%; height:70%; float:left" id="map"></div>
     <div style="width:40%; height:70%; float:left; overflow:auto"> 

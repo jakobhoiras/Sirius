@@ -11,6 +11,13 @@ $map_name = $mysql -> get_map($_SESSION['cg']);
 if ($map_name == ''){
     die('There is no map linked to this game. Go to "import map" in order to set a map!');
 }
+
+
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 ?>
 
 <html>
@@ -545,10 +552,13 @@ function change_page(page_name) {
 </head>
  
 <!-- body.onload is called once the page is loaded (call the 'init' function) -->
-<body onload="init()"; style="width:1200px; height=800px">
+<body onload="init()"; style="width:1190px; height=800px">
 
     <div style="width:100%; padding-bottom:5px">
         <button id="back" type="button" onclick=change_page('spil_overblik')>Game menu</button>
+        <form method="post" style="display:inline">
+            <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+        </form>
     </div> 
     <div style="width:21%; height:85%; float:left; overflow:auto">
         <table id="suggest_rutes">

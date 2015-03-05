@@ -10,8 +10,11 @@ $membership->check_Active();
 //    header('location: opgave_GUI.php');
 //}
 
-?>
-<?php
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 require_once 'opgave.php';
 $opgave = New opgave();
 ?>
@@ -46,6 +49,9 @@ $opgave = New opgave();
                     echo '<input type="button" value="Start menu" onclick=change_page("start_user") />';
                 }
             ?>
+            <form method="post">
+                <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+            </form>
         </form>
 
 

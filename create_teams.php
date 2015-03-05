@@ -10,6 +10,11 @@ if( $_POST && !empty($_POST['name1']) && !empty($_POST['name2']) && !empty($_POS
     $mysql->save_team($_POST['name1'],$_POST['name2'],$_POST['name3'],$_POST['name4']);
 }
 
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 ?>
 
 
@@ -180,14 +185,17 @@ function change_page(page_name) {
         
     </head>
     <body onload=init();>
-        <div style="width:100%; padding-bottom:5px">
+        <div style="width:100%; padding-bottom:5px; display:inline">
             <?php
                 if ($_SESSION['status'] == 'authorized_admin'){
                     echo '<button id="back" type="button" onclick=change_page("spil_overblik") >Game menu</button>';
                 } else{
-                    echo '<button id="back" type="button" onclick=change_page("start_user") >Start menu</button>';
+                    echo '<button id="back" type="button" onclick=change_page("start_user") style="display:inline" >Start menu</button>';
                 }
             ?>
+            <form method="post" style="display:inline">
+                <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+            </form>
         </div>
         <div style="width:580px; margin-left:auto; margin-right:auto">
             <div style="width:320px; float:left;">

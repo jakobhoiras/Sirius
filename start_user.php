@@ -6,11 +6,10 @@ $membership->check_Active();
 //require 'Mysql_create_game.php';
 //$mysql = new Mysql_spil();
 
-//if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
-    //$_SESSION['spil_navn'] = $_POST['spil_navn'];
-//    $response = $mysql->create_game($_POST['game_name'],$_POST['company']);
-    //header('location: spil_GUI.php');
-//}
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
 ?>
 
 <html>
@@ -19,6 +18,11 @@ $membership->check_Active();
             General options
         </title>
     </head>
+        <div style="width:100%">
+            <form method="post">
+                <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+            </form>
+        </div>
         <div style="margin-left:auto; margin-right:auto; margin-top:150px"> 
             <form method="post" style="text-align:center">
                 <input type="button" value="create assignments" onclick="change_page('opret_opgave_type')"/><br>

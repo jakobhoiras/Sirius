@@ -9,6 +9,11 @@ $mysql = new Mysql_spil();
 $res = $mysql -> get_overview_settings();
 $screens = $res[0][0];
 
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 ?>
 
 <script>
@@ -39,6 +44,10 @@ function change_page(page_name) {
                     echo '<button id="back" type="button" onclick=change_page("start_user") >Start menu</button>';
                 }
             ?>
+            <form method="post" style="display:inline">
+                <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+            </form>
+        </div>
         <div style="width:500px; margin-left:auto; margin-right:auto">
             <?php for ($i=1; $i<$screens+1; $i++){echo "<a href=\"teams_loc_overview.php?screen=$i\">Screen $i</a><br/>";} ?>
         </div>

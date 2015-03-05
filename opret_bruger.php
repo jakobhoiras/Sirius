@@ -12,6 +12,11 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
     //header('location: spil_GUI.php');
 }
 
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -27,8 +32,11 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
     </head>
 
     <body>
-        <div style="width:10%">
-            <button id="back" type="button" onclick=change_page('start_admin')>Back to start</button>
+        <div style="width:100%">
+            <button id="back" type="button" onclick=change_page('start_admin')>Start menu</button>
+            <form method="post" style="display:inline">
+                <input type="submit" value="Log out" style="float:right" name="logout" />
+            </form>
         </div>
         <div style="margin-left:auto; margin-right:auto; margin-top:150px; width:400px;">
         <form method="post">

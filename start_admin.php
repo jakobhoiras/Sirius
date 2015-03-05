@@ -4,6 +4,11 @@ $membership = New Membership();
 $membership->confirm_Admin();
 $membership->check_Active();
 
+if( $_POST && !empty($_POST['logout']) ) {
+    $membership -> log_User_Out();
+    header('location: login.php');
+}
+
 ?>
 
 <html>
@@ -12,6 +17,9 @@ $membership->check_Active();
             General options
         </title>
     </head>
+    <form method="post" style="display:inline">
+        <input type="submit" value="Log out" style="float:right" name="logout" /><br>
+    </form>
     <div style="margin-left:auto; margin-right:auto; margin-top:150px">
     <form method="post" style="text-align:center">
         <input type="button" value="opret opgave" onclick="change_page('opret_opgave_type')"/><br>
