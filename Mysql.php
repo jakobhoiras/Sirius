@@ -810,7 +810,7 @@ class Mysql_spil {
             count INT(7) NOT NULL AUTO_INCREMENT, PRIMARY KEY(count),
             lon FLOAT(15),
             lat FLOAT(15),
-            time FLOAT(20))";
+            time INT(20))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
