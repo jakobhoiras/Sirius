@@ -16,6 +16,8 @@ if( $_POST && !empty($_POST['logout']) ) {
     header('location: login.php');
 }
 
+require 'calculate_distance.php';
+
 ?>
 
 <script>
@@ -36,7 +38,7 @@ function change_page(page_name) {
 </head>
  
 <!-- body.onload is called once the page is loaded (call the 'init' function) -->
-<body onload="update_score();">
+<body>
     <div style="width:100%; padding-bottom:5px">
         <button id="back" type="button" onclick=change_page('consultant_panel')>Consultant menu</button>
         <form method="post" style="display:inline">
@@ -247,6 +249,38 @@ function change_page(page_name) {
                                     <td>$points2</td>
                                     <td>$diff</td>
                                     <td>$totp</td>
+                                  </tr>";
+                        }
+                    ?>
+                </table>
+            </div>
+        </div>
+        <div style="width:90%; height:30%; float:left">
+            <div style="width:100%; height:100%; margin-left:auto; margin-right:auto; overflow:auto">
+                <table id="score" style="margin-left:auto; margin-right:auto;">
+                    <caption> Team distance </caption>
+                    <tr>
+                        <th>team</th>
+                        <th>1. half</th>
+                        <th>2. half</th>
+                        <th>total</th>
+                        <th>+/- average</th>
+                    </tr>
+                    <?php 
+                        $res = get_distance_array();
+                        for ($i=0; $i<sizeof($res); $i++){
+                            $team = $res[$i][0];
+                            //$div = $score[$i][1];
+                            $dist1 = round($res[$i][1]);
+                            $dist2 = round($res[$i][2]);
+                            $tot_dist = round($res[$i][3]);
+                            $av_dist = round($res[$i][4]);
+                            echo "<tr>
+                                    <td>$team</td>
+                                    <td>$dist1</td>
+                                    <td>$dist2</td>
+                                    <td>$tot_dist</td>
+                                    <td>$av_dist</td>
                                   </tr>";
                         }
                     ?>

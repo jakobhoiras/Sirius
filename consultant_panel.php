@@ -12,6 +12,13 @@ if( $_POST && !empty($_POST['logout']) ) {
 
 ?>
 
+<script>
+function change_page(page_name) {
+        window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+}
+</script>
+
+
 <html lang="da">
     <head>
         <title>
@@ -36,11 +43,6 @@ if( $_POST && !empty($_POST['logout']) ) {
 	</body>
 </html>
 
-<script>
-function change_page(page_name) {
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
-}
-</script>
  
 
 <!-- // -->
