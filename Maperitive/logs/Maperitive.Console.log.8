@@ -1,2 +1,22 @@
-﻿2015-02-12 12:28:07,264  WARN [1] Maperitive.Services.PersistedUserSettings - User setting 'map.rendering.shape-def' value read from the store was incompatible and was removed. Reason: Empty shape definition (line=1, col=1)
-2015-02-12 12:28:07,586  INFO [1]   Maperitive.Program - Application shell has finished its work.
+﻿2015-03-07 00:59:46,350  WARN [1] Maperitive.Services.PersistedUserSettings - User setting 'map.rendering.shape-def' value read from the store was incompatible and was removed. Reason: Empty shape definition (line=1, col=1)
+2015-03-07 00:59:53,523  INFO [1] Brejc.OsmLibrary.CoastlinesProcessing.CoastlineProcessor - Starting coastline processor...
+2015-03-07 00:59:53,566  INFO [1] Brejc.OsmLibrary.CoastlinesProcessing.CoastlineProcessor - All coastlines are closed
+2015-03-07 00:59:53,566  INFO [1] Brejc.OsmLibrary.CoastlinesProcessing.CoastlineProcessor - Finished coastline processing.
+2015-03-07 00:59:58,486  WARN [1] Brejc.Geometry.Algorithms.Polygons.BrekiPolygonCenterPointFinder - Error in the icon placement algorithm.
+System.NotImplementedException: There are an odd number of crossings, they should be even.
+  at Brejc.Geometry.Algorithms.Polygons.BrekiPolygonCenterPointFinder.FindPointInsidePolygon (Double depth, Double startPointX, Double startPointY, IPointD2List polygonPoints, Boolean searchInsideSameSliceOnly, Boolean searchHorizontally) [0x00000] in <filename unknown>:0 
+  at Brejc.Geometry.Algorithms.Polygons.BrekiPolygonCenterPointFinder.FindCenterPoint (IPointD2List polygonPoints) [0x00000] in <filename unknown>:0 
+2015-03-07 00:59:58,491  WARN [1] Brejc.Geometry.Algorithms.Polygons.BrekiPolygonCenterPointFinder - Error in the icon placement algorithm.
+System.NotImplementedException: There are an odd number of crossings, they should be even.
+  at Brejc.Geometry.Algorithms.Polygons.BrekiPolygonCenterPointFinder.FindPointInsidePolygon (Double depth, Double startPointX, Double startPointY, IPointD2List polygonPoints, Boolean searchInsideSameSliceOnly, Boolean searchHorizontally) [0x00000] in <filename unknown>:0 
+  at Brejc.Geometry.Algorithms.Polygons.BrekiPolygonCenterPointFinder.FindCenterPoint (IPointD2List polygonPoints) [0x00000] in <filename unknown>:0 
+2015-03-07 01:00:08,304  WARN [1] Karta.Infrastructure.DefaultResourceFetcher - Cannot load resource from file '/opt/lampp/htdocs/sirius/Maperitive/icons/SJJB/png/barrier_gate.p.32.png': System.IO.FileNotFoundException: Could not find file "/opt/lampp/htdocs/sirius/Maperitive/icons/SJJB/png/barrier_gate.p.32.png".
+File name: '/opt/lampp/htdocs/sirius/Maperitive/icons/SJJB/png/barrier_gate.p.32.png'
+  at System.IO.FileStream..ctor (System.String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, Boolean anonymous, FileOptions options) [0x00000] in <filename unknown>:0 
+  at System.IO.FileStream..ctor (System.String path, FileMode mode, FileAccess access, FileShare share) [0x00000] in <filename unknown>:0 
+  at (wrapper remoting-invoke-with-check) System.IO.FileStream:.ctor (string,System.IO.FileMode,System.IO.FileAccess,System.IO.FileShare)
+  at System.IO.File.OpenRead (System.String path) [0x00000] in <filename unknown>:0 
+  at System.IO.File.ReadAllBytes (System.String path) [0x00000] in <filename unknown>:0 
+  at Brejc.Common.FileSystem.WindowsFileSystem.ReadFileAsBytes (System.String fileName) [0x00000] in <filename unknown>:0 
+  at Karta.Infrastructure.DefaultResourceFetcher.FetchFileResource (Brejc.Common.Caching.ResourceData& resourceData, IResourcePolicy resourcePolicy) [0x00000] in <filename unknown>:0 
+2015-03-07 01:02:47,880  INFO [1]   Maperitive.Program - Application shell has finished its work.

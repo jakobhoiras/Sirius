@@ -58,7 +58,7 @@ $table = $mysql->get_games();
                 var current_game = rows[i].cells[0].innerHTML;
             }
         }
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + current_game);
+        window.location.href = ( page_name + ".php?cg=" + current_game);
     }
 
     function pick_row(j) {
@@ -82,6 +82,6 @@ $table = $mysql->get_games();
     }
 
     function back_to_start(page_name) {
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php");
+        window.location.href = ("http://www.matkonsw.com/sirius/" + page_name + ".php");
     }
 </script>

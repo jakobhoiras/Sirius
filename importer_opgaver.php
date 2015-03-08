@@ -126,7 +126,7 @@ if( $_POST && !empty($_POST['logout']) ) {
         //        var current_game = rows[i].cells[0].innerHTML;
         //    }
         //}
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+        window.location.href = ( page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
     }
 
     function pick_row(j, table_name) {

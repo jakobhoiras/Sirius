@@ -175,9 +175,9 @@ function remove_old_content(){
 
 function change_page(page_name) {
     if (page_name == 'spil_overblik'){
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+        window.location.href = ( page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
     } else{
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php");
+        window.location.href = ( page_name + ".php");
     }
 }
 

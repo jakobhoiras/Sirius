@@ -9,7 +9,7 @@ $teamID = $mysql -> get_teamID();
 
 for ($i=0; $i<sizeof($teamID); $i++){
 	$array = array(
-					"url"=>'http://t-a-g.dk/getGame.php',
+					"url"=>'http://www.matkonsw.com/sirius/getGame.php',
 					"gameID"=>$_SESSION['cg'],
 					"teamID"=>$teamID[$i][0],
 				  );

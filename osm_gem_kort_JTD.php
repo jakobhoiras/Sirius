@@ -66,12 +66,12 @@ function init() {
     /*var overviewLayer = new OpenLayers.Layer.OSM("Overview of all maps", "tiles/all13/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
     map.addLayer(overviewLayer);*/
     
-    singlesiteLayer = new OpenLayers.Layer.OSM("single site map", "tiles/lyngby/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
+    singlesiteLayer = new OpenLayers.Layer.OSM("single site map", "../tiles/lyngby/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
     map.addLayer(singlesiteLayer);
 
 
     // This is the layer that uses the locally stored tiles
-    var satelliteLayer = new OpenLayers.Layer.TMS("Satellite map", "tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL, visibility: 0});
+    var satelliteLayer = new OpenLayers.Layer.TMS("Satellite map", "../tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL, visibility: 0});
     map.addLayer(satelliteLayer);
     if (OpenLayers.Util.alphaHack() == false) {
         satelliteLayer.setOpacity(0.7);
@@ -199,14 +199,14 @@ function pick_map(table, j) {
         rows[j].setAttribute("value","p");
         var newLon = maps_db[j*3+1];
         var newLat = maps_db[j*3+2];
-        singlesiteLayer.url = "tiles/" + maps_db[j*3] + "/${z}/${x}/${y}.png";
+        singlesiteLayer.url = "../tiles/" + maps_db[j*3] + "/${z}/${x}/${y}.png";
         var lonLat = new OpenLayers.LonLat(newLon, newLat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
         map.setCenter (lonLat, zoom);
     }
 }
 
 function change_page(page_name) {
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php");
+        window.location.href = ( page_name + ".php");
     }
 
     </script>

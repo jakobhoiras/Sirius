@@ -139,6 +139,7 @@ function add_zone(){
     update_zones_in_db(parseFloat(lon_new),parseFloat(lat_new),radius_in_m,'save');
     zoneLayer.addFeatures([featurecircle]);
     get_zones_from_db();
+	add_zones();
 }
 
 function update_zones_in_db(centerX, centerY, radius, a) {
@@ -173,7 +174,7 @@ function get_zones_from_db(){
 }
 
 function change_page(page_name) {
-   window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+   window.location.href = ( page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
 }
 
 /*function get_bases_from_db(){
@@ -350,10 +351,10 @@ function hide_perim(){
         <br/>
         <p style="float:left">add zone with GPS coord.:</p>
         <br/>
-        <p style="position:absolute; margin-top:25px;">lat:</p><input type="text" name="lat" id="lat" size="3" style="position:absolute; margin-top:25px; margin-left:-180px">
-        <br/>        
-        <p style="position:absolute; margin-top:45px;">lon:</p><input type="text" name="lon" id="lon" size="3" style="position:absolute; margin-top:45px; margin-left:-180px">
+	    <p style="position:absolute; margin-top:25px;">lon:</p><input type="text" name="lon" id="lon" size="3" style="position:absolute; margin-top:25px; margin-left:-180px">
         <br/>
+        <p style="position:absolute; margin-top:45px;">lat:</p><input type="text" name="lat" id="lat" size="3" style="position:absolute; margin-top:45px; margin-left:-180px">
+        <br/>        
         <button type="button" onclick="add_zone()" style="position:absolute; margin-left:150px;">submit</button>
     </div>
     <div style="width:30%; height:30%; float:left; background:grey">

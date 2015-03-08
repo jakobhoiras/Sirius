@@ -29,7 +29,6 @@ class Membership {
     function validate_User($un, $pwd) {
         $mysql = New Mysql_login();
         $ensure_credentials = $mysql->verify_Username_and_Pass($un, $pwd);
-        echo json_encode($ensure_credentials);
         $_SESSION['cg'] = $ensure_credentials[1]['GameName'];
         if ($ensure_credentials[0] == true && $ensure_credentials[1]['Permission'] == "admin") {
             $_SESSION['status'] = 'authorized_admin';
@@ -75,7 +74,7 @@ class Membership {
             session_start();
         }
         if ($_SESSION['status'] != 'authorized_user')
-            header("location: login.php");
+    	    header('location: login.php');
     }
 
     function check_Active() {

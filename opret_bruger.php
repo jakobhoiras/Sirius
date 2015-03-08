@@ -52,7 +52,7 @@ if( $_POST && !empty($_POST['logout']) ) {
 
 <script>
     function change_page(page_name) {
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php");
+        window.location.href = ( page_name + ".php");
     }
 </script>
 <?php

@@ -15,7 +15,9 @@ if( $_POST && !empty($_POST['game_name']) && !empty($_POST['company']) ) {
 
 if( $_POST && !empty($_POST['logout']) ) {
     $membership -> log_User_Out();
-    header('location: login.php');
+    $uri = 'http://';
+    $uri .= $_SERVER['HTTP_HOST'];
+    header('Location: '.$uri.'/sirius/login.php');
 }
 
 
@@ -55,7 +57,7 @@ if( $_POST && !empty($_POST['logout']) ) {
 
 <script>
     function change_page(page_name) {
-        window.location.href = ("http://localhost/sirius/" + page_name + ".php");
+        window.location.href = ( page_name + ".php");
     }
 </script>
 

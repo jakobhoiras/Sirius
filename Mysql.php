@@ -803,10 +803,10 @@ class Mysql_spil {
             $result = $stmt->get_result();
             if($table = $result->fetch_all()){
                 $stmt->close();
+		$teamID = $table[0][0];
             }
         }
-        $teamID = $table[0][0];
-        $query = "CREATE TABLE GAME_" . $_SESSION['cg'] . ".Team_pos_$teamID (
+        $query = "CREATE TABLE GAME_" . $_SESSION['cg'] . ".Team_pos_" . $teamID . "(
             count INT(7) NOT NULL AUTO_INCREMENT, PRIMARY KEY(count),
             lon FLOAT(15),
             lat FLOAT(15),
@@ -1174,7 +1174,7 @@ class Mysql_spil {
 
         // Creates table for Guesses
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Guesses (
-            teamID INT(5) NOT NULL, PRIMARY KEY(Id),
+            teamID INT(5) NOT NULL, PRIMARY KEY(teamID),
             assID VARCHAR(250),
             tries INT(5) DEFAULT 1)";
         if ($stmt = $this->conn->prepare($query)){
@@ -1206,6 +1206,13 @@ class Mysql_spil {
             $stmt->close();
         }
 
+	// Inserts default state into Game progress
+        $query = "INSERT INTO GAME_". (string)$game_name . ".Game_progress (state) 
+                  VALUES ('start')";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->execute();
+            $stmt->close();
+        }
 
         // Creates table for base
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Base (
@@ -1322,7 +1329,7 @@ class Mysql_spil {
         // Creates table for Pause
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Pause (
             id INT(5) NOT NULL, PRIMARY KEY(id),
-            start INT(20)
+            start INT(20),
             end INT(20))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
@@ -1331,7 +1338,7 @@ class Mysql_spil {
         // Creates table for Pause2
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Pause2 (
             id INT(5) NOT NULL, PRIMARY KEY(id),
-            start INT(20)
+            start INT(20),
             end INT(20))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();

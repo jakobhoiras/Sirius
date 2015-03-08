@@ -1,9 +1,9 @@
 <?php
 
 
-"""
-Receives gameID and teamID from tablet and creates a JSON-object with all the links needed for the tablet
-"""
+
+//Receives gameID and teamID from tablet and creates a JSON-object with all the links needed for the tablet
+
 require_once 'mysql.php';
 
 function createJson($teamId, $gameId) {
@@ -15,8 +15,8 @@ function createJson($teamId, $gameId) {
     $array = array(
         "gameId" => $gameId,
         "teamId" => $teamId,
-        "targetFile" => "http//:t-a-g.dk/Games/" . $gameId . "/targetFile.php",
-        "mapFile" => "http://t-a-g.dk/tiles/" . $mapCoords[6] . ".zip",
+        "targetFile" => "http://www.matkonsw.com/sirius/Games/" . $gameId . "/targetFile.php",
+        "mapFile" => "http://www.matkonsw.com/tiles/" . $mapCoords[6] . ".zip",
         "centerLat" => $mapCoords[0],
         "centerLong" => $mapCoords[1],
         "minLat" => $mapCoords[2],
@@ -29,12 +29,12 @@ function createJson($teamId, $gameId) {
         "homeMaxLong" => $baseCoords[5],
         "gameRunTime" => $time[0][0],
         "gameRounds" => 2,
-        "postStateChange" => "http://t-a-g.dk/action/postStateChange.php",
-        "getState" => "http://t-a-g.dk/action/getState.php",
-        "questionFile" => "http://t-a-g.dk/Games/" . $gameId . "/questionfile.zip",
-        "postCoords" => "http://t-a-g.dk/action/postCoords.php",
-        "getCoords" => "http://t-a-g.dk/action/getCoords.php",
-        "postAnswer" => "http://t-a-g.dk/action/postAnswer.php"
+        "postStateChange" => "http://www.matkonsw.com/sirius/postStateChange.php",
+        "getState" => "http://www.matkonsw.com/sirius/getState.php",
+        "questionFile" => "http://www.matkonsw.com/sirius/Games/" . $gameId . "/questionfile.zip",
+        "postCoords" => "http://www.matkonsw.com/sirius/postCoords.php",
+        "getCoords" => "http://www.matkonsw.com/sirius/getCoords.php",
+        "postAnswer" => "http://www.matkonsw.com/sirius/postAnswer.php"
     );
 
     header('Content-Type: application/json');

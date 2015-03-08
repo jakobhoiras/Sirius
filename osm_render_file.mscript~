@@ -1,0 +1,4 @@
+use-ruleset alias=default
+load-source ../tiles/Randers.osm.bz2
+generate-tiles minzoom=12 maxzoom=17 tilesdir=../tiles/Randers
+exit

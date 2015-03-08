@@ -545,7 +545,7 @@ function get_suggest_rutes_param(){
 }
 
 function change_page(page_name) {
-   window.location.href = ("http://localhost/sirius/" + page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
+   window.location.href = ( page_name + ".php?cg=" + <?php echo json_encode($_SESSION['cg']) ?>);
 }
 
     </script>
