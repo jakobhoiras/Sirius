@@ -1,8 +1,5 @@
 <?php
 require_once 'constants.php';
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
 class Mysql_assignment {
 
     private $conn;
@@ -77,14 +74,6 @@ class Mysql_assignment {
             }
         }
 	}
-
-    function delete_imported_assignment($ass_name) {
-        $query = "Delete FROM GAME_" . $_SESSION['cg'] . ".Assignments WHERE name = ?";
-        if ($stmt = $this->conn->prepare($query)) {
-            $stmt->bind_param('s', $ass_name);
-            $stmt->execute();
-        }
-    }
 }
 
 
