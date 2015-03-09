@@ -63,9 +63,6 @@ class zipper {
 
         $assigns = $Mysql->get_assignments();
 
-
-        echo sizeof($assigns);
-
         if (!file_exists(getcwd() . '/games/' . $gameName)) {
             mkdir(getcwd() . '/games/' . $gameName);
         }
