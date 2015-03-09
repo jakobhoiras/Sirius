@@ -24,7 +24,7 @@ function optionCheck(id)
 //Checker om en valgt fil er over en hvis størrelse, og kommer med en advarsel
 //hvis den er.
 function change_page(page_name) {
-    window.location.href = ("http://www.matkonsw.com/sirius/" + page_name + ".php");
+    window.location.href = (page_name + ".php");
 }
 
 function checkFile(file_nr) {

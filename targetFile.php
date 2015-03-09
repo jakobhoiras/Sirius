@@ -1,6 +1,7 @@
 <?php
 
-require_once 'mysql.php';
+//require_once 'mysql.php';
+require_once 'json_creater.php';
 
 class targetFile {
 
@@ -11,10 +12,10 @@ class targetFile {
                 die('there was a problem connecting to the database.');
     }
 
-    function makeTargets() {
+    function makeTargets($gameId, $teamId) {
 
-        $gameId = $_POST['gameId'];
-        $teamId = $_POST['teamId'];
+        //$gameId = $_POST['gameId'];
+        //$teamId = $_POST['teamId'];
 
         $Mysql = new Mysql_spil();
         $games = $Mysql->get_games();
@@ -32,7 +33,7 @@ class targetFile {
             $result = $stmt->get_result();
             if ($assigns = $result->fetch_all()) {
                 $stmt->close();
-                $nZones = (sizeof($assigns[0])-1)/3;
+                $nZones = (sizeof($assigns[0])-1)/(3*2);
             }
         }
 
@@ -49,13 +50,14 @@ class targetFile {
         
         $target_array = array();
         for ($i=0; $i < $nZones; $i++){
-            array_push($target_array, ($this->makeTarget($zones, $assigns, $rutes, $teamId, $i+1, $ruteId1, $ruteId2)));
+            array_push($target_array, ($this->makeTarget($zones, $assigns, $rutes, $teamId, $i+1, $ruteId1, $ruteId2, $nZones)));
         }
-
-        echo json_encode($target_array);
+		$json = new json();
+		$json -> createJson($target_array, "Games/$gameName/targetfile$teamId");
+        //echo json_encode($target_array);
     }
 
-    function makeTarget($zones, $assigns, $rutes, $teamId, $count, $ruteId1, $ruteId2) {
+    function makeTarget($zones, $assigns, $rutes, $teamId, $count, $ruteId1, $ruteId2, $nZones) {
         ### FIRST HALF
         # finds the first of three indexes for the assignments in teams_assignments table; three assignments for each zone!
         $startAssign1 = (($count * 3) - 2);  
@@ -80,9 +82,9 @@ class targetFile {
         for ($i = 0; $i < sizeof($assigns); $i++) {
             if ($assigns[$i][0] === $teamId) {
             
-                $q1 = $assigns[$i][$startAssign];
-                $q2 = $assigns[$i][$startAssign + 1];
-                $q3 = $assigns[$i][$startAssign + 2];
+                $q1 = $assigns[$i][$startAssign1];
+                $q2 = $assigns[$i][$startAssign1 + 1];
+                $q3 = $assigns[$i][$startAssign1 + 2];
             }
         }
         # json-object for first half
@@ -92,10 +94,10 @@ class targetFile {
             "tName" => $zoneId, # zoneID
             "tAcceptRange" => $tAcceptRange, #Zone radius 
             "tQuestions" => 3, # number of assignments per zone; fixed to 3 for now!
-            "tQuestion" => array($q1,$q2,$q3); #array with questions 
+            "tQuestion" => array($q1,$q2,$q3) #array with questions 
         );
         ### SECOND HALF
-        $startAssign2 = ((3*$nZones)/2 + ($count * 3) - 2);
+        $startAssign2 = ((3*$nZones) + ($count * 3) - 2);
         # Finds the zoneID 
         for ($i = 0; $i < sizeof($rutes); $i++) {
             if ($rutes[$i][0] === $ruteId2) {
@@ -122,20 +124,22 @@ class targetFile {
             }
         }
         # json-object for first half
-        $target1 = array(
+        $target2 = array(
             "tLat" => $tlat,
             "tLong" => $tlong,
             "tName" => $zoneId,
             "tAcceptRange" => $tAcceptRange, #Zone radius 
             "tQuestions" => 3, # number of assignments per zone; fixed to 3 for now!
-            "tQuestion" => array($q1,$q2,$q3); #array with questions 
+            "tQuestion" => array($q1,$q2,$q3) #array with questions 
         );
         return array($target1,$target2);
     }
 
+	function create_target_file($gameID, $teamID){
+	    $this->makeTargets($gameID, $teamID);
+	}
+	
 }
 
-if (isset($_POST['gameId'], $_POST['teamId'])) {
-    $func = new targetFile();
-    $func->makeTargets();
-}
+
+

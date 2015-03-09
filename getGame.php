@@ -4,18 +4,30 @@
 
 //Receives gameID and teamID from tablet and creates a JSON-object with all the links needed for the tablet
 
-require_once 'mysql.php';
+require_once 'Mysql.php';
+require 'targetFile.php';
 
 function createJson($teamId, $gameId) {
 
     $mapCoords = getMapCoords($gameId);
     $baseCoords = getBaseCoords($gameId);
     $time = getTime($gameId);
+	$targetfile = new targetFile();
+	$targetfile -> create_target_file($gameId, $teamId);
 
+	$Mysql = new Mysql_spil();
+    $games = $Mysql->get_games();
+    # find the game name and set the vairable
+    for ($i = 0; $i < sizeof($games); $i++) {
+    	if ($games[$i][0] === $gameId) {
+           $gameName = $games[$i][1];
+        }
+    }
+	
     $array = array(
         "gameId" => $gameId,
         "teamId" => $teamId,
-        "targetFile" => "http://www.matkonsw.com/sirius/Games/" . $gameId . "/targetFile.php",
+        "targetFile" => "http://www.matkonsw.com/sirius/Games/" . $gameName . "/targetFile$teamId.json",
         "mapFile" => "http://www.matkonsw.com/tiles/" . $mapCoords[6] . ".zip",
         "centerLat" => $mapCoords[0],
         "centerLong" => $mapCoords[1],
@@ -31,7 +43,7 @@ function createJson($teamId, $gameId) {
         "gameRounds" => 2,
         "postStateChange" => "http://www.matkonsw.com/sirius/postStateChange.php",
         "getState" => "http://www.matkonsw.com/sirius/getState.php",
-        "questionFile" => "http://www.matkonsw.com/sirius/Games/" . $gameId . "/questionfile.zip",
+        "questionFile" => "http://www.matkonsw.com/sirius/Games/" . $gameName . "/questionfile.zip",
         "postCoords" => "http://www.matkonsw.com/sirius/postCoords.php",
         "getCoords" => "http://www.matkonsw.com/sirius/getCoords.php",
         "postAnswer" => "http://www.matkonsw.com/sirius/postAnswer.php"
@@ -84,8 +96,8 @@ function getBaseCoords($id) {
     $cenLat = $base[0][2];
     $radius = $base[0][3];
     $dx = $radius / sqrt(2);
-    $dLat = $dx/$R
-    $dLon = $dx/($R*cos(pi()*$cenLat/180))
+    $dLat = $dx/$R;
+    $dLon = $dx/($R*cos(pi()*$cenLat/180));
     $homeMinLat = $cenLat - $dLat;
     $homeMinLon = $cenLon - $dLon;
     $homeMaxLat = $cenLat + $dLat;
@@ -97,12 +109,15 @@ function getBaseCoords($id) {
 
 function getTime($id) {
     $Mysql = new Mysql_spil();
-    $time = $Mysql->get_time();
+    $time = $Mysql->get_time($_SESSION['cg']);
     return $time;
 }
 
+
 if (isset($_POST['teamId'], $_POST['gameId'])) {
-    $teamId = $_POST['teamId'];
-    $gameId = $_POST['gameId'];
+    $teamId = intval($_POST['teamId']);
+    $gameId = intval($_POST['gameId']);
     createJson($teamId, $gameId);
 }
+
+?>
