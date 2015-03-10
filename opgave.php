@@ -167,14 +167,14 @@ class opgave {
         $zipper->zip($path, $path . ".zip");
     }
 
-    function populate($postName) {
+    function populate() {
         $directory = getcwd() . "/Opgaver/";
 
 //get all files in specified directory
         $files = array_diff(scandir($directory), array('.', '..'));
 
 //print each file name
-        echo "<select name=\"" . $postName . "\">";
+       	echo "<select name='select an assignment'>";
         foreach ($files as $file) {
             //check to see if the file is a folder/directory
             echo "<option value=\"" . $file . "\">" . $file . "</option>";

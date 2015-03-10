@@ -87,6 +87,14 @@ else{
 }
 
 $yn3 = 'nej';
+$yn4 = 'nej';
+
+if( $_POST && !empty($_POST['zip']) ) {
+	require 'zipper.php';
+	$zip = new zipper();
+    $zip -> createZip();
+	$yn4 = 'yes';
+}
 
 ?>
 
@@ -124,6 +132,9 @@ $yn3 = 'nej';
                 <input type="button" value="Lav QR-koder" onclick=create_qr_codes() /><br>
 				<p id="res"></p>
 			</form>
+			<form method="post" action="">
+                <input type="submit" value="Zip assignments" name="zip"/>
+            </form>
             <form method="get" action="<?php echo 'Games/' . $_SESSION['cg'] . '/json/qr_codes.zip' ?>">
                 <button type="submit">Download QR-codes</button>
             </form>
@@ -142,6 +153,7 @@ $yn3 = 'nej';
 			<p id="fordel_ruter">Rutes distributed: <?php echo $yn; ?></p>
 			<p id="fordel_opgaver">Assignment distributed: <?php echo $yn2; ?></p>
             <p id="qr_gen">QR-codes generated: <?php echo $yn3; ?></p>
+			<p id="ass_zip">Assignment zipped: <?php echo $yn4; ?></p>
 		</div>
         <div style="width:24%; float:left">
 			<h1>

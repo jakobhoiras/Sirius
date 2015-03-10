@@ -1,6 +1,6 @@
 <?php
 
-require_once 'Mysql.php';
+//require_once 'Mysql.php';
 
 class zipper {
 
@@ -48,7 +48,7 @@ class zipper {
         while (false !== ( $file = readdir($dir))) {
             if (( $file != '.' ) && ( $file != '..' )) {
                 if (is_dir($src . '/' . $file)) {
-                    recurse_copy($src . '/' . $file, $dst . '/' . $file);
+                	$this->recurse_copy($src . '/' . $file, $dst . '/' . $file);
                 } else {
                     copy($src . '/' . $file, $dst . '/' . $file);
                 }
@@ -63,22 +63,22 @@ class zipper {
 
         $assigns = $Mysql->get_assignments();
 
-        if (!file_exists(getcwd() . '/games/' . $gameName)) {
-            mkdir(getcwd() . '/games/' . $gameName);
+        if (!file_exists(getcwd() . '/Games/' . $gameName)) {
+            mkdir(getcwd() . '/Games/' . $gameName);
         }
 
-        if (!file_exists(getcwd() . '/games/' . $gameName . '/questionfile')) {
-            mkdir(getcwd() . '/games/' . $gameName . '/questionfile');
+        if (!file_exists(getcwd() . '/Games/' . $gameName . '/questionfile')) {
+            mkdir(getcwd() . '/Games/' . $gameName . '/questionfile');
         }
 
 
         for ($i = 0; $i < sizeof($assigns); $i++) {
-            $src = getcwd() . '/opgaver/' . $assigns[$i][1];
-            $dst = getcwd() . '/games/' . $gameName . '/questionfile/' . $assigns[$i][1];
+            $src = getcwd() . '/Opgaver/' . $assigns[$i][0];
+            $dst = getcwd() . '/Games/' . $gameName . '/questionfile/' . $assigns[$i][0];
             $this->recurse_copy($src, $dst);
         }
 
-        $this->zip(getcwd() . '/games/' . $gameName . '/questionfile', getcwd() . '/games/' . $gameName . '/questionfile.zip');
+        $this->zip(getcwd() . '/Games/' . $gameName . '/questionfile', getcwd() . '/Games/' . $gameName . '/questionfile.zip');
     }
 
 }

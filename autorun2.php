@@ -14,7 +14,7 @@ $right = $lon + 0.18;
 $mysql = new Mysql_spil();
 $mysql->save_map($map_name, $lon, $lat);
 
-$output = shell_exec("bzcat ../denmark-latest.osm.bz2 | osmosis  --read-xml enableDateParsing=no file=-  --bounding-box top=$top left=$left bottom=$bottom right=$right --write-xml file=- | bzip2 > " . "tiles/" . "$map_name.osm.bz2 2>&1");
+$output = shell_exec("bzcat ../denmark-latest.osm.bz2 | osmosis  --read-xml enableDateParsing=no file=-  --bounding-box top=$top left=$left bottom=$bottom right=$right --write-xml file=- | bzip2 > " . "../tiles/" . "$map_name.osm.bz2 2>&1");
 //if ($output == NULL){
 //    echo "<p>NULL<p>";
 //}
@@ -25,7 +25,11 @@ create_mscript_file($map_name);
 chdir('Maperitive');
 $output = shell_exec('sh Maperitive.sh ../osm_render_file.mscript 2>&1');
 chdir('../../tiles');
-shell_exec('zip -r ' . $map_name . '.zip ' . $map_name); 
+require 'zipper.php';
+$zip = new zipper();
+ini_set('max_execution_time', 300);
+ini_set('memory_limit', '350M');
+$zip -> zip(getcwd() . "/../tiles/" . $map_name, getcwd() . "/../tiles/" . $map_name . '.zip');
 /*if ($output == NULL){
     echo "<p>NULL<p>";
 }
