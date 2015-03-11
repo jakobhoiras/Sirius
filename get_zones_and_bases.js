@@ -34,8 +34,7 @@ function add_active_zones(screen, group){
                         zoneLayer.addFeatures([featurecircle]); // adds the zone to the layer
                     }
                 }  
-            }
-            map.zoomToExtent(zoneLayer.getDataExtent());       
+            }      
         }
     }
     xmlhttp.open("GET","get_active_zones.php?screen=" + screen + "&group=" + group,true);

@@ -26,11 +26,11 @@ class Mysql_spil {
         } 
     }
 
-    function get_rute($game_name, $teamID){
+    function get_rute($game_name, $ruteID){
         $query = "SELECT * FROM GAME_" . $game_name . ".Rutes
-                  WHERE GAME_" . $game_name . ".Rutes.teamID = ?";
+                  WHERE GAME_" . $game_name . ".Rutes.ruteID = ?";
         if ($stmt = $this->conn->prepare($query)){
-            $stmt->bind_param('i', $teamID);
+            $stmt->bind_param('i', $ruteID);
 			$stmt->execute();
             $result = $stmt->get_result();
             if($table = $result->fetch_all()){
@@ -131,7 +131,7 @@ class Mysql_spil {
         if ($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
             $query = "UPDATE GAME_" . $game_name . ".Teams_state
 				      SET GAME_" . $game_name . ".Teams_state.current_cp = current_cp + 1 
-                      WHERE GAME_" . $game_name . ".Team_state.teamID = ?";
+                      WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
         } else{
             $query = "UPDATE GAME_" . $game_name . ".Teams_state
 				      SET GAME_" . $game_name . ".Teams_state.current_cp2 = current_cp2 + 1 
@@ -774,6 +774,19 @@ class Mysql_spil {
             $stmt->close();
             return;
         }
+    }
+
+	function get_team($game_name, $teamID){
+        $query = "SELECT * FROM GAME_" . $game_name . ".Teams WHERE teamID = ?";
+        if ($stmt = $this->conn->prepare($query)){
+			$stmt->bind_param('i', $teamID);
+			$stmt->execute();
+            $result = $stmt->get_result();
+            if($table = $result->fetch_all()){
+                $stmt->close();
+                return $table;
+            }
+        } 
     }
 
     function get_teams(){

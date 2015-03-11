@@ -20,7 +20,7 @@ class postCoords {
             $games = $mysql->get_games();
 
             $gameId = $_POST['gameId'];
-            $teamId = $_POST['teamId'];
+            $teamID = $_POST['teamId'];
             $lat = $_POST['lat'];
             $long = $_POST['long'];
             $time = $_POST['timestamp'];
@@ -31,7 +31,7 @@ class postCoords {
                 }
             }
          
-            $query = 'INSERT INTO GAME_' . $gameName . '.Team_pos_' . $teamId . '(lon, lat, time) VALUES (?, ?, ?)';
+            $query = 'INSERT INTO GAME_' . $gameName . '.Team_pos_' . $teamID . '(lon, lat, time) VALUES (?, ?, ?)';
 
             if ($stmt = $this->conn->prepare($query)) {
                 $stmt->bind_param('ddi', $lat, $long, $time);
@@ -39,16 +39,19 @@ class postCoords {
                 $stmt->close();
             }
             $progress = $mysql -> get_game_progress($gameName);
-            $team_state = $mysql -> get_team_state($gameName, $teamId);
+            $team_state = $mysql -> get_team_state($gameName, $teamID);
+			$team = $mysql -> get_team($gameName, $teamID);
             if ($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
                 $current_cp = $team_state[0][3];
+				$ruteID = $team[0][1];
             } else{
                 $current_cp = $team_state[0][4];
+				$ruteID = $team[0][2];
             }
             $coords = $mysql -> get_coords($gameName, $teamID);
             $lon1 = $coords[0][1];
             $lat1 = $coords[0][2];
-            $rute = $mysql -> get_rute($gameName, $teamID);
+            $rute = $mysql -> get_rute($gameName, $ruteID);
             if ( $current_cp < 6 ){
                 $zoneID = $rute[0][$current_cp];
                 if ( $zoneID != 0){

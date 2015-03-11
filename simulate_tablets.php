@@ -4,7 +4,7 @@ require 'Mysql.php';
 
 $mysql = new Mysql_spil();
 $start_time = time()*1000;
-$res = $mysql->update_start_time_first_half($start_time);
+//$res = $mysql->update_start_time_first_half($start_time);
 $games = $mysql->get_games();
 for ($i = 0; $i < sizeof($games); $i++) {
     if ($games[$i][1] === $_SESSION['cg']) {
@@ -15,91 +15,87 @@ for ($i = 0; $i < sizeof($games); $i++) {
 
 <script type="text/javascript">
 var gameID = <?php echo $gameID; ?>;
-var team1 = [[56.99905,9.76651],
-             [57.00005,9.76651],
-             [57.00105,9.76651],
-             [57.00205,9.76651],
-             [57.00305,9.76651],
-             [57.00405,9.76651],
-             [57.00505,9.76651],
-             [57.00605,9.76651]]
-var team2 = [[56.99905,9.76651],
-             [57.00005,9.76751],
-             [57.00105,9.76851],
-             [57.00205,9.76951],
-             [57.00305,9.77051],
-             [57.00405,9.77151],
-             [57.00505,9.77251],
-             [57.00605,9.77351]]
-var team3 = [[56.99905,9.76651],
-             [57.00005,9.76551],
-             [57.00105,9.76451],
-             [57.00205,9.76351],
-             [57.00305,9.76251],
-             [57.00405,9.76151],
-             [57.00505,9.76051],
-             [57.00605,9.75951]]
-var team4 = [[56.99905,9.76651],
-             [56.99805,9.76651],
-             [56.99705,9.76651],
-             [56.99605,9.76651],
-             [56.99505,9.76651],
-             [56.99405,9.76651],
-             [56.99305,9.76651],
-             [56.99205,9.76651]]
+var team1 = [[12.5038,55.7702],
+             [12.5036,55.7696],
+             [12.5030,55.7688],
+             [12.5027,55.7682],
+             [12.5023,55.7675],
+             [12.5020,55.7670],
+             [12.5017,55.7665]]
+var team2 = [[12.5039,55.7702],
+             [12.5033,55.7700],
+             [12.5025,55.7697],
+             [12.5016,55.7694],
+             [12.5011,55.7691],
+             [12.5009,55.7685],
+             [12.5001,55.7687]]
+var team3 = [[12.5040,55.7702],
+             [12.5032,55.7695],
+             [12.5019,55.7683],
+             [12.5011,55.7674],
+             [12.5004,55.7666],
+             [12.4993,55.7656],
+             [12.4985,55.7648]]
+var team4 = [[12.5040,55.7702],
+             [12.5024,55.7702],
+             [12.5010,55.7701],
+             [12.4999,55.7700],
+             [12.4989,55.7700],
+             [12.4978,55.7699],
+             [12.4965,55.7699]]
 var i1=0;
 setInterval(function(){
     var time = Date.now();
     console.log(i1);
-    lat = team1[i1][0];
-    lon = team1[i1][1];
+    lon = team1[i1][0];
+    lat = team1[i1][1];
     send_coordinates(1,lat,lon,time);
     if (i1 == team1.length-1){
         i1=0;
     }else{
         i1 += 1;
     }
-},10000);
+},2000);
 
 var i2=0;
 console.log(team2.length);
 setInterval(function(){
     var time = Date.now();
-    lat = team2[i2][0];
-    lon = team2[i2][1];
-    send_coordinates(2,lat,lon,time);
+    lon = team2[i2][0];
+    lat = team2[i2][1];
+    send_coordinates(4,lat,lon,time);
     if (i2 == team2.length-1){
         i2=0;
     }else{
         i2 += 1;
     }
-},10000);
+},2000);
 
 var i3=0;
 setInterval(function(){
     var time = Date.now();
-    lat = team3[i3][0];
-    lon = team3[i3][1];
+    lon = team3[i3][0];
+    lat = team3[i3][1];
     send_coordinates(3,lat,lon,time);
     if (i3 == team3.length-1){
         i3=0;
     }else{
         i3 += 1;
     }
-},10000);
+},2000);
 
 var i4=0;
 setInterval(function(){
     var time = Date.now();
-    lat = team4[i4][0];
-    lon = team4[i4][1];
-    send_coordinates(4,lat,lon,time);
+    lon = team4[i4][0];
+    lat = team4[i4][1];
+    send_coordinates(5,lat,lon,time);
     if (i4 == team4.length-1){
         i4=0;
     }else{
         i4 += 1;
     }
-},10000);
+},2000);
 
 
 function send_coordinates(teamID,lat,lon,time){

@@ -1,4 +1,4 @@
 use-ruleset alias=default
-load-source ../../tiles/Vejle.osm.bz2
-generate-tiles minzoom=12 maxzoom=17 tilesdir=../../tiles/Vejle
+load-source ../../tiles/Husum.osm.bz2
+generate-tiles minzoom=12 maxzoom=17 tilesdir=../../tiles/Husum
 exit

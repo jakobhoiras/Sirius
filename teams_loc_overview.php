@@ -198,6 +198,11 @@ function get_offset(){
     xmlhttp.send();
 }
 
+function remove_old_teams_pos(screen, group){
+	console.log('here');
+	zoneLayer.removeAllFeatures();//( zoneLayer.getFeatureById("team_pos"));
+}
+
 function super_init(){
     if (progress == 'first half' || progress == 'second half'){ 
         if (state == 'open'){
@@ -219,26 +224,28 @@ function super_init(){
     // controls for drawing and deleting zones and bases are added
     init_map_elements();
     
-    //setInterval(function() {map.zoomToExtent(zoneLayer.getDataExtent());},3000);
+    //setInterval(function() {map.zoomToExtent(zoneLayer.getDataExtent());},1000);
 	setSize(50);
     var screen = <?php echo $screen; ?>;
     var shifts = <?php echo $shifts; ?>;
-    var group=1;
+    var group=0;
     setInterval(
         function() { 
-            init(screen,group);
-            add_active_zones(screen,group);
+			remove_old_teams_pos(screen,group);
             if (group == shifts){
                 group = 1;
             }else{
                 group += 1;
             }
+			init(screen,group);
+            add_active_zones(screen,group);
         },
         <?php echo $freq*1000; ?>
     );
-    i=1;
-    setInterval(function() {get_coord(i);if(i==4){i=1;}else{i+=1;}},2000);
-}
+    setInterval(function() {get_coord(screen,group)},2000);
+} 
+
+
 
 function check_state_progress(){
     //get state and progress
@@ -313,10 +320,11 @@ function start_clock(offset, half){
 	xmlhttp.send();
 }
 
-function get_coord(teamID){
+function get_coord(screen, group){
+				if( group != 0){
                 var http = new XMLHttpRequest();
                 var url = "getCoords_server.php";
-                var params = "gameId=" + gameID + "&teamId=" + teamID;
+                var params = "gameId=" + gameID + "&screen=" + screen + "&group=" + group;
                 http.open("POST", url, true);
                 //Send the proper header information along with the request
                 http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -325,20 +333,25 @@ function get_coord(teamID){
 
                 http.onreadystatechange=function() {
                     if (http.readyState==4 && http.status==200) {
-                        var res = http.responseText.split(" ");
-                        var lonLat = new OpenLayers.LonLat(res[1],res[0]).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                        var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
-                        var radius_in_m = 30
-                        var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
-                        var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point,radius,3,0);
-                        var featurecircle = new OpenLayers.Feature.Vector(mycircle);
-                        featurecircle.style = {fillColor: "blue", fillOpacity: 0.4, strokeColor:"red", label: String(teamID)};
-                        featurecircle.attributes["team_pos"] = teamID;
-                        zoneLayer.removeFeatures( zoneLayer.getFeaturesByAttribute("team_pos", teamID) );
-                        zoneLayer.addFeatures([featurecircle]);
+						console.log(http.responseText);
+                        var res = JSON.parse(http.responseText);
+						for (var i=0; i<res.length; i++){
+		                    var lonLat = new OpenLayers.LonLat(res[i][1],res[i][0]).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+		                    var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
+		                    var radius_in_m = 30;
+		                    var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
+		                    var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point,radius,3,0);
+		                    var featurecircle = new OpenLayers.Feature.Vector(mycircle);
+		                    featurecircle.style = {fillColor: "blue", fillOpacity: 0.4, strokeColor:"red", label: String(res[i][3])};
+		                    featurecircle.attributes["team_pos"] = res[i][3];
+							//featurecircle.id = "team_pos";
+		                    zoneLayer.removeFeatures( zoneLayer.getFeaturesByAttribute("team_pos", res[i][3]) );
+		                    zoneLayer.addFeatures([featurecircle]);
+						}
                     }
                 }
                 http.send(params);
+	}
 }
 //Initialise the 'map' object
 function init(screen,group) {

@@ -28,7 +28,7 @@ chdir('../../tiles');
 require 'zipper.php';
 $zip = new zipper();
 ini_set('max_execution_time', 300);
-ini_set('memory_limit', '350M');
+ini_set('memory_limit', '800M');
 $zip -> zip(getcwd() . "/../tiles/" . $map_name, getcwd() . "/../tiles/" . $map_name . '.zip');
 /*if ($output == NULL){
     echo "<p>NULL<p>";

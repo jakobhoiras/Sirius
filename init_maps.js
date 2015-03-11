@@ -225,8 +225,8 @@ function init_zone_map(map_name){
     }
     document.getElementById('noneToggle').checked = true; // sets control to map navigation
 }
-
 function init_overview_map(map_name){ 
+	var resolutions = OpenLayers.Layer.Bing.prototype.serverResolutions.slice(2, 17);
     map = new OpenLayers.Map ("map", {
         controls:[
             new OpenLayers.Control.Navigation(),
@@ -239,20 +239,24 @@ function init_overview_map(map_name){
         ],
         maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
         maxResolution: 156543.0339,
-        numZoomLevels: 19,
         units: 'm',
         projection: new OpenLayers.Projection("EPSG:900913"),
         displayProjection: new OpenLayers.Projection("EPSG:4326"),
     });
     // zonelayer functionality
-
     // adds the layers for points marking zones and base
+	
     zoneLayer = new OpenLayers.Layer.Vector("Zone Layer");
+	zoneLayer.events.register("featureadded", zoneLayer, function() { 	
+    	map.zoomToExtent(this.getDataExtent()); 
+	});
+	
     map.addLayers([zoneLayer]);
     baseLayer = new OpenLayers.Layer.Vector("Base Layer");
     map.addLayers([baseLayer]);
     // adds the map layer from mapnik
-    var layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
+    var layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik", {zoomOffset: 2,
+		resolutions: resolutions});
     map.addLayer(layerMapnik);
             
     // This is the layer that uses the locally stored OSM tiles 
