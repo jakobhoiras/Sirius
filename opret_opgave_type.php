@@ -4,14 +4,13 @@ $membership = New Membership();
 $membership->confirm_Both();
 $membership->check_Active();
 //$mysql = new Mysql_spil();
-
 //if( $_POST && !empty($_POST['opret_opgave']) ) {
 //    $response = $mysql->opret_opgave($_POST['opret_opgave'], $_SESSION['spil_navn']);
 //    header('location: opgave_GUI.php');
 //}
 
-if( $_POST && !empty($_POST['logout']) ) {
-    $membership -> log_User_Out();
+if ($_POST && !empty($_POST['logout'])) {
+    $membership->log_User_Out();
     header('location: login.php');
 }
 
@@ -43,90 +42,133 @@ $opgave = New opgave();
 
         <form method="post" action="">
             <?php
-                if ($_SESSION['status'] == 'authorized_admin'){
-                    echo '<input type="button" value="Start menu" onclick=change_page("start_admin") />';
-                } else{
-                    echo '<input type="button" value="Start menu" onclick=change_page("start_user") />';
-                }
+            if ($_SESSION['status'] == 'authorized_admin') {
+                echo '<input type="button" value="Start menu" onclick=change_page("start_admin") />';
+            } else {
+                echo '<input type="button" value="Start menu" onclick=change_page("start_user") />';
+            }
+
+            if (isset($_POST['Submit1'])) {
+                $opgave->opgave_gemmer();
+            }
+            if (isset($_POST['submitDel'])) {
+                $opgave->deleteAssignment();
+            }
+            if (isset($_POST['submitPre'])) {
+                $_SESSION['pv'] = $_POST['selectPreview'];
+            }
             ?>
             <form method="post">
                 <input type="submit" value="Log out" style="float:right" name="logout" /><br>
             </form>
         </form>
 
+        <div class="entire_field">
+            <div class="input_felt">
+                <form Name ="form1" Method ="POST" enctype="multipart/form-data" onsubmit= "return confirm('are you sure you wish to upload this assignment?')">
+                    <p>Name of assignment:<br>
+                        <input type="text" name="assignmentName"> </p>
+                    <div name="inputOutDiv" class="felt">
+                        <h1> Field Team </h1>
+                        <p>Chose layout: <select onchange="optionCheck('Out')" id="formOut" name="formOut">
+                                <option value="textImage">Text + Image</option>
+                                <option value="text">Text</option>
+                                <option value="image">Image</option>
+                            </select></p>
 
-        <div class="input_felt">
-            <form Name ="form1" Method ="POST" enctype="multipart/form-data" onsubmit= "return confirm('are you sure you wish to upload this assignment?')">
-                <p>Name of assignment:<br>
-                    <input type="text" name="assignmentName"> </p>
-                <div name="inputOutDiv" class="felt">
-                    <h1> Field Team </h1>
-                    <p>Chose layout: <select onchange="optionCheck('Out')" id="formOut" name="formOut">
-                            <option value="textImage">Text + Image</option>
+
+                        <div id="imageOut"><p> Chose a picture:<br>
+                                <input type="file" name='file1' id="files1" onchange="checkFile(1)" /><br>
+                            <output id="toolarge1"></output></p> </div>
+                        <div id="textOut"><p> Description:<br>
+                                <textarea name='questionOut' rows='4' cols='50'class='textWindow' value = 'hey'></textarea></p> </div>
+
+                    </div>
+
+                    <div name="inputOutDiv" class="felt">
+                        <h1> Base Team </h1>
+                        Chose layout: <select onchange="optionCheck('In')" id="formIn" name="formIn">
+                            <option value='textImage'>Text + Image</option>
                             <option value="text">Text</option>
                             <option value="image">Image</option>
-                        </select></p>
+                        </select><br>
+
+                        <div id="imageIn"><p> Chose a picture:<br>
+                                <input type="file" name='file2' id="files2" onchange="checkFile(2)"/><br>
+                            <output id="toolarge2"></output></p> </div>
+
+                        <div id="textIn"><p> Description:<br>
+                                <textarea name='questionIn' rows='4' cols='50' class='textWindow'></textarea></p> </div>
+                        <p>Multiple-choice:<br>
+                            <small>Please choose the name to be displayed at each possible answer<br>
+                                (and please choose which one is the correct answer)</small></p>
+                        <input type='text' name='mult0' /><input type='radio' name='check' value='1'/><br>
+                        <input type='text' name='mult1' /><input type='radio' name='check' value='2'/><br>
+                        <input type='text' name='mult2' /><input type='radio' name='check' value='3'/><br>
+                        <input type='text' name='mult3' /><input type='radio' name='check' value='4'/><br>
+                        <input type='text' name='mult4' /><input type='radio' name='check' value='5'/><br>
 
 
-                    <div id="imageOut"><p> Chose a picture:<br>
-                            <input type="file" name='file1' id="files1" onchange="checkFile(1)" /><br>
-                        <output id="toolarge1"></output></p> </div>
-                    <div id="textOut"><p> Description:<br>
-                            <textarea name='questionOut' rows='4' cols='50'class='textWindow' value = 'hey'></textarea></p> </div>
 
+                    </div>
+                    <p><input TYPE = "Submit" Name = "Submit1" VALUE = "Upload"></p>
+
+                </form>
+
+                <form method="post" id="deletion" onsubmit= "return confirm('are you sure you wish to Delete this assignment?')">
+
+                    <div class="felt">
+                        <h2>Chose an assignment for deletion</h2>
+                        <p><?php
+                            $opgave->populate('selectDelete');
+                            ?></p>
+                        <input type="submit" name="submitDel" id="submitDel" value="Delete">
+                    </div>
+
+
+                </form>
+            </div>
+
+            <div class="entirePreview">
+                <h1> Preview </h1>
+                <form method="post" id="preview">
+                    <p>Chose an assignment to preview</p>
+                    <p><?php $opgave->populate('selectPreview'); ?></p>
+                    <p><input type="submit" name="submitPre" id="submitPre" value="Preview"></p>
+                </form>
+
+                <div class="previewField">
+                    <div style= "margin-left: 10px;"><center><h3> <?php $opgave->previewer('', 'name'); ?></h3></center></div>
+                    <div class="picture">
+                        <?php
+                        $opgave->previewer('in', 'img');
+                        ?>
+                    </div>
+                    <div class="preview_text">
+                        <?php $opgave->previewer('in', 'text'); ?>
+                    </div>
                 </div>
 
-                <div name="inputOutDiv" class="felt">
-                    <h1> Base Team </h1>
-                    Chose layout: <select onchange="optionCheck('In')" id="formIn" name="formIn">
-                        <option value='textImage'>Text + Image</option>
-                        <option value="text">Text</option>
-                        <option value="image">Image</option>
-                    </select><br>
 
-                    <div id="imageIn"><p> Chose a picture:<br>
-                            <input type="file" name='file2' id="files2" onchange="checkFile(2)"/><br>
-                        <output id="toolarge2"></output></p> </div>
-
-                    <div id="textIn"><p> Description:<br>
-                            <textarea name='questionIn' rows='4' cols='50' class='textWindow'></textarea></p> </div>
-                    <p>Multiple-choice:<br>
-                        <small>Please choose the name to be displayed at each possible answer<br>
-                            (and please choose which one is the correct answer)</small></p>
-                    <input type='text' name='mult0' /><input type='radio' name='check' value='1'/><br>
-                    <input type='text' name='mult1' /><input type='radio' name='check' value='2'/><br>
-                    <input type='text' name='mult2' /><input type='radio' name='check' value='3'/><br>
-                    <input type='text' name='mult3' /><input type='radio' name='check' value='4'/><br>
-                    <input type='text' name='mult4' /><input type='radio' name='check' value='5'/><br>
-
-
-
+                <div class="previewBase">
+                    <div style= "margin-left: 10px;"><center><h3> <?php $opgave->previewer('', 'name'); ?> </h3></center></div>
+                    <div class="basePicText">
+                        <div class="picture">  
+                            <?php $opgave->previewer('out', 'img'); ?>
+                        </div>
+                        <div class="preview_text">
+                            <?php $opgave->previewer('out', 'text'); ?>
+                        </div>
+                    </div>
+                    <div class="previewAnswers">
+                        <?php $opgave->previewer('', 'ans'); ?>
+                    </div>
                 </div>
-                <p><input TYPE = "Submit" Name = "Submit1" VALUE = "Upload"></p>
-
-            </form>
-        
-            <form method="post" id="deletion" onsubmit= "return confirm('are you sure you wish to Delete this assignment?')">
-
-                <div class="felt">
-                    <h2>Chose an assignment for deletion</h2>
-                    <p><?php
-                        $opgave->populate();
-                        ?></p>
-                    <input type="submit" name="submitDel" id="submitDel" value="Delete">
-                </div>
+            </div>
 
 
-            </form>
         </div>
-                    <?php
-        if (isset($_POST['Submit1'])) {
-            $opgave->opgave_gemmer();
-        }
-        if (isset($_POST['submitDel'])) {
-            $opgave->deleteAssignment();
-        }
-        ?>
+
         <!--<div class="input_felt">
             <div  id="udehold-output" class="felt3">
                 <div class='header-ude'><font size="4">

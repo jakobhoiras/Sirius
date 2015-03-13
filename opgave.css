@@ -8,6 +8,13 @@
 .current-help2 {
     display: none;
 }
+
+.entire_field {
+    width: 950px;
+    float: left;
+    border: transparent;
+    margin-right: 10px;
+}
 .input_felt{
     width: 410px;
     float: left;
@@ -17,11 +24,74 @@
 .felt {
     width: 400px;
     background-color: #C0C0C0;
--moz-border-radius: 5px;
+    -moz-border-radius: 5px;
     border-radius: 5px;
     float: left;
     margin-bottom: 10px;
     padding: 5px;
+}
+.picture {
+    width: 300px;
+    border: transparent;
+    margin-left: 5px;
+    margin-top: 10px;
+
+}
+.preview_text {
+    width: 300px;
+    border: transparent;
+    margin-left: 5px;
+    margin-top: 10px;
+    word-wrap: break-word;
+}
+.previewField {
+    width: 310px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    float: left;
+    border: 2px solid grey;
+}
+.basePicText {
+    width: 310px;
+    border: transparent;
+    float: left;
+}
+.previewAnswer {
+    width: 150px;    
+    margin-left: 10px;
+    margin-top: 10px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    float: left;
+    border: 2px solid grey;
+}
+.previewAnswer2 {
+    width: 150px;    
+    margin-left: 10px;
+    margin-top: 10px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    float: left;
+    border: 2px solid grey;
+    background: green;
+}
+.entirePreview {
+    width:500px;
+    float: left;
+    border: transparent;
+}
+.previewBase {
+    width: 500px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    float: left;
+    border: 2px solid grey;
+    margin-top: 5px;
+}
+.previewAnswers {
+    width: 150px;
+    border: transparent;
+    float: left;
 }
 
 

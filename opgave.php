@@ -92,13 +92,12 @@ class opgave {
 
                     for ($i = 1; $i <= sizeof($mult_text); $i++) {
 
-                        $correct = "false";
+                        $correct = false;
                         if (($mult_cor . "") === $i . "") {
-                            $correct = "true";
+                            $correct = true;
                         }
-                        $correct = $correct . "";
                         $optArray = array(
-                            "text" => $mult_text[$i-1],
+                            "text" => $mult_text[$i - 1],
                             "image" => "",
                             "correct" => $correct
                         );
@@ -118,10 +117,12 @@ class opgave {
                         "question" => $qstArray,
                         "answer" => $ansArray
                     );
-                    
+
                     $finArray = json_encode($array);
-                    
+
                     $this->gemmer($finArray, 'question', $name);
+                    
+                    $_SESSION['pv'] = $name;
 
                     echo 'The assignment has been uploaded successfully';
                 } else {
@@ -167,19 +168,71 @@ class opgave {
         $zipper->zip($path, $path . ".zip");
     }
 
-    function populate() {
+    function populate($postName) {
         $directory = getcwd() . "/Opgaver/";
 
 //get all files in specified directory
         $files = array_diff(scandir($directory), array('.', '..'));
 
 //print each file name
-       	echo "<select name='select an assignment'>";
+        echo "<select name=\"" . $postName . "\">";
         foreach ($files as $file) {
             //check to see if the file is a folder/directory
             echo "<option value=\"" . $file . "\">" . $file . "</option>";
         }
         echo "</select>";
+    }
+
+    function previewer($team, $type) {
+        if (isset($_SESSION['pv'])) {
+            $assign = $_SESSION['pv'];
+            $address = getcwd() . "/Opgaver/" . $assign . "/question.json";
+            $json = file_get_contents($address);
+            $json_output = json_decode($json, true);
+
+            if ($type === "img") {
+                if ($team === "in") {
+                    $img = $json_output['answer']['hintImage'];
+                }
+                if ($team === "out") {
+                    $img = $json_output['question']['image'];
+                }
+                if ($img !== "") {
+                    echo "<img src = \"Opgaver/" . $assign . "/" . $img . "\"style=\"max-height: 200px; max-width: 300px;\">";
+                }
+            }
+            if ($type === "text") {
+                if ($team === "in") {
+                    $text = $json_output['answer']['hintText'];
+                }
+                if ($team === "out") {
+                    $text = $json_output['question']['text'];
+                }
+                if ($text !== "") {
+                    echo $text;
+                }
+            }
+            if ($type === "ans") {
+                for ($i = 0; $i < 5; $i++) {
+                    $answer = $json_output['answer']['options'][$i]['text'];
+                    $true = $json_output['answer']['options'][$i]['correct'];
+                    $correct = "previewAnswer";
+                    if($true === true) {
+                        $correct = "previewAnswer2";
+                     
+                    }
+                    
+                    echo "<div class=\"".$correct."\">" . $answer . "</div><br>";                    
+                }
+            }
+            if ($type === "name") {
+                echo $assign;
+            }
+        }
+    }
+
+    function previewText($team) {
+        
     }
 
 }
