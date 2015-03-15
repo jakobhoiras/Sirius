@@ -141,11 +141,11 @@ $opgave = New opgave();
                     <div style= "margin-left: 10px;"><center><h3> <?php $opgave->previewer('', 'name'); ?></h3></center></div>
                     <div class="picture">
                         <?php
-                        $opgave->previewer('in', 'img');
+                        $opgave->previewer('out', 'img');
                         ?>
                     </div>
                     <div class="preview_text">
-                        <?php $opgave->previewer('in', 'text'); ?>
+                        <?php $opgave->previewer('out', 'text'); ?>
                     </div>
                 </div>
 
@@ -154,10 +154,10 @@ $opgave = New opgave();
                     <div style= "margin-left: 10px;"><center><h3> <?php $opgave->previewer('', 'name'); ?> </h3></center></div>
                     <div class="basePicText">
                         <div class="picture">  
-                            <?php $opgave->previewer('out', 'img'); ?>
+                            <?php $opgave->previewer('in', 'img'); ?>
                         </div>
                         <div class="preview_text">
-                            <?php $opgave->previewer('out', 'text'); ?>
+                            <?php $opgave->previewer('in', 'text'); ?>
                         </div>
                     </div>
                     <div class="previewAnswers">

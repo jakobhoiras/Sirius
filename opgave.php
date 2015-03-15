@@ -51,7 +51,7 @@ class opgave {
 
 
             if ((($typeOut === "text" || $typeOut === "textImage") && (empty($_POST['questionOut']))) ||
-                    (($typeIn === "text" || $typeIn === "textImage") && (empty($_POST['questionOut'])))) {
+                    (($typeIn === "text" || $typeIn === "textImage") && (empty($_POST['questionIn'])))) {
                 echo "one or more fields where not filled out<br>";
             } else {
 
