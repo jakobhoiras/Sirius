@@ -14,7 +14,7 @@ class postCoords {
 
     function postCoord() {
 
-        if (isset($_POST['teamId'], $_POST['gameId'], $_POST['lat'], $_POST['long'], $_POST['timestamp'])) {
+        if (isset($_POST['teamId'], $_POST['gameId'], $_POST['lat'], $_POST['long'], $_POST['time'])) {
 
             $mysql = new Mysql_spil();
             $games = $mysql->get_games();
@@ -23,22 +23,21 @@ class postCoords {
             $teamID = $_POST['teamId'];
             $lat = $_POST['lat'];
             $long = $_POST['long'];
-            $time = $_POST['timestamp'];
+            $time = $_POST['time'];
 
             for ($i = 0; $i < sizeof($games); $i++) {
                 if ($games[$i][0] == $gameId) {
                     $gameName = $games[$i][1];
                 }
             }
-         
             $query = 'INSERT INTO GAME_' . $gameName . '.Team_pos_' . $teamID . '(lon, lat, time) VALUES (?, ?, ?)';
 
             if ($stmt = $this->conn->prepare($query)) {
-                $stmt->bind_param('ddi', $lat, $long, $time);
+                $stmt->bind_param('dds', $long, $lat, $time);
                 $stmt->execute();
                 $stmt->close();
             }
-            $progress = $mysql -> get_game_progress($gameName);
+            /*$progress = $mysql -> get_game_progress($gameName);
             $team_state = $mysql -> get_team_state($gameName, $teamID);
 			$team = $mysql -> get_team($gameName, $teamID);
             if ($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
@@ -63,7 +62,7 @@ class postCoords {
                         $mysql -> team_found_zone($gameName, $teamID);
                     }
                 }
-            }          
+            }*/          
         }
     }
 }

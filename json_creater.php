@@ -5,7 +5,7 @@
 class json {
 
     function createJson($array, $path) {
-		//header('Content-Type: application/json');
+		header('Content-Type: application/json');
         $result = json_encode($array);
         $file = $file = fopen($path . '.json', "w") or die("Unable to open file!");
         fwrite($file, $result);

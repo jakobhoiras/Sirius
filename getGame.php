@@ -27,7 +27,7 @@ function createJson($teamId, $gameId) {
     $array = array(
         "gameId" => $gameId,
         "teamId" => $teamId,
-        "targetFile" => "http://www.matkonsw.com/sirius/Games/" . $gameName . "/targetFile$teamId.json",
+        "targetFile" => "http://www.matkonsw.com/sirius/Games/" . $gameName . "/targetfile$teamId.json",
         "mapFile" => "http://www.matkonsw.com/tiles/" . $mapCoords[6] . ".zip",
         "centerLat" => $mapCoords[1],
         "centerLon" => $mapCoords[0],
@@ -35,18 +35,23 @@ function createJson($teamId, $gameId) {
         "minLon" => $mapCoords[2],
         "maxLat" => $mapCoords[5],
         "maxLon" => $mapCoords[4],
+		"homeLat" => $baseCoords[0],
+		"homeLon" => $baseCoords[1],
         "homeMinLat" => $baseCoords[2],
         "homeMinLon" => $baseCoords[3],
         "homeMaxLat" => $baseCoords[4],
         "homeMaxLon" => $baseCoords[5],
+		"homeRadius" => $baseCoords[6],
         "gameRunTime" => $time[0][0],
         "gameRounds" => 2,
         "postStateChange" => "http://www.matkonsw.com/sirius/postStateChange.php",
         "getState" => "http://www.matkonsw.com/sirius/getState.php",
+		"getRunTime" => "http://www.matkonsw.com/sirius/getRunTime.php",
         "questionFile" => "http://www.matkonsw.com/sirius/Games/" . $gameName . "/questionfile.zip",
         "postCoords" => "http://www.matkonsw.com/sirius/postCoords.php",
         "getCoords" => "http://www.matkonsw.com/sirius/getCoords.php",
-        "postAnswer" => "http://www.matkonsw.com/sirius/postAnswer.php"
+        "postAnswer" => "http://www.matkonsw.com/sirius/postAnswer.php",
+		"foundZone" => "http://www.matkonsw.com/sirius/foundZone.php"
     );
 
     header('Content-Type: application/json');
@@ -98,12 +103,12 @@ function getBaseCoords($id) {
     $dx = $radius / sqrt(2);
     $dLat = $dx/$R;
     $dLon = $dx/($R*cos(pi()*$cenLat/180));
-    $homeMinLat = $cenLat - $dLat;
-    $homeMinLon = $cenLon - $dLon;
-    $homeMaxLat = $cenLat + $dLat;
-    $homeMaxLon = $cenLon + $dLon;
+    $homeMinLat = $cenLat - $dLat * 180 / pi();
+    $homeMinLon = $cenLon - $dLon * 180 / pi();
+    $homeMaxLat = $cenLat + $dLat * 180 / pi();
+    $homeMaxLon = $cenLon + $dLon * 180 / pi();
 
-    array_push($baseCoords, $cenLat, $cenLon, $homeMinLat, $homeMinLon, $homeMaxLat, $homeMaxLon);
+    array_push($baseCoords, $cenLat, $cenLon, $homeMinLat, $homeMinLon, $homeMaxLat, $homeMaxLon, $radius);
     return $baseCoords;
 }
 

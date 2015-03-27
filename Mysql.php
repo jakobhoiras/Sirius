@@ -12,6 +12,17 @@ class Mysql_spil {
 									die('there was a problem connecting to the database.');
     }
 
+	function update_team_state($game_name, $teamID, $state) {
+		$query = "UPDATE GAME_" . $game_name . ".Teams_state
+					  	  SET GAME_" . $game_name . ".Teams_state.state = ?
+                          WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
+        if ($stmt = $this->conn->prepare($query)){
+        	$stmt->bind_param('si', $state, $teamID);
+	        $stmt->execute();
+            $stmt->close();
+        }  
+	}
+
     function get_zone($game_name, $zoneID){
         $query = "SELECT * FROM GAME_" . $game_name . ".Zones
                   WHERE GAME_" . $game_name . ".Zones.zoneID = ?";
@@ -180,7 +191,7 @@ class Mysql_spil {
         $query = "SELECT * FROM GAME_" . $game_name . ".Guesses 
                   WHERE teamID=? AND assID=?";
         if ($stmt = $this->conn->prepare($query)){
-            $stmt->bind_param('ii', $teamID, $assID);
+            $stmt->bind_param('is', $teamID, $assID);
 			$stmt->execute();
             $result = $stmt->get_result();
             if($guesses = $result->fetch_all()){
@@ -190,7 +201,7 @@ class Mysql_spil {
         if ($guesses==[]){
             $query = 'INSERT INTO GAME_' . $game_name . '.Guesses(teamID, assID) VALUES (?, ?)';
             if ($stmt = $this->conn->prepare($query)) {
-                $stmt->bind_param('ii', $teamID, $assID);
+                $stmt->bind_param('is', $teamID, $assID);
                 $stmt->execute();
                 $stmt->close();   
             }
@@ -200,7 +211,7 @@ class Mysql_spil {
 				  SET GAME_" . $game_name . ".Guesses.tries = tries + 1
                   WHERE GAME_" . $game_name . ".Guesses.teamID = ? AND GAME_" . $game_name . ".Guesses.assID = ?";
             if ($stmt = $this->conn->prepare($query)){
-                $stmt->bind_param('ii', $teamID, $assID);
+                $stmt->bind_param('is', $teamID, $assID);
 		        $stmt->execute();
                 $stmt->close();
             }
@@ -310,7 +321,7 @@ class Mysql_spil {
     }
 
     function get_state_all($game_name, $teamID){
-        $query = "SELECT * FROM GAME_" . $gameName . ".Game_state";
+        $query = "SELECT * FROM GAME_" . $game_name . ".Game_state";
         if ($stmt = $this->conn->prepare($query)){
             $stmt->execute();
             $result = $stmt->get_result();
@@ -358,18 +369,10 @@ class Mysql_spil {
     }
 
     function change_team_state($game_name, $teamID){
-        $query = "SELECT * FROM GAME_" . $game_name . ".Teams_state 
-                      WHERE teamID=?";
-        if ($stmt = $this->conn->prepare($query)){
-            $stmt->bind_param('i', $teamID);
-		    $stmt->execute();
-            $result = $stmt->get_result();
-            if($team_state = $result->fetch_all()){
-                $stmt->close();
-            }
-        } 
 
         $game_state = $this->get_game_state($game_name);
+		$progress = $this -> get_game_progress($game_name);
+		$team_state = $this -> get_team_state($game_name, $teamID);
 
         if ($team_state[0][1] == 'IN'){
             $query = "UPDATE GAME_" . $game_name . ".Teams_state
@@ -380,17 +383,6 @@ class Mysql_spil {
 		        $stmt->execute();
                 $stmt->close();
             }
-            if ($game_state[0][0] == 'open'){
-                $query = "UPDATE GAME_" . $game_name . ".Teams_state
-					  	  SET GAME_" . $game_name . ".Teams_state.state = 'running'
-                          WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
-                if ($stmt = $this->conn->prepare($query)){
-                    $stmt->bind_param('i', $team_state[0][0]);
-		            $stmt->execute();
-                    $stmt->close();
-                }
-            }
-            $progress = $this -> get_game_progress($game_name);
             $start_time = time();
             if ($progress == 'waiting first half'){
                 $this -> update_game_progress($game_name, 'first half');                
@@ -400,18 +392,24 @@ class Mysql_spil {
                 $this -> update_game_progress($game_name, 'second half');                
                 $this -> update_start_time_second_half($game_name, $start_time);  
             }
+			if ($team_state[0][2] == 'waiting first half') {
+				$this -> update_team_state($game_name, $teamID, 'first half');
+			}
+			else if ($team_state[0][2] == 'waiting second half') {
+				$this -> update_team_state($game_name, $teamID, 'second half');
+			}
         }
         else if ($team_state[0][1] == 'OUT'){
             $query = "UPDATE GAME_" . $game_name . ".Teams_state
-					  	  SET GAME_" . $game_name . ".Teams_state.IO = 'IN', GAME_" . $_SESSION['cg'] . ".Teams_state.state = 'waiting'
-                        WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
+					  SET GAME_" . $game_name . ".Teams_state.IO = 'IN'
+                      WHERE GAME_" . $game_name . ".Teams_state.teamID = ?";
             if ($stmt = $this->conn->prepare($query)){
                 $stmt->bind_param('i', $team_state[0][0]);
 		        $stmt->execute();
                 $stmt->close();
             }
             if ($game_state[0][0] == 'open' or $game_state[0][0] == 'pause'){
-                $progress = $this -> get_game_progress($game_name);
+                
                 if ($progress == 'first half'){
                     $query = "UPDATE GAME_" . $game_name . ".Teams_state
 		    			  	  SET GAME_" . $game_name . ".Teams_state.end_half = ?
@@ -430,6 +428,12 @@ class Mysql_spil {
                         $stmt->close();
                     }
                 }
+				if ($team_state[0][2] == 'first half') {
+					$this -> update_team_state($game_name, $teamID, 'start second half');
+				}
+				else if ($team_state[0][2] == 'second half') {
+					$this -> update_team_state($game_name, $teamID, 'ended');
+				}
             }
         }
     }
@@ -821,15 +825,15 @@ class Mysql_spil {
         }
         $query = "CREATE TABLE GAME_" . $_SESSION['cg'] . ".Team_pos_" . $teamID . "(
             count INT(7) NOT NULL AUTO_INCREMENT, PRIMARY KEY(count),
-            lon FLOAT(15),
-            lat FLOAT(15),
-            time INT(20))";
+            lon DOUBLE,
+            lat DOUBLE,
+            time VARCHAR(20))";
         if ($stmt = $this->conn->prepare($query)){
 			$stmt->execute();
             $stmt->close();
         }
         $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Teams_state(teamID, IO, state) 
-                  VALUES (?, 'IN', 'waiting')";
+                  VALUES (?, 'IN', 'start')";
         if ($stmt = $this->conn->prepare($query)){
             $stmt->bind_param('i', $teamID);
 		    $stmt->execute();
@@ -1277,7 +1281,7 @@ class Mysql_spil {
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Teams_state (
             teamID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(teamID), 
             IO VARCHAR(5),
-            state VARCHAR(10),
+            state VARCHAR(30),
             current_cp INT(5) DEFAULT 1,
             current_cp2 INT(5) DEFAULT 1,
             end_half INT(20) DEFAULT 0,

@@ -45,7 +45,7 @@ function create_mscript_file($map_name){
         fwrite($myfile, $txt);
         $txt = "load-source ../../tiles/$map_name.osm.bz2"."\n";
         fwrite($myfile, $txt);
-        $txt = "generate-tiles minzoom=12 maxzoom=17 tilesdir=../../tiles/$map_name"."\n";
+        $txt = "generate-tiles minzoom=12 maxzoom=16 tilesdir=../../tiles/$map_name"."\n";
         fwrite($myfile, $txt);
         $txt = 'exit';
 	fwrite($myfile, $txt);

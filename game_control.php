@@ -1,6 +1,7 @@
 <?php
 
 require 'Mysql.php';
+
 //session_start();
 class game_control{
 
@@ -10,6 +11,7 @@ class game_control{
     }
 
     function open_game($progress){
+		$mysql = new Mysql_spil();
         $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Game_state
 					  	  SET GAME_" . $_SESSION['cg'] . ".Game_state.state = 'open'";
         if ($stmt = $this->conn->prepare($query)){
@@ -17,62 +19,45 @@ class game_control{
             $stmt->close();
         }
 
-        $query = "SELECT * FROM GAME_" . $_SESSION['cg'] . ".Teams_state";
-        if ($stmt = $this->conn->prepare($query)){
-			$stmt->execute();
-            $result = $stmt->get_result();
-            if($teams_state = $result->fetch_all()){
-                $stmt->close();
-                
-            }
-        }
+        $teams_state = $mysql -> get_teams_state($_SESSION['cg']);
+		
         $count = 0;
         for ($i=0; $i<sizeof($teams_state); $i++){
             if ($teams_state[$i][1] == 'OUT'){
                 $count += 1;
-                $teams_state[$i][2] = 'running';
-                $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Teams_state
-					  	  SET GAME_" . $_SESSION['cg'] . ".Teams_state.state = ?
-                          WHERE GAME_" . $_SESSION['cg'] . ".Teams_state.teamID = ?";
-                if ($stmt = $this->conn->prepare($query)){
-                    $stmt->bind_param('si', $teams_state[$i][2], $teams_state[$i][0]);
-		            $stmt->execute();
-                    $stmt->close();
-                }            
-            }
+				if ($progress == 'first'){
+                	$state = 'first half';
+				} else {
+					$state = 'second half';
+				}  
+            } else {
+				if ($progress == 'first'){
+                	$state = 'waiting first half';
+				} else {
+					$state = 'waiting second half';
+				}
+			}
+			$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], $state);
         }
         if ($count == 0){
             if ($progress == 'first'){
-                $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Game_progress
-					  	  SET GAME_" . $_SESSION['cg'] . ".Game_progress.state = 'waiting first half'";
+                $mysql -> update_game_progress($_SESSION['cg'], 'waiting first half');
             }
             else if ($progress == 'second'){
-                $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Game_progress
-					  	  SET GAME_" . $_SESSION['cg'] . ".Game_progress.state = 'waiting second half'";
+                $mysql -> update_game_progress($_SESSION['cg'], 'waiting second half');
             }
-            if ($stmt = $this->conn->prepare($query)){
-		        $stmt->execute();
-                $stmt->close();
-            }   
             return 'waiting for someone to leave the zone!';
         }
         else{
             $start_time = time();
-            $mysql = new Mysql_spil();
             if ($progress == 'first'){
                 $mysql -> update_start_time_first_half($_SESSION['cg'], $start_time);
-                $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Game_progress
-					  	  SET GAME_" . $_SESSION['cg'] . ".Game_progress.state = 'first half'";
+                $mysql -> update_game_progress($_SESSION['cg'], 'first half');
             }
             else if ($progress == 'second'){
                 $mysql -> update_start_time_second_half($_SESSION['cg'], $start_time);
-                $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Game_progress
-					  	  SET GAME_" . $_SESSION['cg'] . ".Game_progress.state = 'second half'";
-            }
-            if ($stmt = $this->conn->prepare($query)){
-		        $stmt->execute();
-                $stmt->close();
-            }   
+                $mysql -> update_game_progress($_SESSION['cg'], 'second half');
+            }  
             return 'the game is running';
         }
     }
@@ -121,6 +106,12 @@ class game_control{
 			$stmt->execute();
             $stmt->close();
         }
+
+		$teams_state = $mysql -> get_teams_state($_SESSION['cg']);
+		for ($i=0; $i<sizeof($teams_state); $i++){
+			$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'pause');
+		}
+
         $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Game_state
 					  	  SET GAME_" . $_SESSION['cg'] . ".Game_state.state = 'pause'";
         if ($stmt = $this->conn->prepare($query)){
@@ -186,6 +177,40 @@ class game_control{
                 
             }
         }
+
+		$teams_state = $mysql -> get_teams_state($_SESSION['cg']);
+		$progress = $mysql -> get_game_progress($_SESSION['cg']);
+		for ($i=0; $i<sizeof($teams_state); $i++){
+			if ($progress == 'waiting first half'){
+				$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'waiting first half');
+			}
+			else if ($progress == 'first half'){
+				if ($teams_state[$i][1] == 'OUT'){
+					$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'first half');
+				} else {
+					if ($teams_state[$i][5] == 0) {
+						$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'waiting first half');
+					} else {
+						$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'start second half');
+					}
+				}
+			}
+			if ($progress == 'waiting second half'){
+				$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'waiting second half');
+			}
+			else if ($progress == 'second half'){
+				if ($teams_state[$i][1] == 'OUT'){
+					$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'second half');
+				} else {
+					if ($teams_state[$i][6] == 0) {
+						$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'waiting second half');
+					} else {
+						$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'ended');
+					}
+				}
+			}
+		}
+
         $diff=0;
         for($i=0; $i<$n_pause[0][0]; $i++){
             $diff += $pause[$i][2] - $pause[$i][1];
@@ -203,7 +228,11 @@ class game_control{
             $stmt->close();
         }
         $mysql = new Mysql_spil();
-        $mysql -> update_game_progress($_SESSION['cg'], 'waiting second half');
+		$teams_state = $mysql -> get_teams_state($_SESSION['cg']);
+		for ($i=0; $i<sizeof($teams_state); $i++){
+			$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'start second half');
+		}
+        $mysql -> update_game_progress($_SESSION['cg'], 'start second half');
         $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Game_state
 					  	  SET GAME_" . $_SESSION['cg'] . ".Game_state.state = 'ready'";
         if ($stmt = $this->conn->prepare($query)){
@@ -226,6 +255,10 @@ class game_control{
             $stmt->close();
         }
         $mysql = new Mysql_spil();
+		$teams_state = $mysql -> get_teams_state($_SESSION['cg']);
+		for ($i=0; $i<sizeof($teams_state); $i++){
+			$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'ended');
+		}
         $mysql -> update_game_progress($_SESSION['cg'], 'ended');
         $query = "UPDATE GAME_" . $_SESSION['cg'] . ".Game_state
 					  	  SET GAME_" . $_SESSION['cg'] . ".Game_state.state = 'stop'";

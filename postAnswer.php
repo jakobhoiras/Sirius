@@ -1,18 +1,18 @@
 <?php
 require 'Mysql.php';
 
-if (isset($_POST['gameId'], $_POST['teamId'], $_POST['questionId'], $_POST['answer'], $_POST['timestamp'])) {
+if (isset($_POST['gameId'], $_POST['teamId'], $_POST['questionId'], $_POST['answer'], $_POST['currRunTime'])) {
     $gameId = $_POST['gameId'];
     $teamID = $_POST['teamId'];
     $assID = $_POST['questionId'];
     $answer = $_POST['answer'];
-    $timestamp = $_POST['timestamp'];
+    $timestamp = $_POST['currRunTime'];
     
     $mysql = new Mysql_spil();
     $games = $mysql->get_games();
 
     for ($i = 0; $i < sizeof($games); $i++) {
-        if ($games[$i][0] === $gameId) {
+        if ($games[$i][0] == $gameId) {
             $gameName = $games[$i][1];
         }
     }
@@ -20,7 +20,7 @@ if (isset($_POST['gameId'], $_POST['teamId'], $_POST['questionId'], $_POST['answ
 
     $mysql -> make_guess($gameName, $teamID, $assID);
 
-    if ($answer == true){
+    if ($answer == "true"){
         $guesses = $mysql -> get_guesses($gameName, $teamID, $assID);
         if ($guesses == 1){
             $mysql -> update_team_score($gameName, $teamID, 3);

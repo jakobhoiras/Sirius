@@ -1,2 +1,2 @@
-﻿2015-03-09 17:41:44,386  WARN [1] Maperitive.Services.PersistedUserSettings - User setting 'map.rendering.shape-def' value read from the store was incompatible and was removed. Reason: Empty shape definition (line=1, col=1)
-2015-03-09 17:41:44,707  INFO [1]   Maperitive.Program - Application shell has finished its work.
+﻿2015-03-26 11:38:43,904  WARN [1] Maperitive.Services.PersistedUserSettings - User setting 'map.rendering.shape-def' value read from the store was incompatible and was removed. Reason: Empty shape definition (line=1, col=1)
+2015-03-26 11:38:44,230  INFO [1]   Maperitive.Program - Application shell has finished its work.

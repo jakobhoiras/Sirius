@@ -1,6 +1,6 @@
 <?php
 
-require_once 'Mysql.php';
+require 'Mysql.php';
 
 class getCoords {
 
@@ -22,11 +22,11 @@ class getCoords {
             $teamId = $_POST['teamId'];
 
             for ($i = 0; $i < sizeof($games); $i++) {
-                if ($games[$i][0] === $gameId) {
+                if ($games[$i][0] == $gameId) {
                     $gameName = $games[$i][1];
                 }
             }
-            $query = "SELECT * FROM Game_" . $gameName . ".Team_pos_" . $teamId . " ORDER BY count DESC LIMIT 1";
+            $query = "SELECT * FROM GAME_" . $gameName . ".Team_pos_" . $teamId . " ORDER BY count DESC LIMIT 1";
             if ($stmt = $this->conn->prepare($query)) {
                 $stmt->execute();
                 $result = $stmt->get_result();
@@ -34,11 +34,13 @@ class getCoords {
                     $stmt->close();
                 }
             }
+
             $array = array(
-                "latitude" => $coords[0][1] . "",
-                "longitude" => $coords[0][2] . "",
+                "latitude" => $coords[0][2] . "",
+                "longitude" => $coords[0][1] . "",
                 "timestamp" => $coords[0][3] . ""
             );
+			header('Content-Type: application/json');
             echo json_encode($array);
         }
     }

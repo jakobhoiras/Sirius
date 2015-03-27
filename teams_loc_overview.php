@@ -228,6 +228,10 @@ function super_init(){
 	setSize(50);
     var screen = <?php echo $screen; ?>;
     var shifts = <?php echo $shifts; ?>;
+	var freq = <?php echo $freq*1000; ?>;
+	if (freq == 0) {
+		freq = 10000000000000000;
+	}
     var group=0;
     setInterval(
         function() { 
@@ -240,7 +244,7 @@ function super_init(){
 			init(screen,group);
             add_active_zones(screen,group);
         },
-        <?php echo $freq*1000; ?>
+        freq
     );
     setInterval(function() {get_coord(screen,group)},2000);
 } 
@@ -270,7 +274,7 @@ function check_state_progress(){
                     document.getElementById('state').innerHTML = new_progress;
                 }
                 else if (new_state == 'ready'){
-                    if (new_progress == 'waiting second'){
+                    if (new_progress == 'waiting second' || new_progress == 'start second'){
                         //stop clock
                         clearInterval(timerIDupdate);
                         //print state
@@ -288,7 +292,7 @@ function check_state_progress(){
                         get_offset();
                         setInterval('start_clock_init("' + sp_ar[1] + '","' + sp_ar[2] + '")',1000);
                     }
-                    else if (new_progress == 'waiting first'){
+                    else if (new_progress == 'waiting first' || new_progress == 'waiting second'){
                         document.getElementById('state').innerHTML = 'waiting for someone to leave the base!';
                     }
                     else{
@@ -336,7 +340,7 @@ function get_coord(screen, group){
 						console.log(http.responseText);
                         var res = JSON.parse(http.responseText);
 						for (var i=0; i<res.length; i++){
-		                    var lonLat = new OpenLayers.LonLat(res[i][1],res[i][0]).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+		                    var lonLat = new OpenLayers.LonLat(res[i][0],res[i][1]).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 		                    var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
 		                    var radius_in_m = 30;
 		                    var radius = radius_in_m/Math.cos(lat*(Math.PI/180));

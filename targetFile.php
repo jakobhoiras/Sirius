@@ -49,90 +49,100 @@ class targetFile {
         }
         
         $target_array = array();
-        for ($i=0; $i < $nZones; $i++){
-            array_push($target_array, ($this->makeTarget($zones, $assigns, $rutes, $teamId, $i+1, $ruteId1, $ruteId2, $nZones)));
-        }
+        array_push($target_array, ($this->makeTarget($zones, $assigns, $rutes, $teamId, $ruteId1, $ruteId2, $nZones, 'first')));
+		array_push($target_array, ($this->makeTarget($zones, $assigns, $rutes, $teamId, $ruteId1, $ruteId2, $nZones, 'second')));
 		$json = new json();
 		$json -> createJson($target_array, "Games/$gameName/targetfile$teamId");
         //echo json_encode($target_array);
     }
 
-    function makeTarget($zones, $assigns, $rutes, $teamId, $count, $ruteId1, $ruteId2, $nZones) {
+    function makeTarget($zones, $assigns, $rutes, $teamId, $ruteId1, $ruteId2, $nZones, $half) {
         ### FIRST HALF
-        # finds the first of three indexes for the assignments in teams_assignments table; three assignments for each zone!
-        $startAssign1 = (($count * 3) - 2);  
-        
-        # Finds the zoneID 
-        for ($i = 0; $i < sizeof($rutes); $i++) {
-            if ($rutes[$i][0] === $ruteId1) {
-            
-                $zoneId = $rutes[$i][$count];
-            }
-        }
-        # Finds the coordinates
-        for ($i = 0; $i < sizeof($zones); $i++) {
-            if ($zones[$i][0] === $zoneId) {
-                
-                $tlat = $zones[$i][1];
-                $tlong = $zones[$i][2];
-                $tAcceptRange = $zones[$i][3];
-            }
-        }
-        # Finds the assignments
-        for ($i = 0; $i < sizeof($assigns); $i++) {
-            if ($assigns[$i][0] === $teamId) {
-            
-                $q1 = $assigns[$i][$startAssign1];
-                $q2 = $assigns[$i][$startAssign1 + 1];
-                $q3 = $assigns[$i][$startAssign1 + 2];
-            }
-        }
-        # json-object for first half
-        $target1 = array(
-            "tLat" => $tlat, # latitude
-            "tLong" => $tlong, #longitude
-            "tName" => $zoneId, # zoneID
-            "tAcceptRange" => $tAcceptRange, #Zone radius 
-            "tQuestions" => 3, # number of assignments per zone; fixed to 3 for now!
-            "tQuestion" => array($q1,$q2,$q3) #array with questions 
-        );
+        # finds the first of three indexes for the assignments in teams_assignments table; three assignments for each zone! 
+		$targets = array();
+		if ($half == 'first') {
+		    for ($count=1; $count < $nZones+1; $count++){
+				$startAssign1 = (($count * 3) - 2);
+				# Finds the zoneID 
+				for ($i = 0; $i < sizeof($rutes); $i++) {
+				    if ($rutes[$i][0] === $ruteId1) {
+				    
+				        $zoneId = $rutes[$i][$count];
+				    }
+				}
+				# Finds the coordinates
+				for ($i = 0; $i < sizeof($zones); $i++) {
+				    if ($zones[$i][0] === $zoneId) {
+				        
+				        $tlat = $zones[$i][2];
+				        $tlong = $zones[$i][1];
+				        $tAcceptRange = $zones[$i][3];
+				    }
+				}
+				# Finds the assignments
+				for ($i = 0; $i < sizeof($assigns); $i++) {
+				    if ($assigns[$i][0] === $teamId) {
+				    
+				        $q1 = $assigns[$i][$startAssign1];
+				        $q2 = $assigns[$i][$startAssign1 + 1];
+				        $q3 = $assigns[$i][$startAssign1 + 2];
+				    }
+				}
+				# json-object for the zone
+				$target = array(
+				    "tLat" => $tlat, # latitude
+				    "tLong" => $tlong, #longitude
+				    "tName" => $zoneId, # zoneID
+				    "tAcceptRange" => $tAcceptRange, #Zone radius 
+				    "tQuestions" => 3, # number of assignments per zone; fixed to 3 for now!
+				    "tQuestion" => array($q1,$q2,$q3) #array with questions 
+				);
+				array_push($targets, $target);
+			}
+			return $targets;
+		}
         ### SECOND HALF
-        $startAssign2 = ((3*$nZones) + ($count * 3) - 2);
-        # Finds the zoneID 
-        for ($i = 0; $i < sizeof($rutes); $i++) {
-            if ($rutes[$i][0] === $ruteId2) {
-            
-                $zoneId = $rutes[$i][$count];
-            }
-        }
-        # Finds the coordinates
-        for ($i = 0; $i < sizeof($zones); $i++) {
-            if ($zones[$i][0] === $zoneId) {
-                
-                $tlat = $zones[$i][1];
-                $tlong = $zones[$i][2];
-                $tAcceptRange = $zones[$i][3];
-            }
-        }
-        # Finds the assignments
-        for ($i = 0; $i < sizeof($assigns); $i++) {
-            if ($assigns[$i][0] === $teamId) {
-            
-                $q1 = $assigns[$i][$startAssign2];
-                $q2 = $assigns[$i][$startAssign2 + 1];
-                $q3 = $assigns[$i][$startAssign2 + 2];
-            }
-        }
-        # json-object for first half
-        $target2 = array(
-            "tLat" => $tlat,
-            "tLong" => $tlong,
-            "tName" => $zoneId,
-            "tAcceptRange" => $tAcceptRange, #Zone radius 
-            "tQuestions" => 3, # number of assignments per zone; fixed to 3 for now!
-            "tQuestion" => array($q1,$q2,$q3) #array with questions 
-        );
-        return array($target1,$target2);
+		if ($half == 'second') {
+		    for ($count=1; $count < $nZones+1; $count++){
+        		$startAssign2 = ((3*$nZones) + ($count * 3) - 2);
+				# Finds the zoneID 
+				for ($i = 0; $i < sizeof($rutes); $i++) {
+				    if ($rutes[$i][0] === $ruteId2) {
+				    
+				        $zoneId = $rutes[$i][$count];
+				    }
+				}
+				# Finds the coordinates
+				for ($i = 0; $i < sizeof($zones); $i++) {
+				    if ($zones[$i][0] === $zoneId) {
+				        
+				        $tlat = $zones[$i][2];
+				        $tlong = $zones[$i][1];
+				        $tAcceptRange = $zones[$i][3];
+				    }
+				}
+				# Finds the assignments
+				for ($i = 0; $i < sizeof($assigns); $i++) {
+				    if ($assigns[$i][0] === $teamId) {
+				    
+				        $q1 = $assigns[$i][$startAssign2];
+				        $q2 = $assigns[$i][$startAssign2 + 1];
+				        $q3 = $assigns[$i][$startAssign2 + 2];
+				    }
+				}
+				# json-object for first half
+				$target = array(
+				    "tLat" => $tlat,
+				    "tLong" => $tlong,
+				    "tName" => $zoneId,
+				    "tAcceptRange" => $tAcceptRange, #Zone radius 
+				    "tQuestions" => 3, # number of assignments per zone; fixed to 3 for now!
+				    "tQuestion" => array($q1,$q2,$q3) #array with questions 
+				);
+        		array_push($targets, $target);
+			}
+			return $targets;
+		}
     }
 
 	function create_target_file($gameID, $teamID){

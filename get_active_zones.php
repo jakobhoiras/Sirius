@@ -19,12 +19,16 @@ $start_team = $teams_per_screen*($screen-1) + $teams_per_group*($group-1);
 $end_team = $teams_per_screen*$screen - $teams_per_group*($overset[0][1]-$group);
 $active_zones = array($zones,array(),array());
 for ($i=$start_team; $i<$end_team; $i++){
-    $ruteID = $teams[$i][1];
+	if($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
+    	$ruteID = $teams[$i][1];
+	} else {
+		$ruteID = $teams[$i][2];
+	}
     for ($j=0; $j<sizeof($rutes); $j++){
         if ($rutes[$j][0] == $ruteID){
             for ($k=0; $k<sizeof($teams_state); $k++){
                 if($teams_state[$k][0] == $teams[$i][0]){
-                    if($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
+                   	if($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
                         $zoneID = $rutes[$j][$teams_state[$k][3]];
                     }
                     else{

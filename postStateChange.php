@@ -1,9 +1,6 @@
 <?php
 require 'Mysql.php';
 
-$_POST['gameId'] = 34;
-$_POST['teamId'] = 1;
-
 if (isset($_POST['gameId'], $_POST['teamId'])) {
     $gameId = $_POST['gameId'];
     $teamId = $_POST['teamId'];
@@ -12,7 +9,7 @@ if (isset($_POST['gameId'], $_POST['teamId'])) {
     $games = $Mysql->get_games();
 
     for ($i = 0; $i < sizeof($games); $i++) {
-        if ($games[$i][0] === $gameId) {
+        if ($games[$i][0] == $gameId) {
             $gameName = $games[$i][1];
         }
     }

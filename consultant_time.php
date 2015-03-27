@@ -146,7 +146,7 @@ function init(){
         if (progress == 'start'){
             document.getElementById("start_first_half_btn").disabled = false;
         }
-        else if (progress == 'waiting second half'){
+        else if (progress == 'start second half'){
             document.getElementById("start_second_half_btn").disabled = false;
         }
     }
