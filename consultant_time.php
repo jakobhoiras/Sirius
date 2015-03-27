@@ -13,8 +13,24 @@ if( $_POST && !empty($_POST['logout']) ) {
 
 $mysql = new Mysql_spil();
 $state = $mysql -> get_state();
+$teams_state = $mysql -> get_teams_state($_SESSION['cg']);
 $progress = $mysql -> get_game_progress($_SESSION['cg']);
 $res = $mysql->get_time($_SESSION['cg']);
+
+$in = 0;
+$out = 0;
+for ($i=0; $i<sizeof($teams_state); $i++){
+    $team_state = $teams_state[$i];
+    $in_out = $team_state[1];
+    if ($in_out == "IN"){
+        $in++;
+    } else {
+        $out++;
+    }
+}
+
+
+
 $time = $res;
 if ($time[0][1] == 0){
     $time_disp1 = '-' . $time[0][0] . ':00:00';
@@ -122,7 +138,8 @@ function clock($half, $mysql, $time){
             <p id="g_time2">2. half:  <?php echo $time_disp2; ?> </p>
 		</div>
         <div style="width:24%; float:left">
-			
+            <p> Hold inde:  <?php echo $in; ?> </p>			
+            <p> Hold ude:  <?php echo $out; ?> </p>
 		</div>
         </div>
 	</body>
