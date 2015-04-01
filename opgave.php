@@ -121,7 +121,7 @@ class opgave {
                     $finArray = json_encode($array);
 
                     $this->gemmer($finArray, 'question', $name);
-                    
+
                     $_SESSION['pv'] = $name;
 
                     echo 'The assignment has been uploaded successfully';
@@ -177,28 +177,64 @@ class opgave {
 //print each file name
         echo "<select name=\"" . $postName . "\">";
         foreach ($files as $file) {
-            //check to see if the file is a folder/directory
+//check to see if the file is a folder/directory
             echo "<option value=\"" . $file . "\">" . $file . "</option>";
         }
         echo "</select>";
     }
 
-    function previewer($team, $type) {
+    function populate2($postName) {
+        $directory = getcwd() . "/Games/" . $_SESSION['cg'] . "/questionfile/";
+
+//get all files in specified directory
+        $files = array_diff(scandir($directory), array('.', '..'));
+
+//print each file name
+        $first = $files[2];
+        if (!isset($_SESSION['pv'])) {
+            $_SESSION['pv'] = $first;
+        }
+        $last = $files[sizeof($files) + 1];
+        echo "<select name=\"" . $postName . "\">";
+        foreach ($files as $file) {
+            $selected = "";
+            if ($file === $_SESSION['pv']) {
+                $selected = "selected=\"selected\"";
+            }
+            echo "<option ".$selected." value=\"" . $file . "\">" . $file . "</option>";
+        }
+        echo "</select><input type=\"submit\" name=\"submitPre\" id=\"submitPre\" value=\"Preview\"></p><p>";                
+        if ($_SESSION['pv'] !== $first) {
+            echo "<input type=\"submit\" name=\"submitPrev\" id=\"submitPrev\" value=\"previous\">";
+        }
+        if ($_SESSION['pv'] !== $last) {
+            echo "<input type=\"submit\" name=\"submitNext\" id=\"submitNext\" value=\"next\">";
+        }
+    }
+
+    function previewer($team, $type, $pre) {
         if (isset($_SESSION['pv'])) {
             $assign = $_SESSION['pv'];
-            $address = getcwd() . "/Opgaver/" . $assign . "/question.json";
+            if ($pre === 'yes') {
+                $address = getcwd() . "/Opgaver/" . $assign . "/question.json";
+            } else {
+                $address = getcwd() . "/Games/" . $_SESSION['cg'] . "/questionfile/" . $assign . "/question.json";
+            }
             $json = file_get_contents($address);
             $json_output = json_decode($json, true);
 
             if ($type === "img") {
                 if ($team === "in") {
                     $img = $json_output['answer']['hintImage'];
+                    if ($img !== "") {
+                        echo "<img src = \"Opgaver/" . $assign . "/" . $img . "\"style=\"max-width: 320px;\">";
+                    }
                 }
                 if ($team === "out") {
                     $img = $json_output['question']['image'];
-                }
-                if ($img !== "") {
-                    echo "<img src = \"Opgaver/" . $assign . "/" . $img . "\"style=\"max-height: 200px; max-width: 300px;\">";
+                    if ($img !== "") {
+                        echo "<img src = \"Opgaver/" . $assign . "/" . $img . "\"style=\"max-width: 642px;\">";
+                    }
                 }
             }
             if ($type === "text") {
@@ -217,12 +253,11 @@ class opgave {
                     $answer = $json_output['answer']['options'][$i]['text'];
                     $true = $json_output['answer']['options'][$i]['correct'];
                     $correct = "previewAnswer";
-                    if($true === true) {
+                    if ($true === true) {
                         $correct = "previewAnswer2";
-                     
                     }
-                    
-                    echo "<div class=\"".$correct."\">" . $answer . "</div><br>";                    
+
+                    echo "<hr/><div class=\"" . $correct . "\">" . $answer . "</div><br/>";
                 }
             }
             if ($type === "name") {
@@ -231,8 +266,33 @@ class opgave {
         }
     }
 
-    function previewText($team) {
-        
+    function chosePrev($direction) {
+
+        $directory = getcwd() . "/Games/" . $_SESSION['cg'] . "/questionfile/";
+        $files = array_diff(scandir($directory), array('.', '..'));
+
+        if ($direction === 'prev') {
+            $_SESSION['assignNr'] = $_SESSION['assignNr'] - 1;
+        }
+        if ($direction === 'next') {
+            $_SESSION['assignNr'] = $_SESSION['assignNr'] + 1;
+        }
+        if ($direction === 'next' or $direction === 'prev') {
+
+            foreach ($files as $key => $file) {
+                if ($key === $_SESSION['assignNr']) {
+                    $_SESSION['pv'] = $file;
+                }
+            }
+        }
+        if ($direction === 'chose') {
+            $_SESSION['pv'] = $_POST['selectPreview'];
+            foreach ($files as $key => $file) {
+                if ($file === $_SESSION['pv']) {
+                    $_SESSION['assignNr'] = $key;
+                }
+            }
+        }
     }
 
 }
