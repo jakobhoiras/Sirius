@@ -129,44 +129,37 @@ $opgave = New opgave();
                 </form>
             </div>
 
-            <div class="entirePreview">
-                <h1> Preview </h1>
-                <form method="post" id="preview">
-                    <p>Chose an assignment to preview</p>
-                    <p><?php $opgave->populate('selectPreview'); ?></p>
-                    <p><input type="submit" name="submitPre" id="submitPre" value="Preview"></p>
-                </form>
 
-                <div class="previewField">
-                    <div style= "margin-left: 10px;"><center><h3> <?php $opgave->previewer('', 'name'); ?></h3></center></div>
-                    <div class="picture">
-                        <?php
-                        $opgave->previewer('out', 'img');
-                        ?>
-                    </div>
-                    <div class="preview_text">
-                        <?php $opgave->previewer('out', 'text'); ?>
+
+
+
+
+            <div class="preview">
+
+                <h1> Preview </h1>
+                <div class="previewOut">
+                    <div class="previewOutTitle"> <?php $opgave->previewer('', 'name','yes'); ?></div>
+                    <div class="previewOutPic"><?php $opgave->previewer('out', 'img','yes'); ?></div>
+                    <div class="previewOutTxt"><?php $opgave->previewer('out', 'text','yes'); ?></div>
+                </div>
+                <div class="previewIn">
+
+                    <div class="previewInTitle"> <?php $opgave->previewer('', 'name','yes'); ?></div>
+                    <div class="previewInPic"><?php $opgave->previewer('in', 'img','yes'); ?></div>
+                    <div class="previewInTxt">
+                        <?php $opgave->previewer('in', 'text','yes'); ?>
+                        <?php $opgave->previewer('', 'ans','yes'); ?>
                     </div>
                 </div>
+                <div class="previewChose">
 
-
-                <div class="previewBase">
-                    <div style= "margin-left: 10px;"><center><h3> <?php $opgave->previewer('', 'name'); ?> </h3></center></div>
-                    <div class="basePicText">
-                        <div class="picture">  
-                            <?php $opgave->previewer('in', 'img'); ?>
-                        </div>
-                        <div class="preview_text">
-                            <?php $opgave->previewer('in', 'text'); ?>
-                        </div>
-                    </div>
-                    <div class="previewAnswers">
-                        <?php $opgave->previewer('', 'ans'); ?>
-                    </div>
+                    <form method="post" id="preview">
+                        <p>Chose an assignment to preview</p>
+                        <p><?php $opgave->populate('selectPreview'); ?></p>
+                        <p><input type="submit" name="submitPre" id="submitPre" value="Preview"></p>
+                    </form>
                 </div>
             </div>
-
-
         </div>
 
         <!--<div class="input_felt">
