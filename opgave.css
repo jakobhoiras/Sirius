@@ -10,7 +10,7 @@
 }
 
 .entire_field {
-    width: 950px;
+    width: 1450px;
     float: left;
     border: transparent;
     margin-right: 10px;
@@ -30,20 +30,7 @@
     margin-bottom: 10px;
     padding: 5px;
 }
-.picture {
-    width: 300px;
-    border: transparent;
-    margin-left: 5px;
-    margin-top: 10px;
 
-}
-.preview_text {
-    width: 300px;
-    border: transparent;
-    margin-left: 5px;
-    margin-top: 10px;
-    word-wrap: break-word;
-}
 .previewField {
     width: 310px;
     -moz-border-radius: 5px;
@@ -51,46 +38,82 @@
     float: left;
     border: 2px solid grey;
 }
-.basePicText {
-    width: 310px;
-    border: transparent;
-    float: left;
-}
 .previewAnswer {
-    width: 150px;    
-    margin-left: 10px;
-    margin-top: 10px;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
+    width: 320px;    
     float: left;
-    border: 2px solid grey;
+    background-color: #cccccc;
 }
-.previewAnswer2 {
-    width: 150px;    
-    margin-left: 10px;
-    margin-top: 10px;
+.previewAnswer2 {    
     -moz-border-radius: 5px;
     border-radius: 5px;
     float: left;
-    border: 2px solid grey;
-    background: green;
+    border: 2px solid green;
+    background: #cccccc;
+    width: 316px;
 }
 .entirePreview {
-    width:500px;
+    width:300px;
     float: left;
     border: transparent;
 }
-.previewBase {
-    width: 500px;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
+.previewIn {
+    margin-top: 10px;
+    width: 328px;
+    background-color: #cccccc;
     float: left;
-    border: 2px solid grey;
-    margin-top: 5px;
+    border: 1px solid black;
 }
-.previewAnswers {
-    width: 150px;
-    border: transparent;
+
+.previewInTitle{
+    width: 320px;
+    background-color: #cccccc;
+    margin: 4px;
+    text-align: center;
+}
+.previewInPic{
+    width: 320px;
+    background-color: #cccccc;
+    margin-left: 4px;
+    margin-right: 4px;
+    margin: 4px;
+}
+.previewInTxt{
+    width: 320px;
+    margin-left: 4px;
+    margin-right: 4px;
+    background-color: #cccccc;
+    text-align: center;
+}
+.previewOut{
+    margin-top: 10px;
+    width: 650px;
+    background-color: #cccccc;
+    float: left;
+    border: 1px solid black;
+}
+.previewOutTitle{
+    width: 642px;
+    background-color: #cccccc;
+    margin: 4px;
+    text-align: center;
+}
+.previewOutPic{
+    width: 642px;
+    background-color: #cccccc;
+    margin: 4px;
+}
+.previewOutTxt{
+    width: 642px;
+    margin: 4px;
+    background-color: #cccccc;
+    text-align: center;
+}
+.preview {
+    width:654px;
+    float: left;
+}
+.previewChose {
+    width: 650px;
     float: left;
 }
 
