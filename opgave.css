@@ -116,6 +116,18 @@
     width: 650px;
     float: left;
 }
+.centerImg {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 320px;
+}
+.centerImg2 {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 642px;
+}
 
 
 

@@ -227,13 +227,13 @@ class opgave {
                 if ($team === "in") {
                     $img = $json_output['answer']['hintImage'];
                     if ($img !== "") {
-                        echo "<img src = \"Opgaver/" . $assign . "/" . $img . "\"style=\"max-width: 320px;\">";
+                        echo "<img src = \"Opgaver/" . $assign . "/" . $img . "\"class=\"centerImg\">";
                     }
                 }
                 if ($team === "out") {
                     $img = $json_output['question']['image'];
                     if ($img !== "") {
-                        echo "<img src = \"Opgaver/" . $assign . "/" . $img . "\"style=\"max-width: 642px;\">";
+                        echo "<img src = \"Opgaver/" . $assign . "/" . $img . "\"class=\"centerImg2\">";
                     }
                 }
             }
