@@ -134,12 +134,13 @@ function clock($half, $mysql, $time){
 				<p>Status</p>
 			</h1>
 			<p id="g_state">Game state:  <?php echo $state; ?> </p>
+			<p id="g_progress">Game progress:  <?php echo $progress; ?> </p>
             <p id="g_time1">1. half:  <?php echo $time_disp1; ?> </p>
             <p id="g_time2">2. half:  <?php echo $time_disp2; ?> </p>
+			<p> Hold inde:  <?php echo $in; ?> </p>			
+            <p> Hold ude:  <?php echo $out; ?> </p>
 		</div>
         <div style="width:24%; float:left">
-            <p> Hold inde:  <?php echo $in; ?> </p>			
-            <p> Hold ude:  <?php echo $out; ?> </p>
 		</div>
         </div>
 	</body>
@@ -197,8 +198,9 @@ function start_first_half(){
     var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
-                document.getElementById("g_state").innerHTML = xmlhttp.responseText; 
-                if (xmlhttp.responseText == 'the game is running'){
+                document.getElementById("g_progress").innerHTML = 'Game progress: ' + xmlhttp.responseText; 
+				document.getElementById("g_state").innerHTML = 'Game state: open'; 
+                if (xmlhttp.responseText == 'first half'){
                     start_clock(0,'first'); //start timer
                 }   
                 else{
@@ -222,7 +224,8 @@ function end_first_half(){
     xmlhttp.onreadystatechange=function() {
 	    if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
             if (xmlhttp.responseText == 1){  
-		        document.getElementById("g_state").innerHTML = 'Game state: waiting for second half to start';
+		        document.getElementById("g_progress").innerHTML = 'Game progress: start second half';
+				document.getElementById("g_state").innerHTML = 'Game state: ready';
                 //clearInterval(timerIDCheck);
                 clearInterval(timerIDupdate); 
             }      
@@ -242,8 +245,9 @@ function start_second_half(){
     var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
-                document.getElementById("g_state").innerHTML = xmlhttp.responseText; 
-                if (xmlhttp.responseText == 'the game is running'){
+                document.getElementById("g_progress").innerHTML = 'Game progress: ' + xmlhttp.responseText; 
+				document.getElementById("g_state").innerHTML = 'Game state: open'; 
+                if (xmlhttp.responseText == 'second half'){
                     start_clock(0,'second'); //start timer
                 }   
                 else{
@@ -266,7 +270,8 @@ function end_second_half(){
     xmlhttp.onreadystatechange=function() {
 	    if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
             if (xmlhttp.responseText == 1){  
-		        document.getElementById("g_state").innerHTML = 'Game state: game is over';
+		        document.getElementById("g_state").innerHTML = 'Game state: stop';
+				document.getElementById("g_progress").innerHTML = 'Game progress: ended';
                 //clearInterval(timerIDCheck);
                 clearInterval(timerIDupdate); 
             }      
@@ -287,7 +292,11 @@ function check_teams_state(half){
 	xmlhttp.onreadystatechange=function() {
 	 	if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
             if (xmlhttp.responseText == 1){
-                document.getElementById("g_state").innerHTML = 'the game is running'
+				if (half == 'first'){
+                	document.getElementById("g_progress").innerHTML = 'Game progress: first half';
+				} else {
+					document.getElementById("g_progress").innerHTML = 'Game progress: second half';
+				}
                 clearInterval(timerIDstartgame);
                 start_clock(0,half);
             }
@@ -369,7 +378,7 @@ function restart_game(){
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
 	 	if (xmlhttp.readyState==4 && xmlhttp.status==200) {   
-	        document.getElementById("g_state").innerHTML = 'Game state: the game is running'; 
+	        document.getElementById("g_state").innerHTML = 'Game state: open'; 
             var table = xmlhttp.responseText.split(" ");
             var offset = table[0]*1000;
             half = table[1];

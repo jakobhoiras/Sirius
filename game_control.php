@@ -42,23 +42,27 @@ class game_control{
         if ($count == 0){
             if ($progress == 'first'){
                 $mysql -> update_game_progress($_SESSION['cg'], 'waiting first half');
+				return 'waiting first half';
             }
             else if ($progress == 'second'){
                 $mysql -> update_game_progress($_SESSION['cg'], 'waiting second half');
+				return 'waiting second half';
             }
-            return 'waiting for someone to leave the zone!';
+            
         }
         else{
             $start_time = time();
             if ($progress == 'first'){
                 $mysql -> update_start_time_first_half($_SESSION['cg'], $start_time);
                 $mysql -> update_game_progress($_SESSION['cg'], 'first half');
+				return 'first half';
             }
             else if ($progress == 'second'){
                 $mysql -> update_start_time_second_half($_SESSION['cg'], $start_time);
                 $mysql -> update_game_progress($_SESSION['cg'], 'second half');
+				return 'second half';
             }  
-            return 'the game is running';
+            
         }
     }
 
@@ -94,19 +98,19 @@ class game_control{
         }
         $start = time();
         if ( $half == 'first'){
-            $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Pause (start) 
-                      VALUES (?)";
+            $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Pause (id, start) 
+                      VALUES (?, ?)";
         }
         else if ( $half == 'second'){
-            $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Pause2 (start) 
-                      VALUES (?)";
+            $query = "INSERT INTO GAME_" . $_SESSION['cg']. ".Pause2 (id, start) 
+                      VALUES (?, ?)";
         }
         if ($stmt = $this->conn->prepare($query)){
-            $stmt->bind_param('i', $start);
+            $stmt->bind_param('ii', $n_pause, $start);
 			$stmt->execute();
             $stmt->close();
         }
-
+		$mysql = new Mysql_spil();
 		$teams_state = $mysql -> get_teams_state($_SESSION['cg']);
 		for ($i=0; $i<sizeof($teams_state); $i++){
 			$mysql -> update_team_state($_SESSION['cg'], $teams_state[$i][0], 'pause');
@@ -177,7 +181,7 @@ class game_control{
                 
             }
         }
-
+		$mysql = new Mysql_spil();
 		$teams_state = $mysql -> get_teams_state($_SESSION['cg']);
 		$progress = $mysql -> get_game_progress($_SESSION['cg']);
 		for ($i=0; $i<sizeof($teams_state); $i++){

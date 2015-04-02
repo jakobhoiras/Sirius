@@ -11,19 +11,20 @@ function calculate_team_distance($teamID){
     $end1 = $state[0][5];
     $end2 = $state[0][6];
     // get team pos
-    $coords = $mysql -> get_all_coords($_SESSION['cg'], $teamID);    
+    $coords = $mysql -> get_all_coords($_SESSION['cg'], $teamID); 
+	echo json_encode(intval($coords[0][3]));   
     // for pos i get Vincenty_distance(i)
     $dist1 = 0;
     $dist2 = 0;
     for ($i=0; $i<sizeof($coords)-1; $i++){
-        if ($coords[$i][3] > $start1 and $coords[$i+1][3] < $end1){
+        if (intval($coords[$i][3]) > $start1 and intval($coords[$i+1][3]) < $end1){
             $lon1 = $coords[$i][1];
             $lat1 = $coords[$i][2];
             $lon2 = $coords[$i+1][1];
             $lat2 = $coords[$i+1][2];
             $dist1 += Vincenty_Distance($lat1, $lon1, $lat2, $lon2);
         }
-        else if ($coords[$i][3] > $start2 and $coords[$i+1][3] < $end2) {
+        else if (intval($coords[$i][3]) > $start2 and intval($coords[$i+1][3]) < $end2) {
             $lon1 = $coords[$i][1];
             $lat1 = $coords[$i][2];
             $lon2 = $coords[$i+1][1];

@@ -233,19 +233,31 @@ function super_init(){
 		freq = 10000000000000000;
 	}
     var group=0;
-    setInterval(
-        function() { 
-			remove_old_teams_pos(screen,group);
-            if (group == shifts){
-                group = 1;
-            }else{
-                group += 1;
-            }
-			init(screen,group);
-            add_active_zones(screen,group);
-        },
-        freq
-    );
+	if (freq != 10000000000000000){
+		setInterval(
+		    function() { 
+				remove_old_teams_pos(screen,group);
+		        if (group == shifts){
+		            group = 1;
+		        }else{
+		            group += 1;
+		        }
+				init(screen,group);
+		        add_active_zones(screen,group);
+		    },
+		    freq
+		);
+	} else {
+		setInterval(
+		    function() { 
+				remove_old_teams_pos(screen,group);
+				group = 1;
+				init(screen,group);
+		        add_active_zones(screen,group);
+		    },
+		    5000
+		);
+	}
     setInterval(function() {get_coord(screen,group)},2000);
 } 
 
@@ -278,7 +290,7 @@ function check_state_progress(){
                         //stop clock
                         clearInterval(timerIDupdate);
                         //print state
-                        document.getElementById('state').innerHTML = new_progress;
+                        document.getElementById('state').innerHTML = new_progress + ' half';
                     }
                 }
                 else if (new_state == 'open'){
@@ -811,10 +823,12 @@ function change_page(page_name) {
     </div>
     <div style="width:1000px; height:600px; margin-left:auto; margin-right:auto;">
         <div style="width:60%; height:100%; float:left" id="map"></div>
-        <div style="width:40%; height:100%; float:left">
-            <div style="width:60%;height:15%;margin-left:auto;margin-right:auto">
-                <p id="state"><?php echo $progress; ?></p>
-                <h1 id="time"> <?php echo $time_disp; ?> </h1>
+        <div style="width:40%; height:100%; float:left;">
+            <div style="width:100%;height:7%;margin-left:auto;margin-right:auto;float:left; background:grey">
+                <p id="state" style="text-decoration:underline;text-align:center;font-weight:bold;font-size:18;position:relative;bottom:10px"><?php echo $progress; ?></p>
+			</div>
+			<div style="width:100%;height:8%;margin-left:auto;margin-right:auto;float:left">
+                <h1 id="time" style="text-align:center;position:relative;bottom:15px"> <?php echo $time_disp; ?> </h1>
             </div>
             <div style="width:90%; height:60%; margin-left:auto; margin-right:auto; overflow:auto">
                 <table id="score" style="margin-left:auto; margin-right:auto;">

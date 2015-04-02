@@ -182,7 +182,7 @@ class Mysql_spil {
             $result = $stmt->get_result();
             if($guesses = $result->fetch_all()){
                 $stmt->close();
-                return $guesses[0][2];
+                return $guesses[0][3];
             }
         } 
     }
@@ -198,7 +198,8 @@ class Mysql_spil {
                 $stmt->close();
             }
         } 
-        if ($guesses==[]){
+		echo json_encode(sizeof($guesses));
+        if (sizeof($guesses)==0){
             $query = 'INSERT INTO GAME_' . $game_name . '.Guesses(teamID, assID) VALUES (?, ?)';
             if ($stmt = $this->conn->prepare($query)) {
                 $stmt->bind_param('is', $teamID, $assID);
@@ -1191,7 +1192,8 @@ class Mysql_spil {
 
         // Creates table for Guesses
         $query = "CREATE TABLE GAME_" . (string)$game_name . ".Guesses (
-            teamID INT(5) NOT NULL, PRIMARY KEY(teamID),
+			id NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
+            teamID INT(5) ,
             assID VARCHAR(250),
             tries INT(5) DEFAULT 1)";
         if ($stmt = $this->conn->prepare($query)){

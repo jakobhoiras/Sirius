@@ -34,7 +34,7 @@ class Mysql_assignment {
                 return 1;
             } else {
                 $query = 'INSERT INTO Assignments.Assignments(name) VALUES' . '(?)';
-                $name2 = strtolower($name);
+                //$name2 = strtolower($name);
                 if ($stmt = $this->conn->prepare($query)) {
 
                     $stmt->bind_param('s', $name2);

@@ -18,6 +18,9 @@ $teams_per_group = $n_teams / ($overset[0][0] * $overset[0][1]);
 $start_team = $teams_per_screen*($screen-1) + $teams_per_group*($group-1);
 $end_team = $teams_per_screen*$screen - $teams_per_group*($overset[0][1]-$group);
 $active_zones = array($zones,array(),array());
+if ($end_team == 0){
+	$end_team = 1 ;
+}
 for ($i=$start_team; $i<$end_team; $i++){
 	if($progress == 'start' or $progress == 'waiting first half' or $progress == 'first half'){
     	$ruteID = $teams[$i][1];
@@ -44,6 +47,6 @@ for ($i=$start_team; $i<$end_team; $i++){
     
 }
 
-die(json_encode($active_zones));
+echo json_encode($active_zones);
 
 ?>

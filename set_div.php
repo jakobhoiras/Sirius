@@ -57,7 +57,7 @@ if( isset($_POST['distribute'])){
 function populate($n_teams, $n_divs){
     $factors = factor($n_teams);
     echo "<select name=\"selectDivs\">";
-    echo "<option value=\"0\">ingen divisioner</option>";
+    echo "<option value=\"1\">1 division</option>";
     for ($i=0; $i<sizeof($factors)-1; $i++) {
         echo "<option value=\"" . $factors[$i] . "\">" . $factors[$i] . " divisioner med " . $n_teams/$factors[$i]  . " hold</option>";
     }

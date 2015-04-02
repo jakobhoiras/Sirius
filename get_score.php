@@ -50,6 +50,9 @@ if($score != ""){
         $start_team = $teams_per_screen*($screen-1) + $teams_per_group*($group-1);
         $end_team = $teams_per_screen*$screen - $teams_per_group*($overset[0][1]-$group);
         $team_score = array();
+		if ($end_team == 0){
+			$end_team = 1 ;
+		}
         for ($i=$start_team; $i<$end_team; $i++){
             $team = $score[$i][0];
             $div = $score[$i][1];

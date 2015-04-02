@@ -18,7 +18,7 @@ if (isset($_POST['gameId'], $_POST['teamId'], $_POST['questionId'], $_POST['answ
     }
 
 
-    $mysql -> make_guess($gameName, $teamID, $assID);
+    $mysql -> make_guess($gameName, intval($teamID), $assID);
 
     if ($answer == "true"){
         $guesses = $mysql -> get_guesses($gameName, $teamID, $assID);
