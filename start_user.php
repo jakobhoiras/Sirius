@@ -25,8 +25,7 @@ if( $_POST && !empty($_POST['logout']) ) {
         </div>
         <div style="margin-left:auto; margin-right:auto; margin-top:150px"> 
             <form method="post" style="text-align:center">
-                <input type="button" value="create assignments" onclick="change_page('opret_opgave_type')"/><br>
-                <input type="button" value="create teams" onclick="change_page('create_teams')"/><br>
+                <input type="button" value="Create assignments" onclick="change_page('opret_opgave_type')"/><br>
                 <input type="button" value="Screens" onclick="change_page('screen_options')"/><br>
             </form>
         </div>

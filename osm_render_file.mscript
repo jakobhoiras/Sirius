@@ -1,4 +1,4 @@
 use-ruleset alias=default
-load-source ../../tiles/Matkon2.osm.bz2
-generate-tiles minzoom=12 maxzoom=16 tilesdir=../../tiles/Matkon2
+load-source ../../tiles/matkon.osm.bz2
+generate-tiles minzoom=12 maxzoom=17 tilesdir=../../tiles/matkon
 exit

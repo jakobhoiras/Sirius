@@ -32,7 +32,7 @@ class getCoords {
             }
 			$coords_ar = array();
 			for ($i = 0; $i < sizeof($active_teams); $i++){
-		        $query = "SELECT * FROM GAME_" . $gameName . ".Team_pos_" . $active_teams[$i] . " ORDER BY count DESC LIMIT 1";
+		        $query = "SELECT * FROM GAME_" . $gameName . ".Team_pos_" . $active_teams[$i] . " ORDER BY count DESC LIMIT 10";
 		        if ($stmt = $this->conn->prepare($query)) {
 		            $stmt->execute();
 		            $result = $stmt->get_result();
@@ -40,7 +40,7 @@ class getCoords {
 		                $stmt->close();
 		            }
 		        }
-		        array_push($coords_ar,array($coords[0][1],$coords[0][2], $coords[0][3],$active_teams[$i]));
+		        array_push($coords_ar,array($coords,$active_teams[$i]));
 			} 
 			echo json_encode($coords_ar);
         }

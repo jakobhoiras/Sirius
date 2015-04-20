@@ -29,6 +29,7 @@ function createJson($teamId, $gameId) {
         "teamId" => $teamId,
         "targetFile" => "http://www.matkonsw.com/sirius/Games/" . $gameName . "/targetfile$teamId.json",
         "mapFile" => "http://www.matkonsw.com/tiles/" . $mapCoords[6] . ".zip",
+		"satFile" => "http://www.matkonsw.com/tiles_sat/" . $mapCoords[6] . ".zip",
         "centerLat" => $mapCoords[1],
         "centerLon" => $mapCoords[0],
         "minLat" => $mapCoords[3],
@@ -51,7 +52,8 @@ function createJson($teamId, $gameId) {
         "postCoords" => "http://www.matkonsw.com/sirius/postCoords.php",
         "getCoords" => "http://www.matkonsw.com/sirius/getCoords.php",
         "postAnswer" => "http://www.matkonsw.com/sirius/postAnswer.php",
-		"foundZone" => "http://www.matkonsw.com/sirius/foundZone.php"
+		"foundZone" => "http://www.matkonsw.com/sirius/postZoneFound.php",
+		"postSatLock" => "http://www.matkonsw.com/sirius/postSatLock.php"
     );
 
     header('Content-Type: application/json');
@@ -80,10 +82,10 @@ function getMapCoords($id) {
         if ($maps[$i][0] === $mapId) {
             $centerLat = $maps[$i][1];
             $centerLong = $maps[$i][2];
-            $minLat = $maps[$i][1] - 0.09; 
-            $maxLat = $maps[$i][1] + 0.09;
-            $minLong = $maps[$i][2] - 0.18;
-            $maxLong = $maps[$i][2] + 0.18;
+            $minLat = $maps[$i][1] - 0.063; 
+            $maxLat = $maps[$i][1] + 0.063;
+            $minLong = $maps[$i][2] - 0.11;
+            $maxLong = $maps[$i][2] + 0.11;
         }
     }
     array_push($mapCoords, $centerLat, $centerLong, $minLat, $minLong, $maxLat, $maxLong, $mapId);

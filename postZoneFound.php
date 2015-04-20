@@ -10,7 +10,7 @@ if (isset($_POST['gameId'], $_POST['teamId'])) {
     $games = $mysql->get_games();
 
     for ($i = 0; $i < sizeof($games); $i++) {
-        if ($games[$i][0] === $gameId) {
+        if ($games[$i][0] == $gameId) {
             $gameName = $games[$i][1];
         }
     }

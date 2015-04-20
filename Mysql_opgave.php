@@ -33,11 +33,11 @@ class Mysql_assignment {
             if ($already_exists == true) {
                 return 1;
             } else {
-                $query = 'INSERT INTO Assignments.Assignments(name) VALUES' . '(?)';
+                $query = "INSERT INTO Assignments.Assignments(name) VALUES(?)";
                 //$name2 = strtolower($name);
                 if ($stmt = $this->conn->prepare($query)) {
 
-                    $stmt->bind_param('s', $name2);
+                    $stmt->bind_param('s', $name);
                     $stmt->execute();
                     $stmt->close();
                     return 0;

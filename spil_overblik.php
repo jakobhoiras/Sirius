@@ -16,7 +16,7 @@ $_SESSION['cg'] = $current_game;
 $mysql = new Mysql_spil();
 $res = $mysql -> get_status();
 if ($res[0] == ''){
-	$map_name='ikke valgt';
+	$map_name='Not chosen';
 }
 else{
 	$map_name = $res[0][0][0];
@@ -55,7 +55,7 @@ if ($res[3][sizeof($res[3])-1] == NULL){
 	$yn='nej';
 }
 else{
-	$yn = 'ja';
+	$yn = 'yes';
 }
 if ($res[4] == ''){
 	$n_opgaver = 0;
@@ -64,10 +64,10 @@ else{
 	$n_opgaver = sizeof($res[4]);
 }
 if ($res[5] == false){
-	$yn2='nej';
+	$yn2='no';
 }
 else{
-	$yn2 = 'ja';
+	$yn2 = 'yes';
 }
 if ($res[6] == ''){
     $time = 0;
@@ -86,8 +86,8 @@ else{
     $divs = $res[7][0][0];
 }
 
-$yn3 = 'nej';
-$yn4 = 'nej';
+$yn3 = 'no';
+$yn4 = 'no';
 
 if( $_POST && !empty($_POST['zip']) ) {
 	require 'zipper.php';
@@ -101,7 +101,7 @@ if( $_POST && !empty($_POST['zip']) ) {
 <html lang="da">
     <head>
         <title>
-            Spil menu
+            Game menu
         </title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
     </head>
@@ -118,18 +118,17 @@ if( $_POST && !empty($_POST['zip']) ) {
 				<p>Actions</p>
 			</h1>
 			<form method="post">
-				<input type="button" value="importer opgaver" onclick=change_page("importer_opgaver") /><br>
-				<input type="button" value="importer kort" onclick=change_page("importer_kort") /><br>
-				<input type="button" value="Zoner" onclick=change_page("draw_zone") /><br>
-				<input type="button" value="Ruter" onclick=change_page("create_rutes") /><br>
-				<input type="button" value="Hold" onclick=change_page("create_teams") /><br>
-                <input type="button" value="Divisioner" onclick=change_page("set_div") /><br>
-                <input type="button" value="Skærmopsætning" onclick=change_page("set_overview_screen") /><br>
-                <input type="button" value="Skærme" onclick=change_page("screen_options") /><br>
-                <input type="button" value="Konsulent panel" onclick=change_page("consultant_panel") /><br>
-				<input type="button" value="Fordel ruter" onclick="fordel_ruter(<?php echo $n_ruter . ',' . $n_hold; ?>)" /><br>
-				<input type="button" value="Fordel opgaver" onclick="fordel_opgaver(<?php echo $n_opgaver . ',' . $n_rute_length . ',' . $n_hold; ?>)" /><br>
-                <input type="button" value="Lav QR-koder" onclick=create_qr_codes() /><br>
+				<input type="button" value="Import Assignments" onclick=change_page("importer_opgaver") /><br>
+				<input type="button" value="Import maps" onclick=change_page("importer_kort") /><br>
+				<input type="button" value="Zones" onclick=change_page("draw_zone") /><br>
+				<input type="button" value="Rutes" onclick=change_page("create_rutes") /><br>
+				<input type="button" value="Teams" onclick=change_page("teams_divisions") /><br>
+                <input type="button" value="Display setup" onclick=change_page("set_overview_screen") /><br>
+                <input type="button" value="Map display" onclick=change_page("screen_options") /><br>
+                <input type="button" value="Consultant panel" onclick=change_page("consultant_panel") /><br>
+				<input type="button" value="Distribute rutes" onclick="fordel_ruter(<?php echo $n_ruter . ',' . $n_hold; ?>)" /><br>
+				<input type="button" value="Distribute Assignments" onclick="fordel_opgaver(<?php echo $n_opgaver . ',' . $n_rute_length . ',' . $n_hold; ?>)" /><br>
+                <input type="button" value="Generate QR-codes" onclick=create_qr_codes() /><br>
 				<p id="res"></p>
 			</form>
 			<form method="post" action="">
@@ -181,14 +180,14 @@ if( $_POST && !empty($_POST['zip']) ) {
 
 	function fordel_ruter(n_ruter, n_hold){
 		if (n_ruter != 2* n_hold){
-			document.getElementById("res").innerHTML = "Der skal være dobbelt så mange ruter som hold!";
+			document.getElementById("res").innerHTML = "The number of rutes has to be twice the number of teams!";
 		}
 		else{
 			var xmlhttp = new XMLHttpRequest();
 			xmlhttp.onreadystatechange=function() {
 		    	if (xmlhttp.readyState==4 && xmlhttp.status==200) {
 		        	xmlhttp.responseText.split(" ");  
-					document.getElementById("fordel_ruter").innerHTML = 'Ruter fordelt: ja'; 
+					document.getElementById("fordel_ruter").innerHTML = 'Rutes distributed: yes'; 
 					document.getElementById("res").innerHTML = "";         
 		    	}
 			}
@@ -199,13 +198,13 @@ if( $_POST && !empty($_POST['zip']) ) {
 
 	function fordel_opgaver(n_opgaver, n_rute_length, n_hold){
 		if (n_opgaver != 2*3*n_rute_length){
-			document.getElementById("res").innerHTML = "6 x rute længden skal være lig med antallet opgaver!";
+			document.getElementById("res").innerHTML = "The number of assignments has be 6 times the rute length";
 		}
 		else{
 			var xmlhttp = new XMLHttpRequest();
 			xmlhttp.onreadystatechange=function() {
 		    	if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
-					document.getElementById("fordel_opgaver").innerHTML = 'Opgaver fordelt: ja'; 
+					document.getElementById("fordel_opgaver").innerHTML = 'Assignments distributed: yes'; 
 					document.getElementById("res").innerHTML = "";         
 		    	}
 			}
@@ -219,7 +218,7 @@ if( $_POST && !empty($_POST['zip']) ) {
 	    xmlhttp.onreadystatechange=function() {
 	    	if (xmlhttp.readyState==4 && xmlhttp.status==200) {  
                 if (xmlhttp.responseText == true){  
-				    document.getElementById("qr_gen").innerHTML = 'QR-koder genereret: ja'; 
+				    document.getElementById("qr_gen").innerHTML = 'QR-codes generated: yes'; 
 				    document.getElementById("res").innerHTML = "";
                 }      
 	       	}

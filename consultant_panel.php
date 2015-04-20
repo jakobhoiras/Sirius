@@ -35,14 +35,11 @@ function change_page(page_name) {
 	<body>
         <div style="width:800px; margin-left:auto; margin-right:auto;">
 		<div style="width:38%; margin-left:auto; margin-right:auto">
-				<input id="time_btn" type="button" value="time control" onclick=change_page("consultant_time")><br/>
-                <input id="score_btn" type="button" value="score overview" onclick=change_page("consultant_score")><br/>    
-                <input id="asgn_btn" type="button" value="assignments" onclick=change_page("consultant_assignments")>
+				<input id="time_btn" type="button" value="Time control" onclick=change_page("consultant_time")><br/>
+                <input id="score_btn" type="button" value="Score overview" onclick=change_page("consultant_score")><br/>    
+                <input id="asgn_btn" type="button" value="Assignments" onclick=change_page("consultant_assignments")>
 		</div>
         </div>
 	</body>
 </html>
 
- 
-
-<!-- // -->

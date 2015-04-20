@@ -150,7 +150,7 @@ function update_zones_in_db(centerX, centerY, radius, a) {
         }
     }
     if (a == 'save' || a == 'delete_zone' || a == 'saveBase' || a == 'delete_base'){
-        xmlhttp.open("GET","update_zones.php?x=" + centerX.toFixed(6) + "&y=" + centerY.toFixed(6) + "&r=" + radius + '&a=' + a,true);
+        xmlhttp.open("GET","update_zones.php?x=" + centerX.toFixed(8) + "&y=" + centerY.toFixed(8) + "&r=" + radius + '&a=' + a,true);
         xmlhttp.send();
     } 
 }

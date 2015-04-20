@@ -34,12 +34,13 @@ var zoom=13;
 var map;
 var maps_db;
 var mapBounds = new OpenLayers.Bounds(12.3937091643, 55.7398667756, 12.6078492329, 55.8264812224);
-var mapMinZoom = 13;
+var mapMinZoom = 12;
 var mapMaxZoom = 17;
 OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
 var emptyTileURL = "http://www.maptiler.org/img/none.png";
 var old_resp = 0;
 var singlesiteLayer = 0;
+var satelliteLayer = 0;
 //Initialise the 'map' object
 function init() {
     map = new OpenLayers.Map ("map", {
@@ -66,12 +67,12 @@ function init() {
     /*var overviewLayer = new OpenLayers.Layer.OSM("Overview of all maps", "tiles/all13/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
     map.addLayer(overviewLayer);*/
     
-    singlesiteLayer = new OpenLayers.Layer.OSM("single site map", "../tiles/lyngby/${z}/${x}/${y}.png", {numZoomLevels: 19, alpha: true});
+    singlesiteLayer = new OpenLayers.Layer.OSM("single site map", "../tiles/", {numZoomLevels: 19, alpha: true});
     map.addLayer(singlesiteLayer);
 
 
     // This is the layer that uses the locally stored tiles
-    var satelliteLayer = new OpenLayers.Layer.TMS("Satellite map", "../tiles/lyngby/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL, visibility: 0});
+    satelliteLayer = new OpenLayers.Layer.TMS("Satellite map", "../tiles_sat/", {numZoomLevels: 19, alpha: true, isBaseLayer: false, layername: '.', type: 'png',serviceVersion: '.', getURL: getURL, visibility: 0});
     map.addLayer(satelliteLayer);
     if (OpenLayers.Util.alphaHack() == false) {
         satelliteLayer.setOpacity(0.7);
@@ -135,7 +136,7 @@ function Save_map(){
     var table = document.getElementById("maps");
     table.insertRow(-1).insertCell(0).innerHTML = mapID;
     add_pick_coloring(table.rows.length-1);
-    document.getElementById("wait").innerHTML="please wait while the map is being downloaded. This can take a while.";
+    document.getElementById("wait").innerHTML="please wait while the maps are being generated. This can take a while.";
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
@@ -200,6 +201,7 @@ function pick_map(table, j) {
         var newLon = maps_db[j*3+1];
         var newLat = maps_db[j*3+2];
         singlesiteLayer.url = "../tiles/" + maps_db[j*3] + "/${z}/${x}/${y}.png";
+		satelliteLayer.url = "../tiles_sat/" + maps_db[j*3] + "/";
         var lonLat = new OpenLayers.LonLat(newLon, newLat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
         map.setCenter (lonLat, zoom);
     }

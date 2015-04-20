@@ -14,9 +14,9 @@ if ($map_name == ''){
 
 $state = $mysql -> get_state();
 $progress = $mysql -> get_game_progress($_SESSION['cg']);
+$n_teams = sizeof($mysql -> get_teams($_SESSION['cg']));
 
-
-$time = $mysql->get_time($_SESSION['cg']);
+$time = $mysql -> get_time($_SESSION['cg']);
 
 if ($progress == 'start' or $progress == 'waiting first half' or $progress == 'waiting second half'){
     $time_disp = '-' . $time[0][0] . ':00:00';
@@ -84,6 +84,8 @@ $res = $mysql->get_overview_settings();
 $screens = $res[0][0];
 $shifts = $res[0][1];
 $freq = $res[0][2];
+$n_teams = $n_teams / ($screens*$shifts);
+
 $games = $mysql->get_games();
 for ($i = 0; $i < sizeof($games); $i++) {
     if ($games[$i][1] === $_SESSION['cg']) {
@@ -103,14 +105,8 @@ if( $_POST && !empty($_POST['logout']) ) {
 <head>
     <title>Create zones</title>
     <link rel="stylesheet" href="style.css" type="text/css" />
-    <!-- bring in the OpenLayers javascript library
-         (here we bring it from the remote site, but you could
-         easily serve up this javascript yourself) -->
     <script src="OpenLayers/OpenLayers.js"></script>
  
-    <!-- bring in the OpenStreetMap OpenLayers layers.
-         Using this hosted file will make sure we are kept up
-         to date with any necessary changes -->
     <script src="Openmap.js"></script>
 
     <script src="init_maps.js"></script>
@@ -123,6 +119,11 @@ var gameID = <?php echo $gameID; ?>;
 var progress = <?php echo json_encode($progress); ?>;
 var state = <?php echo json_encode($state) ?>;
 var time = (<?php echo json_encode($time) ?>).split(" "); 
+var n_teams = (<?php echo json_encode($n_teams) ?>);
+var movement = [];
+for (var i = 0; i < n_teams; i++){
+	movement.push(0);
+}
 //var start_time = new Date(<?php $start_time ?>);
 var lat=55.398;
 var lon=10.385;
@@ -137,6 +138,7 @@ var delete_z=0;
 var delete_b=0;
 var zoneLayer;
 var baseLayer;
+var moveLayer;
 var old_resp=0;
 var row_picked=0;
 var base_layer=0;
@@ -152,6 +154,9 @@ var old_progress = 0;
 var pass = false;
 var offset=0;
 var initTimerID
+
+var div_table_old = 0;
+var team_table_old = 0;
 
 function start_clock_init(new_progress1,new_progress2){
     if (pass == true){ 
@@ -199,8 +204,7 @@ function get_offset(){
 }
 
 function remove_old_teams_pos(screen, group){
-	console.log('here');
-	zoneLayer.removeAllFeatures();//( zoneLayer.getFeatureById("team_pos"));
+	zoneLayer.removeFeatures(zoneLayer.getFeaturesByAttribute("team_coord", "yes"));//( zoneLayer.getFeatureById("team_pos"));
 }
 
 function super_init(){
@@ -229,11 +233,8 @@ function super_init(){
     var screen = <?php echo $screen; ?>;
     var shifts = <?php echo $shifts; ?>;
 	var freq = <?php echo $freq*1000; ?>;
-	if (freq == 0) {
-		freq = 10000000000000000;
-	}
     var group=0;
-	if (freq != 10000000000000000){
+	if (freq != 0){
 		setInterval(
 		    function() { 
 				remove_old_teams_pos(screen,group);
@@ -243,22 +244,24 @@ function super_init(){
 		            group += 1;
 		        }
 				init(screen,group);
-		        add_active_zones(screen,group);
+		        add_active_zones(screen,group,freq);
+				get_coord(screen,group, 'remove');
 		    },
 		    freq
 		);
 	} else {
+		add_active_zones(screen,1,freq);
 		setInterval(
 		    function() { 
-				remove_old_teams_pos(screen,group);
+				//remove_old_teams_pos(screen,group);
 				group = 1;
 				init(screen,group);
-		        add_active_zones(screen,group);
+		        move_active_zones(screen,group,freq);
 		    },
 		    5000
 		);
 	}
-    setInterval(function() {get_coord(screen,group)},2000);
+    setInterval(function() {get_coord(screen,group, 'move')},3000);
 } 
 
 
@@ -336,8 +339,8 @@ function start_clock(offset, half){
 	xmlhttp.send();
 }
 
-function get_coord(screen, group){
-				if( group != 0){
+function get_coord(screen, group, action){
+	if( group != 0){
                 var http = new XMLHttpRequest();
                 var url = "getCoords_server.php";
                 var params = "gameId=" + gameID + "&screen=" + screen + "&group=" + group;
@@ -349,26 +352,61 @@ function get_coord(screen, group){
 
                 http.onreadystatechange=function() {
                     if (http.readyState==4 && http.status==200) {
-						console.log(http.responseText);
                         var res = JSON.parse(http.responseText);
 						for (var i=0; i<res.length; i++){
-		                    var lonLat = new OpenLayers.LonLat(res[i][0],res[i][1]).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+		                    var lonLat = new OpenLayers.LonLat(res[i][0][0][1],res[i][0][0][2]).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
 		                    var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
 		                    var radius_in_m = 30;
 		                    var radius = radius_in_m/Math.cos(lat*(Math.PI/180));
 		                    var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point,radius,3,0);
 		                    var featurecircle = new OpenLayers.Feature.Vector(mycircle);
-		                    featurecircle.style = {fillColor: "blue", fillOpacity: 0.4, strokeColor:"red", label: String(res[i][3])};
-		                    featurecircle.attributes["team_pos"] = res[i][3];
+		                    featurecircle.style = {fillColor: "blue", fillOpacity: 0.4, strokeColor:"red", label: String(res[i][1])};
+		                    featurecircle.attributes["team_pos"] = res[i][1];
+							featurecircle.attributes["team_coord"] = "yes";
 							//featurecircle.id = "team_pos";
-		                    zoneLayer.removeFeatures( zoneLayer.getFeaturesByAttribute("team_pos", res[i][3]) );
-		                    zoneLayer.addFeatures([featurecircle]);
+		                   	var feature = zoneLayer.getFeaturesByAttribute("team_pos", res[i][1]);
+							//console.log(feature.length);
+							if (feature == 0){
+		                    	zoneLayer.addFeatures([featurecircle]);
+							}else {
+								feature[0].move(lonLat);
+							}
+							map.zoomToExtent(zoneLayer.getDataExtent());
+							draw_lines(res[i],i);
 						}
                     }
                 }
                 http.send(params);
 	}
 }
+
+function draw_lines(coords, teamIndex){
+	console.log(coords);
+    for (var i=coords[0].length-1; i>0; i--){
+		if (movement[teamIndex] < coords[0][i][0]){
+			console.log(movement[teamIndex]);
+		    var lon_pos = coords[0][i-1][1];
+		    var lat_pos = coords[0][i-1][2];
+			var lon_pos2 = coords[0][i][1];
+		    var lat_pos2 = coords[0][i][2];
+		    var lonLat = new OpenLayers.LonLat(lon_pos,lat_pos).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+		   	var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
+			var lonLat = new OpenLayers.LonLat(lon_pos2,lat_pos2).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+		   	var point2 = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
+			var feature = new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString([point,point2]));    
+			feature.attributes["line"] = "team" + coords[1] + "pos" + coords[0][i][0];
+			moveLayer.addFeatures([feature]);
+			movement[teamIndex] = coords[0][i][0];
+			console.log(movement[teamIndex]);
+			if ( moveLayer.getFeaturesByAttribute("line", "team" + coords[1] + "pos" + (coords[0][i][0] - 9)).length > 0){
+				console.log("removedline");
+				var oldFeature = moveLayer.getFeaturesByAttribute("line", "team" + coords[1] + "pos" + (coords[0][i][0] - 9));
+				moveLayer.removeFeatures(oldFeature);
+			}
+		}
+    }
+}
+
 //Initialise the 'map' object
 function init(screen,group) {
     update_score_table(screen,group);
@@ -400,75 +438,78 @@ function onlyUnique(value, index, self) {
 }
 
 function update_division_score_table(screen,group){
-    remove_score("div");
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
             var score = JSON.parse(xmlhttp.responseText);
-            var number_of_teams = score[0].length;
-            var table = document.getElementById("div_score");
-            //var div = [];
-            //var cp = [];
-            //var points = [];
-            var res = [];
-            if (score[1] == 'first'){
-                for (var i=0; i<number_of_teams; i++){
-                    res.push([i+1,
-                              score[0][i][0],
-                              score[0][i][3],
-                              score[0][i][8],
-                              score[0][i][6],
-                              score[0][i][1],
-                              score[0][i][5]]);
-                    //cp.push(score[0][i][2]);
-                    //points.push(score[0][i][3]);
-                }
-            } else{
-                for (var i=0; i<number_of_teams; i++){
-                    //div.push(score[0][i][1]);
-                    //cp.push(score[0][i][4]);
-                    //points.push(score[0][i][5]);
-                    res.push([i+1,
-                              score[0][i][0],
-                              score[0][i][4],
-                              score[0][i][9],
-                              score[0][i][7],
-                              score[0][i][2],
-                              score[0][i][5]]);
-                }
-            }
-            /*var unique_divs = div.filter(onlyUnique);
-            var res = [];
-            for (var j=0; j<unique_divs.length; j++){
-                cp_tot = 0;
-                points_tot = 0;
-                for (var i=0; i<number_of_teams; i++){
-                    if (div[i] == unique_divs[j]){
-                        cp_tot += parseInt(cp[i]);
-                        points_tot += parseInt(points[i]);
-                    }
-                }
-                res.push([unique_divs[j],cp_tot,points_tot]);
-            }
-            res.sort(sortFunction_divs);*/
-            //console.log(res);
-            for (var i=0; i<res.length; i++){
-                var row = table.insertRow(-1);
-                var cell0 = row.insertCell(0);
-                var cell1 = row.insertCell(1);
-                var cell2 = row.insertCell(2);
-                var cell3 = row.insertCell(3);
-                var cell4 = row.insertCell(4);
-                var cell5 = row.insertCell(5);
-                var cell6 = row.insertCell(6);
-                cell0.innerHTML = res[i][0];
-                cell1.innerHTML = res[i][1];
-                cell2.innerHTML = res[i][2];
-                cell3.innerHTML = res[i][3];
-                cell4.innerHTML = res[i][4];
-                cell5.innerHTML = res[i][5];
-                cell6.innerHTML = res[i][6];
-            }
+			if (score != div_table_old){
+				remove_score("div");
+		        var number_of_teams = score[0].length;
+		        var table = document.getElementById("div_score");
+		        //var div = [];
+		        //var cp = [];
+		        //var points = [];
+		        var res = [];
+		        if (score[1] == 'first'){
+		            for (var i=0; i<number_of_teams; i++){
+		                res.push([i+1,
+		                          score[0][i][0],
+		                          score[0][i][3],
+		                          score[0][i][8],
+		                          score[0][i][6],
+		                          score[0][i][1],
+		                          score[0][i][5]]);
+		                //cp.push(score[0][i][2]);
+		                //points.push(score[0][i][3]);
+		            }
+		        } else{
+		            for (var i=0; i<number_of_teams; i++){
+		                //div.push(score[0][i][1]);
+		                //cp.push(score[0][i][4]);
+		                //points.push(score[0][i][5]);
+		                res.push([i+1,
+		                          score[0][i][0],
+		                          score[0][i][4],
+		                          score[0][i][9],
+		                          score[0][i][7],
+		                          score[0][i][2],
+		                          score[0][i][5]]);
+		            }
+		        }
+		        /*var unique_divs = div.filter(onlyUnique);
+		        var res = [];
+		        for (var j=0; j<unique_divs.length; j++){
+		            cp_tot = 0;
+		            points_tot = 0;
+		            for (var i=0; i<number_of_teams; i++){
+		                if (div[i] == unique_divs[j]){
+		                    cp_tot += parseInt(cp[i]);
+		                    points_tot += parseInt(points[i]);
+		                }
+		            }
+		            res.push([unique_divs[j],cp_tot,points_tot]);
+		        }
+		        res.sort(sortFunction_divs);*/
+		        //console.log(res);
+		        for (var i=0; i<res.length; i++){
+		            var row = table.insertRow(-1);
+		            var cell0 = row.insertCell(0);
+		            var cell1 = row.insertCell(1);
+		            var cell2 = row.insertCell(2);
+		            var cell3 = row.insertCell(3);
+		            var cell4 = row.insertCell(4);
+		            var cell5 = row.insertCell(5);
+		            var cell6 = row.insertCell(6);
+		            cell0.innerHTML = res[i][0];
+		            cell1.innerHTML = res[i][1];
+		            cell2.innerHTML = res[i][2];
+		            cell3.innerHTML = res[i][3];
+		            cell4.innerHTML = res[i][4];
+		            cell5.innerHTML = res[i][5];
+		            cell6.innerHTML = res[i][6];
+		        }
+				div_table_old = score;
+			}
         }
     }
     xmlhttp.open("GET","get_score.php?screen=" + screen + "&group=" + group + "&a=div",true);
@@ -489,59 +530,62 @@ function remove_score(a){
 }
 
 function update_score_table(screen,group){
-    remove_score("teams");
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
             var score = JSON.parse(xmlhttp.responseText);
-            var number_of_teams = score[0].length;
-            var table = document.getElementById("score");
-            var res = [];
-            if (score[1] == 'first'){
-                for (var i=0; i<number_of_teams; i++){
-                    res.push([
-                    score[2][i],
-                    score[0][i][0],
-                    score[0][i][1],
-                    parseInt(score[0][i][4]),
-                    score[0][i][5],
-                    score[0][i][8],
-                    score[0][i][2],
-                    score[0][i][10]])
-                }
-            } else{
-                for (var i=0; i<number_of_teams; i++){
-                    res.push([
-                    score[2][i],
-                    score[0][i][0],
-                    score[0][i][1],
-                    parseInt(score[0][i][6]),
-                    score[0][i][7],
-                    score[0][i][9],
-                    score[0][i][3],
-                    score[0][i][10]])
-                }
-            }
-            res.sort(sortFunction);
-            for (var i=0; i<number_of_teams; i++){
-                var row = table.insertRow(-1);
-                var cell0 = row.insertCell(0);
-                var cell1 = row.insertCell(1);
-                var cell2 = row.insertCell(2);
-                var cell3 = row.insertCell(3);
-                var cell4 = row.insertCell(4);
-                var cell5 = row.insertCell(5);
-                var cell6 = row.insertCell(6);
-                var cell7 = row.insertCell(7);
-                cell0.innerHTML = res[i][0];
-                cell1.innerHTML = res[i][1];
-                cell2.innerHTML = res[i][2];
-                cell3.innerHTML = res[i][3];
-                cell4.innerHTML = res[i][4];
-                cell5.innerHTML = '-' + res[i][5];
-                cell6.innerHTML = res[i][6];
-                cell7.innerHTML = res[i][7];
-            }
+			if (score != div_table_old){
+				remove_score("teams");
+		        var number_of_teams = score[0].length;
+		        var table = document.getElementById("score");
+		        var res = [];
+		        if (score[1] == 'first'){
+		            for (var i=0; i<number_of_teams; i++){
+		                res.push([
+		                score[2][i],
+		                score[0][i][0],
+		                score[0][i][1],
+		                parseInt(score[0][i][4]),
+		                score[0][i][5],
+		                score[0][i][8],
+		                score[0][i][2],
+		                score[0][i][10]])
+		            }
+		        } else{
+		            for (var i=0; i<number_of_teams; i++){
+		                res.push([
+		                score[2][i],
+		                score[0][i][0],
+		                score[0][i][1],
+		                parseInt(score[0][i][6]),
+		                score[0][i][7],
+		                score[0][i][9],
+		                score[0][i][3],
+		                score[0][i][10]])
+		            }
+		        }
+		        res.sort(sortFunction);
+		        for (var i=0; i<number_of_teams; i++){
+		            var row = table.insertRow(-1);
+		            var cell0 = row.insertCell(0);
+		            var cell1 = row.insertCell(1);
+		            var cell2 = row.insertCell(2);
+		            var cell3 = row.insertCell(3);
+		            var cell4 = row.insertCell(4);
+		            var cell5 = row.insertCell(5);
+		            var cell6 = row.insertCell(6);
+		            var cell7 = row.insertCell(7);
+		            cell0.innerHTML = res[i][0];
+		            cell1.innerHTML = res[i][1];
+		            cell2.innerHTML = res[i][2];
+		            cell3.innerHTML = res[i][3];
+		            cell4.innerHTML = res[i][4];
+		            cell5.innerHTML = '-' + res[i][5];
+		            cell6.innerHTML = res[i][6];
+		            cell7.innerHTML = res[i][7];
+		        }
+				team_table_old = score;
+			}
         }
     }
     xmlhttp.open("GET","get_score.php?screen=" + screen + "&group=" + group + "&a=teams",true);

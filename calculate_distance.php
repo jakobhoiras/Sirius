@@ -5,14 +5,19 @@ require_once 'get_distance.php';
 function calculate_team_distance($teamID){
     $mysql = new Mysql_spil();
     $time = $mysql -> get_time($_SESSION['cg']);
-    $start1 = $time[0][1];
-    $start2 = $time[0][3];
+    $start1 = $time[0][1]*1000;
+    $start2 = $time[0][3]*1000;
     $state = $mysql -> get_team_state($_SESSION['cg'], $teamID);
-    $end1 = $state[0][5];
-    $end2 = $state[0][6];
+    $end1 = $state[0][5]*1000;
+    $end2 = $state[0][6]*1000;
+	if ($end1 == 0){
+		$end1 = 10000000000000;
+	}
+	if ($end2 == 0){
+		$end2 = 10000000000000;
+	}
     // get team pos
-    $coords = $mysql -> get_all_coords($_SESSION['cg'], $teamID); 
-	echo json_encode(intval($coords[0][3]));   
+    $coords = $mysql -> get_all_coords($_SESSION['cg'], $teamID);  
     // for pos i get Vincenty_distance(i)
     $dist1 = 0;
     $dist2 = 0;

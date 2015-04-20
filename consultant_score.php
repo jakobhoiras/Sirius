@@ -268,7 +268,6 @@ function change_page(page_name) {
                     </tr>
                     <?php 
                         $res = get_distance_array();
-						echo json_encode($res);
                         for ($i=0; $i<sizeof($res); $i++){
                             $team = $res[$i][0];
                             //$div = $score[$i][1];

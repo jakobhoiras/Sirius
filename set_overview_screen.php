@@ -53,9 +53,9 @@ if( isset($_POST['submit_freq'])) {
 function populate_screens($n_teams){
     $factors = factor($n_teams);
     echo "<select name=\"selectScreens\">";
-    echo "<option value=\"1\">1 skærm med $n_teams hold</option>";
+    echo "<option value=\"1\">1 screen with $n_teams teams</option>";
     for ($i=0; $i<sizeof($factors); $i++) {
-        echo "<option value=\"" . $factors[$i] . "\">" . $factors[$i] . " skærme med " . $n_teams/$factors[$i]  . " hold</option>";
+        echo "<option value=\"" . $factors[$i] . "\">" . $factors[$i] . " screens with " . $n_teams/$factors[$i]  . " teams</option>";
     }
     echo "</select>";
 }
@@ -63,18 +63,18 @@ function populate_screens($n_teams){
 function populate_shifts($teams_per_screen){
     $factors = factor($teams_per_screen);
     echo "<select name=\"selectShifts\">";
-    echo "<option value=\"1\">1 gruppe med $teams_per_screen hold per gruppe</option>";
+    echo "<option value=\"1\">1 group with $teams_per_screen teams per group</option>";
     for ($i=0; $i<sizeof($factors); $i++) {
-        echo "<option value=\"" . $factors[$i] . "\">" . $factors[$i] . " grupper med " . $teams_per_screen/$factors[$i]  . " hold per gruppe</option>";
+        echo "<option value=\"" . $factors[$i] . "\">" . $factors[$i] . " groups with " . $teams_per_screen/$factors[$i]  . " teams per group</option>";
     }
     echo "</select>";
 }
 
 function populate_freq($shifts){
     echo "<select name=\"selectFreq\">";
-    echo "<option value=\"0\">0 sekunder mellem skift</option>";
+    echo "<option value=\"0\">0 seconds between shifts</option>";
     for ($i=0; $i<=60; $i+=5) {
-        echo "<option value=\"" . $i . "\">" . $i . " sekunder mellem skift</option>";
+        echo "<option value=\"" . $i . "\">" . $i . " seconds between shifts</option>";
     }
     echo "</select>";
 }
@@ -115,12 +115,12 @@ function change_page(page_name) {
             </form>
         </div>
         <div style="width:500px; margin-left:auto; margin-right:auto">
-            <p>number of teams: <?php echo $n_teams; ?></p>
-            <p>number of screens: <?php echo $screens; ?></p>
-            <p>teams per screen: <?php echo $teams_per_screen; ?></p>
-            <p>number of groups per screen: <?php echo $shifts; ?></p>
-            <p>number of teams per groups: <?php echo $teams_per_shift; ?></p>
-            <p>frequency of shifts: <?php echo $frequency; ?></p>
+            <p>Number of teams: <?php echo $n_teams; ?></p>
+            <p>Number of screens: <?php echo $screens; ?></p>
+            <p>Teams per screen: <?php echo $teams_per_screen; ?></p>
+            <p>Number of groups per screen: <?php echo $shifts; ?></p>
+            <p>Number of teams per group: <?php echo $teams_per_shift; ?></p>
+            <p>Frequency of shifts: <?php echo $frequency . "s"; ?></p>
             <form method="post" id="set_screens">
                 <div>
                     <label for="choices">screen options:</label>

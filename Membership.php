@@ -36,6 +36,10 @@ class Membership {
         } elseif ($ensure_credentials[0] == true && $ensure_credentials[1]['Permission'] == "user") {
             $_SESSION['status'] = 'authorized_user';
             header("location: start_user.php");
+		}
+		elseif ($ensure_credentials[0] == true && $ensure_credentials[1]['Permission'] == "app") {
+            $_SESSION['status'] = 'authorized_downloader';
+            header("location: download_app.php");
         } else
             return "Please enter a correct username and password";
     }
@@ -77,8 +81,16 @@ class Membership {
     	    header('location: login.php');
     }
 
+	function confirm_App() {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+        if ($_SESSION['status'] != 'authorized_downloader')
+    	    header('location: login.php');
+    }
+
     function check_Active() {
-        if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1800)) {
+        if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 86400)) {
             // last request was more than 30 minutes ago
             setcookie(session_name(), '', time() - 10000);
             session_unset();

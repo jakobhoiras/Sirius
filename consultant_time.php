@@ -99,6 +99,37 @@ function clock($half, $mysql, $time){
     return $time_disp1;
 }
 
+if( $_POST && !empty($_POST['reset_to_start']) ) {
+	$mysql->reset_game_progress($_SESSION['cg'], 'first');
+}
+
+if( $_POST && !empty($_POST['reset_to_second_half']) ) {
+	$mysql->reset_game_progress($_SESSION['cg'], 'second');
+}
+
+function make_table($teams_state){
+	echo "<table style='border-collapse:collapse; margin-right:auto; margin-left:auto'>";
+	echo "<caption>Position Lock:</caption>";
+	echo "<tr>";
+	echo "<th>Team</th>";
+	echo "<th>Lock</th>";
+	echo "</tr>";
+
+	for ($i = 0; $i < sizeof($teams_state); $i++){
+		if ( $teams_state[$i][7] == 0) { echo "<tr style='background:red'>"; }
+		else if ($teams_state[$i][7] == 1){ echo "<tr style='background:yellow'>"; }
+		else if ($teams_state[$i][7] == 2){ echo "<tr style='background:green'>"; }
+		echo "<td>" . $teams_state[$i][0] . "</td>";
+		echo "<td>" . $teams_state[$i][7] . "</td>";
+		echo "</tr>";
+	}
+	echo "</table>";
+}
+
+if( $_POST && !empty($_POST['refresh']) ) {
+	header('location: consultant_time.php');
+}
+
 ?>
 
 <html lang="da">
@@ -107,42 +138,55 @@ function clock($half, $mysql, $time){
             Consultant time panel
         </title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
+		<link rel="stylesheet" href="style.css" type="text/css" />
     </head>
-	<body onload="init();">
-        <div style="width:100%; padding-bottom:5px">
+	<body onload="init();" style="width:100%;height:100%">
+        <div style="width:100%; padding-bottom:5px;">
             <button id="back" type="button" onclick=change_page('consultant_panel')>Consultant menu</button>
             <form method="post" style="display:inline">
                 <input type="submit" value="Log out" style="float:right" name="logout" /><br>
             </form>
         </div>
-        <div style="width:800px; margin-left:auto; margin-right:auto;">
-		<div style="width:38%; float:left">
-			<h1>
-				<p>Options</p>
-			</h1>
-			<form method="post">
-				<input id="start_first_half_btn" type="button" value="start 1. half" onclick=start_first_half() disabled><br>
-                <input id="end_first_half_btn" type="button" value="end 1. half" onclick=end_first_half() disabled/><br>
-                <input id="start_second_half_btn" type="button" value="start 2. half" onclick=start_second_half() disabled><br>
-                <input id="end_second_half_btn" type="button" value="end 2. half" onclick=end_second_half() disabled/><br>
-				<input id="pause_btn" type="button" value="pause" onclick=pause_game() disabled/><br>
-				<input id="restart_btn" type="button" value="restart" onclick=restart_game() disabled/>
-			</form>
-		</div>
-		<div style="width:38%; float:left">
-			<h1>
-				<p>Status</p>
-			</h1>
-			<p id="g_state">Game state:  <?php echo $state; ?> </p>
-			<p id="g_progress">Game progress:  <?php echo $progress; ?> </p>
-            <p id="g_time1">1. half:  <?php echo $time_disp1; ?> </p>
-            <p id="g_time2">2. half:  <?php echo $time_disp2; ?> </p>
-			<p> Hold inde:  <?php echo $in; ?> </p>			
-            <p> Hold ude:  <?php echo $out; ?> </p>
-		</div>
-        <div style="width:24%; float:left">
-		</div>
+        <div style="width:700px; margin-left:auto; margin-right:auto;">
+			<div style="width:38%; float:left;">
+				<h1>
+					<p>Options</p>
+				</h1>
+				<form method="post">
+					<input id="start_first_half_btn" type="button" value="start 1. half" onclick=start_first_half() disabled><br>
+		            <input id="end_first_half_btn" type="button" value="end 1. half" onclick=end_first_half() disabled/><br>
+		            <input id="start_second_half_btn" type="button" value="start 2. half" onclick=start_second_half() disabled><br>
+		            <input id="end_second_half_btn" type="button" value="end 2. half" onclick=end_second_half() disabled/><br>
+					<input id="pause_btn" type="button" value="pause" onclick=pause_game() disabled/><br>
+					<input id="restart_btn" type="button" value="restart" onclick=restart_game() disabled/>
+				</form>
+			</div>
+			<div style="width:38%; float:left">
+				<h1>
+					<p>Status</p>
+				</h1>
+				<p id="g_state">Game state:  <?php echo $state; ?> </p>
+				<p id="g_progress">Game progress:  <?php echo $progress; ?> </p>
+		        <p id="g_time1">1. half:  <?php echo $time_disp1; ?> </p>
+		        <p id="g_time2">2. half:  <?php echo $time_disp2; ?> </p>
+				<p> Hold inde:  <?php echo $in; ?> </p>			
+		        <p> Hold ude:  <?php echo $out; ?> </p>
+			</div>
+			<div style="width:24%; float:left; overflow:auto;">
+				<form method="post">
+					<input type="submit" name="refresh" id="refresh" value="Refresh" style="display:inline" />
+				</form>
+				<?php make_table($teams_state); ?>
+			</div>
         </div>
+		<div style="width:100%; position:absolute; bottom:0px; margin-top:40px;">
+			<form method="post" style="width:50%; height:80px; float:left; text-align:center" onsubmit="return confirm('Are sure you want to reset the game progress?')">
+                <input type="submit" value="RESET TO START" style="height:50px; width:160px;" name="reset_to_start" /><br>
+            </form>
+			<form method="post" style="width:50%; height:80px; float:left; text-align:center" onsubmit="return confirm('Are sure you want to reset the game progress?')">
+                <input type="submit" value="RESET SECOND HALF" style="height:50px; width:160px;" name="reset_to_second_half" /><br>
+            </form>
+		</div>
 	</body>
 </html>
  

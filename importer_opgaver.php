@@ -177,6 +177,7 @@ if( $_POST && !empty($_POST['logout']) ) {
                         table.deleteRow(i);
                     }
                 }
+				location.reload();
             }
         }
         console.log(name);

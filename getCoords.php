@@ -26,7 +26,7 @@ class getCoords {
                     $gameName = $games[$i][1];
                 }
             }
-            $query = "SELECT * FROM GAME_" . $gameName . ".Team_pos_" . $teamId . " ORDER BY count DESC LIMIT 1";
+            $query = "SELECT * FROM GAME_" . $gameName . ".Team_pos_" . $teamId . " ORDER BY count DESC LIMIT 20";
             if ($stmt = $this->conn->prepare($query)) {
                 $stmt->execute();
                 $result = $stmt->get_result();
@@ -35,11 +35,13 @@ class getCoords {
                 }
             }
 
-            $array = array(
+            $array = $coords;
+
+			/*array(
                 "latitude" => $coords[0][2] . "",
                 "longitude" => $coords[0][1] . "",
                 "timestamp" => $coords[0][3] . ""
-            );
+            );*/
 			header('Content-Type: application/json');
             echo json_encode($array);
         }
